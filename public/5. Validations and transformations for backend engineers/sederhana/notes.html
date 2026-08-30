@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paket diperiksa sebelum masuk rak / Bab 5 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 5 tentang validasi dan transformasi untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 5 / VERSI SEDERHANA</p>
+      <h1>Paket diperiksa sebelum masuk rak.</h1>
+      <p class="lede">Sebelum paket menyentuh rak gudang, petugas memeriksa bentuk, format, dan maknanya. Kuka melihat bagaimana request yang rapi bisa bergerak dengan aman sampai ke handler.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Paket yang masuk ke gudang tidak selalu benar. Label bisa kabur. Isi bisa tidak sesuai. Ada juga paket yang tampak rapi, tetapi jumlah barangnya tidak masuk akal. <strong>Validasi</strong> memeriksa semua itu sebelum data dipakai oleh sistem.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka datang membawa request. Petugas di pintu gudang menahan paketnya, memeriksa bentuk, membaca label, dan memastikan isinya masuk akal sebelum paket menuju rak.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka menyerahkan satu paket kepada petugas pemeriksa di pintu gudang. Petugas melihat bentuk paket, mencocokkan labelnya, lalu membaca isi yang dilaporkan.</p>
+        <p>Jika paket bermasalah, petugas mengirimnya kembali kepada Kuka dengan alasan yang jelas. Jika paket lolos, petugas merapikan label dan kemasannya sebelum menyerahkannya ke rak.</p>
+        <details class="istilah">
+          <summary>Peta sederhananya</summary>
+          <p>Paket adalah data dari request. Petugas adalah pemeriksa di pintu. Barisan meja pemeriksa adalah <strong>pipeline</strong>. Rak adalah service dan database. Pemeriksaan bentuk, label, dan isi adalah validasi tipe, sintaksis, dan semantik.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/05-validasi/01-periksa.png" width="1672" height="941" alt="Kuka menyerahkan satu paket kepada meja mesin pemeriksa yang mengamatinya dengan lup besar di pintu gudang.">
+          <figcaption>Paket diperiksa di pintu.</figcaption>
+        </figure>
+        <p>Petugas tidak menunggu sampai paket berada di rak. Pemeriksaan dilakukan di pintu, saat kesalahan masih mudah dikembalikan dan belum mengganggu isi gudang.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Server menerima data dari luar. Data itu belum boleh dipercaya hanya karena datang dari halaman milik kita. Validasi menjaga agar data yang masuk memiliki bentuk, format, rentang, dan makna yang diharapkan.</p>
+        <p>Tanpa validasi, data buruk dapat berjalan terlalu jauh. Ia bisa melewati controller dan service, lalu gagal ketika database mencoba menyimpannya. Kesalahan yang seharusnya menjadi tanggung jawab pengirim berubah menjadi masalah di dalam server.</p>
+        <p>Bayangkan Kuka mengirim paket dengan label umur bernilai minus. Petugas yang teliti mengirimnya kembali dengan <code>400</code>. Kode itu berarti request perlu diperbaiki. Sebaliknya, jika mesin gudang sendiri rusak dan raknya jebol, server mengirim <code>500</code>. Itu kesalahan internal.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/05-validasi/02-400-500.png" width="1672" height="941" loading="lazy" alt="Paket bertanda seru didorong kembali melalui jalur balik menuju Kuka sementara mesin di sampingnya tetap utuh.">
+          <figcaption>400 kembali, 500 di dalam.</figcaption>
+        </figure>
+        <p>Perbedaan <code>400</code> dan <code>500</code> penting. Kuka mendapat petunjuk untuk memperbaiki paket pada kasus pertama. Tim pemilik gudang mendapat sinyal untuk mencari kerusakan sistem pada kasus kedua.</p>
+        <p>Validasi tipe memeriksa bentuk nilai. Angka harus datang sebagai angka. Teks harus datang sebagai teks. Larik harus datang sebagai larik. Kuka tidak bisa mengisi celah bundar dengan paket kotak.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/05-validasi/03-tipe.png" width="1672" height="941" loading="lazy" alt="Tiga paket berbentuk bulat, kotak, dan tabung berada di depan tiga celah yang bentuknya sama, lalu Kuka mencocokkan satu paket.">
+          <figcaption>Bentuk harus cocok.</figcaption>
+        </figure>
+        <p>Setelah tipe benar, pemeriksaan bisa melihat aturan lain. Validasi sintaksis memeriksa format, seperti email yang memiliki tanda <code>@</code>. Validasi semantik memeriksa makna, seperti umur yang tidak boleh minus atau tanggal pulang yang tidak boleh mendahului tanggal datang.</p>
+        <p>Urutannya membantu petugas memberi pesan yang tepat. Jangan memeriksa arti angka sebelum memastikan nilai itu memang angka. Setiap meja dalam pipeline mengerjakan satu tugas, lalu meneruskan paket yang lolos.</p>
+        <details class="istilah">
+          <summary>Validasi kompleks atau dependen</summary>
+          <p>Aturan dependen melihat hubungan antarfield. Kupon bisa sah hanya jika request juga memiliki belanjaan. Satu field tidak selalu cukup untuk menentukan validitas field lain.</p>
+        </details>
+        <details class="istilah">
+          <summary>Transformasi sebagai type casting</summary>
+          <p><strong>Type casting</strong> mengubah bentuk nilai yang akan dipakai, seperti mengubah teks <code>"12"</code> menjadi angka 12. Isi yang dimaksud tetap sama, tetapi kemasannya cocok untuk meja berikutnya.</p>
+        </details>
+        <details class="istilah">
+          <summary>Transformasi sebagai normalisasi</summary>
+          <p><strong>Normalisasi</strong> merapikan data ke bentuk yang seragam. Spasi berlebih dapat dibuang, huruf dapat dibuat kecil, dan format nomor dapat disamakan sebelum data disimpan.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/05-validasi/04-rapi.png" width="1672" height="941" loading="lazy" alt="Barang berantakan di atas meja disusun Kuka menjadi barisan lurus dengan bentuk dan jarak yang seragam.">
+          <figcaption>Data dirapikan sebelum disimpan.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Satu pipeline gabungan</summary>
+          <p>Validasi dan transformasi dapat menjadi satu barisan. Petugas memeriksa paket dari kiri ke kanan, lalu merapikannya hanya setelah semua aturan penting terpenuhi.</p>
+        </details>
+        <details class="istilah">
+          <summary>Frontend vs backend</summary>
+          <p><strong>Frontend</strong> dapat memberi bantuan awal agar pengguna cepat melihat kesalahan. <strong>Backend</strong> tetap menjadi penjaga terakhir karena request bisa datang dari mana saja. Pemeriksaan di frontend tidak menggantikan pemeriksaan di backend.</p>
+        </details>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur validasi dan transformasi request</title>
+            <desc id="alur-svg-desc">Request masuk, tipe, sintaksis, dan semantik diperiksa. Request yang lolos ditransformasi dan dinormalisasi sebelum menuju handler. Request yang gagal mendapat 400.</desc>
+            <defs>
+              <marker id="alur-arrow-validasi" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="25" y="145" width="145" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="97" y="181" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">request</text>
+            <text x="97" y="208" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">masuk</text>
+            <rect x="215" y="145" width="145" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="287" y="181" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">tipe</text>
+            <text x="287" y="208" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">dicek</text>
+            <rect x="405" y="145" width="145" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="477" y="181" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">format</text>
+            <text x="477" y="208" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">sintaksis</text>
+            <rect x="595" y="145" width="145" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="667" y="181" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">makna</text>
+            <text x="667" y="208" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">semantik</text>
+            <rect x="785" y="145" width="170" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="870" y="181" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="18" font-weight="600">transformasi</text>
+            <text x="870" y="208" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">normalisasi</text>
+            <rect x="1000" y="145" width="175" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1087" y="181" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">handler</text>
+            <text x="1087" y="208" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">dipanggil</text>
+            <path d="M 178 188 L 207 188" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-validasi)" />
+            <path d="M 368 188 L 397 188" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-validasi)" />
+            <path d="M 558 188 L 587 188" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-validasi)" />
+            <path d="M 748 188 L 777 188" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-validasi)" />
+            <path d="M 963 188 L 992 188" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-validasi)" />
+            <text x="380" y="285" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">gagal</text>
+            <text x="770" y="285" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">gagal</text>
+            <rect x="490" y="330" width="220" height="78" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="600" y="364" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">400</text>
+            <text x="600" y="391" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">kembali</text>
+            <path d="M 287 235 C 287 300 430 300 490 350" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-validasi)" />
+            <path d="M 477 235 C 477 285 520 300 550 326" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-validasi)" />
+            <path d="M 667 235 C 667 285 650 300 630 326" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-validasi)" />
+          </svg>
+        </div>
+        <p>Request masuk lewat pintu pemeriksaan. Tipe, format, dan makna dicek berurutan. Jika lolos, data ditransformasi dan dinormalisasi sebelum handler bekerja. Jika gagal, server mengirim <code>400</code>.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Percobaan 1
+POST /paket
+umur: -2
+400 Bad Request
+Percobaan 2
+POST /paket
+umur: 12
+200 OK</pre>
+        </div>
+        <p>Seperti kartu pos, percobaan pertama kembali kepada pengirim karena umur minus tidak masuk akal. Percobaan kedua lolos dan boleh diteruskan ke handler.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Validasi memeriksa data dari luar sebelum data menyentuh logika penting.</li>
+          <li><code>400</code> menunjukkan request buruk dari pengirim.</li>
+          <li><code>500</code> menunjukkan masalah di dalam server.</li>
+          <li>Validasi tipe memeriksa bentuk nilai, sintaksis memeriksa format, dan semantik memeriksa makna.</li>
+          <li>Pipeline menjalankan pemeriksaan dalam urutan yang jelas.</li>
+          <li>Transformasi dan normalisasi menyiapkan data yang sudah lolos agar seragam untuk handler.</li>
+          <li>Frontend membantu pengguna, tetapi backend tetap harus memeriksa ulang.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Kenapa server harus memeriksa request lagi padahal halaman frontend sudah memeriksa?</li>
+          <li>Apa beda <code>400</code> dan <code>500</code>, dan kenapa beda itu penting?</li>
+          <li>Apa beda cek bentuk atau tipe, cek format atau sintaksis, dan cek masuk akal atau semantik?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas tempat validasi bekerja, urutan pipeline, dan cara transformasi menjaga data tetap aman sebelum logika bisnis berjalan.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Tiga lapisan tempat validasi tinggal</a></li>
+          <li><a href="../html_notes/notes.html">Siklus hidup request</a></li>
+          <li><a href="../html_notes/notes.html">Titik eksekusi</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Controller beranotasi lengkap</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 5 / Validasi &amp; Transformasi. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
