@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rak dekat dapur untuk bahan favorit / Bab 9 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 9 tentang caching untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 9 / VERSI SEDERHANA</p>
+      <h1>Rak dekat dapur untuk bahan favorit.</h1>
+      <p class="lede">Kuka membantu chef di restoran yang sibuk. Ia menaruh salinan bahan favorit di rak dekat dapur, jadi tidak perlu berjalan ke gudang setiap kali ada pesanan.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Setiap pesanan meminta bahan yang berbeda. Jika semua bahan berada di gudang, Kuka harus berjalan jauh untuk mengambilnya. Satu perjalanan memang tidak masalah. Ratusan perjalanan membuat dapur lambat.</p>
+        <p>Salinan bahan favorit di rak dekat dapur membuat pengambilan lebih singkat. Salinan itu disebut <strong>cache</strong>. Gudang tetap menjadi tempat utama, sedangkan rak dekat membantu pekerjaan yang sering berulang.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka mendapat pesanan sup. Ia melihat rak dekat dapur lebih dulu. Jika toples tomat ada, ia langsung memasak tanpa menutup pintu dapur untuk pergi ke gudang.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka menata toples bumbu yang paling sering dipakai di rak kecil dekat kompor. Rak itu mudah dijangkau. Ia tetap tahu bahwa persediaan utama berada di gudang, seperti database pada bab sebelumnya.</p>
+        <p>Saat pesanan datang, Kuka mengecek rak dekat dapur. Toples yang ditemukan langsung diberikan kepada chef. Jika toples tidak ada, ia berjalan ke gudang, mengambil bahan, lalu menitipkan salinannya di rak untuk permintaan berikutnya.</p>
+        <details class="istilah">
+          <summary>Peta istilah rak dapur</summary>
+          <p>Rak dekat dapur adalah cache. Gudang adalah database. Toples yang sering diambil adalah data yang layak disalin. Permintaan bahan adalah request. Mengambil dari rak lebih cepat daripada berjalan ke gudang.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/09-caching/01-rak-dekat.png" width="1672" height="941" alt="Kuka mengambil toples dari rak kecil dekat dapur, sementara pintu gudang terlihat jauh di belakangnya.">
+          <figcaption>Rak dekat dapur.</figcaption>
+        </figure>
+        <p>Google menyimpan salinan halaman di banyak tempat agar hasil pencarian cepat. Netflix juga menaruh salinan video lebih dekat dengan penonton. Dapur mereka punya banyak rak, tetapi idenya sama: data yang sering diminta tidak selalu perlu diambil dari gudang utama.</p>
+        <details class="istilah">
+          <summary>Contoh dunia nyata</summary>
+          <p>Google dan Netflix memakai banyak lapisan cache. Salinan diletakkan sedekat mungkin dengan orang yang meminta. Jarak yang lebih pendek biasanya berarti waktu tunggu yang lebih kecil.</p>
+        </details>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Caching berarti menyimpan salinan data di tempat yang lebih cepat dijangkau. Aplikasi memeriksa cache sebelum meminta data dari database. Jika salinan masih ada, aplikasi segera mengembalikannya. Jika tidak ada, aplikasi mengambil data dari sumber utama dan dapat menyimpan salinan baru.</p>
+        <p>Ada beberapa tingkat caching. Data bisa berada di meja kerja program, di server aplikasi, atau di layanan yang dekat dengan database. Semakin dekat tempatnya dengan peminta, biasanya semakin cepat. Setiap tingkat juga punya ruang dan aturan waktunya sendiri.</p>
+        <p><strong>Redis</strong> adalah layanan cepat untuk menyimpan data dalam bentuk key-value. Key seperti nama laci, sedangkan value adalah isi lacinya. Aplikasi meminta value dengan key yang tepat. Karena bekerja di memori, Redis cepat, tetapi data perlu aturan ketahanan jika ingin selamat dari listrik padam.</p>
+        <p>Rak juga tidak boleh penuh selamanya. Saat ruang habis, <strong>eviction</strong> memilih salinan yang harus dikeluarkan. Salah satu aturan membuang data yang paling lama tidak dipakai. Ruang kosong itu lalu tersedia untuk data yang lebih berguna.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/09-caching/02-eviction.png" width="1672" height="941" loading="lazy" alt="Rak cache penuh sesak, sementara Kuka mengeluarkan satu toples lama yang bersarang debu.">
+          <figcaption>Rak penuh, satu dikeluarkan.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Caching jaringan</summary>
+          <p>Cabang restoran dapat memiliki raknya sendiri. Ia melayani permintaan lokal dari salinan yang dekat, lalu bertanya ke dapur pusat jika rak kosong. Jaringan pengiriman konten memakai gagasan serupa untuk menaruh salinan lebih dekat ke pengguna.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/09-caching/03-cabang.png" width="1672" height="941" loading="lazy" alt="Dua dapur cabang saling berhadapan, masing-masing memiliki rak kecil dengan isi yang sama.">
+          <figcaption>Rak di dua cabang.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Strategi caching</summary>
+          <p>Chef perlu menentukan kapan salinan dibuat dan kapan salinan dibaca langsung. Data yang sering berubah tidak cocok disimpan terlalu lama. Data yang jarang berubah dapat tinggal lebih lama. TTL membantu memberi batas waktu sebelum salinan dianggap kedaluwarsa.</p>
+        </details>
+        <details class="istilah">
+          <summary>Kasus Redis</summary>
+          <p>Redis dapat menyimpan stok yang sering dilihat, session login, atau antrean ringan. Bentuk key-value membuat pengambilan sederhana. Isi tetap perlu dirancang agar cache tidak menjadi sumber data yang keliru.</p>
+        </details>
+        <details class="istilah">
+          <summary>Tingkat caching</summary>
+          <p>Rak di meja kerja program paling dekat dan biasanya paling cepat. Rak di server aplikasi dapat dipakai bersama. Rak di jaringan melayani banyak lokasi. Setiap lapisan mengurangi perjalanan, tetapi menambah aturan untuk menjaga salinannya tetap masuk akal.</p>
+        </details>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur request dengan cache</title>
+            <desc id="alur-svg-desc">Request memeriksa cache. Jika ada, data balik cepat. Jika kosong, request berjalan ke gudang, salinan dititipkan ke rak, lalu data balik.</desc>
+            <defs>
+              <marker id="alur-arrow-caching" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="28" y="190" width="166" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="111" y="228" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">request</text>
+            <text x="111" y="253" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">butuh data</text>
+            <rect x="226" y="190" width="166" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="309" y="228" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">cache</text>
+            <text x="309" y="253" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">cek rak dekat</text>
+            <rect x="424" y="70" width="180" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="514" y="108" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">data</text>
+            <text x="514" y="133" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">balik cepat</text>
+            <rect x="424" y="354" width="180" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="514" y="392" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">kosong</text>
+            <text x="514" y="417" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">jalan</text>
+            <rect x="646" y="354" width="180" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="736" y="392" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">gudang</text>
+            <text x="736" y="417" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">ambil data</text>
+            <rect x="868" y="354" width="180" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="958" y="392" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">cache</text>
+            <text x="958" y="417" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">titip salinan</text>
+            <rect x="868" y="70" width="180" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="958" y="108" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">data</text>
+            <text x="958" y="133" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">balik</text>
+            <path d="M 202 233 L 218 233" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-caching)" />
+            <path d="M 392 215 C 408 190 424 150 432 140" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-caching)" />
+            <text x="412" y="174" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">ada</text>
+            <path d="M 392 250 C 410 282 424 332 432 370" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-caching)" />
+            <text x="414" y="315" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">kosong</text>
+            <path d="M 612 397 L 638 397" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-caching)" />
+            <path d="M 834 397 L 860 397" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-caching)" />
+            <path d="M 958 346 C 958 282 958 220 958 164" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-caching)" />
+            <path d="M 612 113 L 860 113" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-caching)" />
+          </svg>
+        </div>
+        <p>Request memeriksa rak dekat lebih dulu. Jika ada, data langsung balik cepat. Jika kosong, request berjalan ke gudang, menitipkan salinan di rak, lalu mengembalikan data.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <div>Permintaan pertama: tomat tidak ada di rak, Kuka berjalan ke gudang.<br>Salinan tomat dititipkan di rak dekat dapur.<br>Permintaan kedua: tomat ada di rak, Kuka langsung mengambilnya.<br>Dua permintaan sama, perjalanan kedua lebih singkat.</div>
+        </div>
+        <p>Kartu pos kecil ini mengingatkan satu hal. Permintaan pertama mengisi rak. Permintaan kedua memanfaatkan salinan yang sudah dekat.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Cache adalah salinan data di tempat yang lebih cepat dijangkau.</li>
+          <li>Aplikasi memeriksa cache sebelum meminta data dari database.</li>
+          <li>Beberapa tingkat caching dapat berada di program, server, dan jaringan.</li>
+          <li>Redis menyimpan data cepat dalam bentuk key-value di memori.</li>
+          <li>Eviction mengeluarkan salinan saat rak penuh, sesuai kebijakan yang dipilih.</li>
+          <li>Strategi caching menentukan kapan salinan dibuat dan berapa lama ia dipakai.</li>
+          <li>Data yang sudah lama dapat menyesatkan jika salinan tidak diperbarui.</li>
+          <li>Redis cocok untuk stok yang sering dibaca, session login, dan antrean ringan.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Apa untungnya menyimpan salinan bahan di rak dekat dapur?</li>
+          <li>Apa yang dilakukan chef saat rak penuh dan ada bahan baru?</li>
+          <li>Kapan salinan di rak bisa menjadi bahaya, dan apa nama masalah itu?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas cara memilih cache, mengatur masa hidup salinan, dan menangani data yang berubah.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li>Caching tingkat perangkat keras</li>
+          <li>Cache di jaringan pengiriman konten</li>
+          <li>Perbedaan cache dan sumber data utama</li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <p>Contoh kode caching ada di <a href="../html_notes/notes.html">versi teknis</a>.</p>
+        <p>Bacaan lanjutan dan dokumentasi ada di <a href="../html_notes/notes.html">catatan teknis Bab 9</a>.</p>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 9 / Caching. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>

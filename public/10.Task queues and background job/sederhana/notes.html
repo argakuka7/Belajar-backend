@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kue dimasak di dapur belakang / Bab 10 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 10 tentang task queues dan background jobs untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 10 / VERSI SEDERHANA</p>
+      <h1>Kue dimasak di dapur belakang.</h1>
+      <p class="lede">Kuka datang ke restoran yang ramai. Ia melihat kasir menulis tiket, juru masak bekerja di dapur belakang, dan staf membawa kue ke meja setelah selesai.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Pesanan kue bisa butuh waktu tiga puluh menit. Jika kasir memasak sendiri di depan tamu, kasir berhenti menerima pesanan lain. Antrean meja bertambah dan restoran terasa macet.</p>
+        <p><strong>background job</strong> adalah pekerjaan yang tidak perlu selesai di dalam request saat ini. Server menerima permintaan singkat, lalu pekerjaan panjang berjalan di belakang agar jalur utama tetap cepat.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka melihat kasir menulis pesanan kue di selembar tiket. Kasir tidak meninggalkan meja. Tiket itu pergi ke dapur belakang, tempat pekerjaan dapat selesai tanpa membuat tamu lain menunggu di kasir.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka melihat papan tiket di dinding dapur. Setiap pesanan kue mendapat satu tiket. Tiket yang belum dikerjakan menunggu di papan, lalu juru masak mengambilnya satu per satu.</p>
+        <p>Papan tiket itu seperti <strong>antrean</strong>. Pesanan baru masuk ke belakang. Juru masak mengambil tiket yang siap dikerjakan. Setelah kue selesai, staf mengantar hasilnya ke meja dan tiket dapat disingkirkan.</p>
+        <details class="istilah">
+          <summary>Peta istilah dapur</summary>
+          <p>Tiket adalah task. Papan tiket adalah queue. Kasir yang menempel tiket adalah <strong>producer</strong>. Juru masak yang mengambil dan mengerjakan tiket adalah <strong>consumer</strong> atau worker. Dapur belakang adalah proses terpisah dari kasir. Sistem yang menyimpan dan membagikan tiket disebut broker.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/10-antrean/01-papan-tiket.png" width="1672" height="941" alt="Papan tiket besar di dapur penuh kertas tergantung, juru masak mesin mengambil satu tiket, dan Kuka menempelkan tiket lain." />
+          <figcaption>Papan tiket dapur.</figcaption>
+        </figure>
+        <p>Papan itu memisahkan orang yang menerima pesanan dari orang yang mengerjakannya. Pemisahan ini membuat restoran tetap melayani tamu meski satu kue belum selesai.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Alur sinkron membuat pengirim menunggu sampai seluruh pekerjaan selesai. Kasir menerima pesanan, memasak kue, lalu baru dapat melayani tamu berikutnya. Cara ini mudah dipahami, tetapi lambat saat pekerjaan memakan waktu atau bergantung pada layanan lain.</p>
+        <p>Alur asinkron mengembalikan nomor lebih dahulu. Kasir menaruh tiket di queue dan segera menerima pesanan lain. Tamu dapat duduk sambil menunggu. Pekerjaan tetap berjalan, tetapi tidak menahan jalur kasir.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/10-antrean/02-nomor.png" width="1672" height="941" loading="lazy" alt="Kuka duduk santai di meja memegang nomor kecil, secangkir minuman di dekatnya, sementara dapur terlihat di kejauhan." />
+          <figcaption>Menunggu dengan nomor.</figcaption>
+        </figure>
+        <p>Cara kerja queue sederhana. Producer membuat task dan menaruhnya di queue. Worker mengambil task yang tersedia, menjalankan pekerjaan, lalu menandai hasilnya. Task berikutnya baru diambil setelah worker siap.</p>
+        <p>Producer sebaiknya cepat. Ia mengumpulkan data yang dibutuhkan dan menulis tiket yang jelas. Consumer atau worker mengurus pekerjaan berat. Beberapa worker dapat bekerja bersama untuk menghabiskan papan lebih cepat.</p>
+        <p>Pekerjaan tidak selalu berhasil pada percobaan pertama. Jika layanan tepung sedang bermasalah, <strong>retry</strong> mencoba task lagi. Backoff memberi jeda yang makin panjang agar percobaan berikutnya tidak menambah beban pada layanan yang sedang gagal.</p>
+        <details class="istilah">
+          <summary>Retry dan backoff</summary>
+          <p>Worker dapat mencoba ulang beberapa kali. Jeda pendek cocok untuk gangguan singkat. Jeda yang bertambah memberi waktu bagi layanan untuk pulih. Setelah batas percobaan tercapai, task perlu ditandai gagal dan diperiksa, bukan diulang tanpa batas.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/10-antrean/03-coba-lagi.png" width="1672" height="941" loading="lazy" alt="Satu tiket terjatuh di lantai, dan Kuka membungkuk untuk memungutnya kembali ke papan dapur." />
+          <figcaption>Tiket dicoba lagi.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Visibility timeout</summary>
+          <p>Saat worker mengambil tiket, tiket itu dapat disembunyikan sementara dari worker lain. Waktu ini disebut visibility timeout. Jika worker selesai, ia mengakui keberhasilan dan tiket dibuang. Jika worker macet terlalu lama, tiket muncul lagi agar dapat dicoba worker lain.</p>
+        </details>
+        <details class="istilah">
+          <summary>Jenis task</summary>
+          <p>Task dapat mengirim email, membuat laporan, mengubah ukuran foto, atau membersihkan data lama. Jenisnya berbeda, tetapi polanya sama: masukkan pekerjaan ke queue, kerjakan di worker, lalu catat hasilnya.</p>
+        </details>
+        <details class="istilah">
+          <summary>Kasus pemakaian nyata</summary>
+          <p>Toko online memakai background job untuk mengirim konfirmasi pesanan. Aplikasi foto memakainya untuk memproses gambar besar. Layanan laporan memakainya agar pengguna tidak perlu menunggu halaman terbuka sampai semua data selesai dihitung.</p>
+        </details>
+        <details class="istilah">
+          <summary>Idempotensi</summary>
+          <p>Task yang sama bisa terkirim lebih dari sekali karena jaringan atau worker gagal setelah pekerjaan selesai. Handler idempotent memastikan percobaan kedua tidak membuat dua kue atau mengirim dua tagihan. Kunci pesanan dan catatan hasil membantu mengenali pekerjaan yang sudah selesai.</p>
+        </details>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur tiket kue di dapur</title>
+            <desc id="alur-svg-desc">Tamu memesan kue, kasir menulis tiket dan menempelkannya ke papan, juru masak mengambil tiket, memasak kue, lalu staf mengantar kue jadi ke meja.</desc>
+            <defs>
+              <marker id="alur-arrow-antrean" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="12" y="155" width="170" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="97" y="191" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">tamu</text>
+            <text x="97" y="218" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">pesan kue</text>
+            <rect x="212" y="155" width="170" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="297" y="185" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">kasir</text>
+            <text x="297" y="212" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">tulis tiket</text>
+            <text x="297" y="229" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">tempel ke papan</text>
+            <rect x="412" y="155" width="170" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="497" y="191" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">papan</text>
+            <text x="497" y="218" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">tiket menunggu</text>
+            <rect x="612" y="155" width="170" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="697" y="185" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="18" font-weight="600">juru masak</text>
+            <text x="697" y="218" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">ambil tiket</text>
+            <rect x="812" y="155" width="170" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="897" y="191" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">masak</text>
+            <text x="897" y="218" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">kue jadi</text>
+            <rect x="1012" y="155" width="176" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1100" y="191" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">staf</text>
+            <text x="1100" y="218" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">antar ke meja</text>
+            <path d="M 190 198 L 204 198" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-antrean)" />
+            <path d="M 390 198 L 404 198" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-antrean)" />
+            <path d="M 590 198 L 604 198" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-antrean)" />
+            <path d="M 790 198 L 804 198" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-antrean)" />
+            <path d="M 990 198 L 1004 198" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-antrean)" />
+            <text x="600" y="310" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">tiket berpindah, kasir tetap melayani</text>
+          </svg>
+        </div>
+        <p>Tamu memulai pesanan. Kasir menulis tiket dan menempelkannya ke papan. Juru masak mengambil tiket, memasak kue, lalu staf mengantar kue jadi ke meja.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <div>
+            <p>Kartu pos dapur</p>
+            <p>Tamu: pesan kue.</p>
+            <p>Kasir: memberi nomor 27.</p>
+            <p>Tamu: menunggu sambil minum.</p>
+            <p>Staf: mengantar kue ke meja.</p>
+          </div>
+        </div>
+        <p>Nomor membuat tamu tidak perlu berdiri di depan kasir. Pekerjaan tetap berjalan sampai kue tiba.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Background job adalah pekerjaan yang berjalan di luar jalur request utama.</li>
+          <li>Queue menyimpan task sampai worker siap mengambilnya.</li>
+          <li>Alur sinkron membuat pengirim menunggu, sedangkan alur asinkron memberi nomor lalu melanjutkan pekerjaan.</li>
+          <li>Producer menulis task ke queue dan consumer atau worker mengerjakannya.</li>
+          <li>Retry mengulang task yang gagal, sedangkan backoff memberi jeda agar layanan tidak makin terbebani.</li>
+          <li>Visibility timeout menyembunyikan task yang sedang dikerjakan untuk sementara.</li>
+          <li>Worker perlu membuat pekerjaan aman saat task yang sama datang lagi dengan idempotensi.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Kenapa kue dikirim ke dapur belakang, tidak dimasak di depan tamu?</li>
+          <li>Siapa yang menempel dan siapa yang mengambil tiket di papan dapur?</li>
+          <li>Apa yang terjadi kalau juru masak gagal membuat kue?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas task queue, worker, retry, dan pilihan desain dengan contoh yang lebih lengkap.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li>Broker</li>
+          <li>SQS Standard dan FIFO</li>
+          <li>Desain di skala besar</li>
+          <li>Rate limiting</li>
+          <li>Monitoring dengan Prometheus dan Grafana</li>
+          <li>Praktik terbaik</li>
+          <li>Perbandingan framework</li>
+          <li>Temporal dan orkestrasi workflow</li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <p>Contoh kode Go dan Python ada di <a href="../html_notes/notes.html">../html_notes/notes.html</a>.</p>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 10 / Task Queues dan Background Jobs. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+</body>
+
+</html>
