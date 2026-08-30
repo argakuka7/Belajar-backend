@@ -1,10 +1,10 @@
-# Kontrak gaya ilustrasi Arga
+# Kontrak gaya ilustrasi Kuka
 
 Sumber resmi: `~/.dsh/skills/kuka-ilustrasi-skill/` (SKILL.md + `references/`). File ini meringkas bagian yang bisa ditegakkan saat implementasi bab 1.
 
-## Karakter pemandu: Arga
+## Karakter pemandu: Kuka
 
-Arga adalah avatar pembuat, pemandu pembaca di Versi Sederhana.
+Kuka adalah avatar pembuat, pemandu pembaca di Versi Sederhana.
 
 Kunci visual (wajib, dari `references/character-arga.md`):
 - Tubuh kacang lonjong, PUTIH solid, flat ink, tanpa outline tambahan.
@@ -31,7 +31,7 @@ Pemeran lain: server dan objek teknis digambar sebagai objek (loket, mesin, ampl
 - Aksen merah/oranye/biru jarang. Ruang kosong 35-40%.
 - Aneh tapi bersih. Bukan maskot lucu, bukan infografis PPT, bukan kartun anak.
 
-## Aturan teks (Arga's rule)
+## Aturan teks (Kuka's rule)
 
 Gambar tanpa teks apa pun. Setiap prompt wajib memuat:
 ```

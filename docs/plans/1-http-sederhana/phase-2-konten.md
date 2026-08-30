@@ -10,7 +10,7 @@ Sembilan bagian terisi. Pembaca pemula selesai membaca dalam 10-15 menit dan bis
 
 - `public/1.HTTP-AND-CORS/sederhana/notes.html` (isi). Peta bagian ke manifest:
   1. `masalah`: skenario harian: buka link, halaman muncul. Apa yang sebenarnya terjadi.
-  2. `analogi`: Arga mengirim surat ke loket kantor pos: surat, label sampul, tanda terima bercap, loket yang tidak mengingat siapa pun.
+  2. `analogi`: Kuka mengirim surat ke loket kantor pos: surat, label sampul, tanda terima bercap, loket yang tidak mengingat siapa pun.
   3. `ilustrasi`: placeholder untuk fase 3, jangan diisi gambar di fase ini.
   4. `konsep`: CORE dari manifest (`konsep-bab1.md`): lingkaran request/respons, anatomi pesan sebagai surat, method sebagai kata kerja, status code sebagai cap, HTTPS sebagai amplop tersegel. RINGAN: stateless-kartu identitas, caching fotokopi, keep-alive jalur terbuka.
   5. `alur`: diagram alur SVG inline: browser ke server, request, respons, status.

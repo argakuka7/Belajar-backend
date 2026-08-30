@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mengirim bentuk lewat celah surat / Bab 3 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 3 tentang serialisasi dan deserialisasi untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 3 / VERSI SEDERHANA</p>
+      <h1>Mengirim bentuk lewat celah surat.</h1>
+      <p class="lede">Program menyimpan data dalam bentuknya sendiri. Proses serialize mengubah bentuk itu menjadi pesan yang bisa menyeberang, lalu deserialize memasangnya kembali di tempat tujuan.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Dua program bisa terhubung lewat satu kabel, tetapi isi kepalanya berbeda. Program pertama menyimpan data sebagai <strong>objek</strong>. Program kedua mungkin memakai bentuk data lain.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka ingin mengirim mainan kursi kecil. Mainan utuh tidak muat melewati celah surat yang pipih. Ia perlu mengubah bentuknya sebelum mengirim.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka membongkar mainan kursi menjadi potongan datar. Ia menata potongan itu berjajar, lalu memasukkannya lewat celah surat yang sempit.</p>
+        <p>Di seberang, penerima melihat urutan potongan yang sama. Ia memasang kembali setiap potongan sampai mainan itu kembali utuh.</p>
+        <details class="istilah">
+          <summary>Peta sederhananya</summary>
+          <p>Mainan utuh adalah objek di <strong>memory</strong>. Membongkar dan menatanya menjadi bentuk kirim adalah <strong>serialize</strong>. Memasang kembali potongan itu adalah <strong>deserialize</strong>. Celah surat adalah kabel yang membawa pesan.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/03-serialisasi/01-kirim-bentuk.png" width="1672" height="941" alt="Kuka menekan mainan kursi menjadi potongan datar berjajar yang masuk melalui celah surat dengan panah oranye.">
+          <figcaption>Bentuk melewati celah surat.</figcaption>
+        </figure>
+        <p>Perhatikan urutannya. Kuka tidak mengirim mainan utuh. Ia mengirim bentuk datar yang bisa melewati celah, lalu penerima menyusunnya kembali.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Program menyimpan nilai dalam memory dengan bentuk yang cocok untuk bahasanya. Bentuk itu belum tentu bisa dikirim melalui jaringan. Program perlu mengubahnya menjadi <strong>format</strong> yang disepakati bersama.</p>
+        <p>Serialize berarti mengubah objek di memory menjadi teks atau byte yang siap dikirim. Deserialize melakukan kebalikannya. Ia membaca bentuk kirim, lalu membuat objek yang bisa dipakai program penerima.</p>
+        <p>Kedua pihak perlu memegang <strong>standar bersama</strong>. Standar menentukan nama field, jenis nilai, dan cara menulisnya. Tanpa kesepakatan itu, potongan yang datang bisa disusun dengan cara yang berbeda.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/03-serialisasi/02-standar.png" width="1672" height="941" loading="lazy" alt="Dua buku pegangan bersampul identik berada di satu meja dengan selembar potongan datar di atasnya.">
+          <figcaption>Dua buku, satu standar.</figcaption>
+        </figure>
+        <p>Standar bersama membuat dua program yang berbeda membaca pesan dengan aturan yang sama. Keduanya tidak perlu memakai bahasa pemrograman yang sama.</p>
+        <p>Format kirim biasanya masuk ke dua kelompok. Format teks mudah dilihat manusia. Format biner menyimpan potongan dalam bentuk yang lebih padat.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/03-serialisasi/03-biner.png" width="1672" height="941" loading="lazy" alt="Kuka menimbang dua tumpukan pada neraca kecil, satu tumpukan panjang penuh potongan bertanda dan satu bata padat kecil.">
+          <figcaption>Potongan padat menghemat tempat.</figcaption>
+        </figure>
+        <p><strong>JSON</strong> adalah format teks yang sering dipakai untuk bertukar data lewat HTTP. Teksnya mudah dibaca, sehingga orang bisa memeriksa isi pesan saat debugging.</p>
+        <details class="istilah">
+          <summary>Format teks vs biner</summary>
+          <p>Format teks seperti JSON memakai karakter yang dapat dibaca. Format biner memakai susunan byte yang lebih ringkas. Teks membantu pemeriksaan. Biner dapat menghemat ruang dan waktu kirim.</p>
+        </details>
+        <details class="istilah">
+          <summary>JSON</summary>
+          <p>JSON adalah format teks dengan aturan sederhana untuk objek, <strong>string</strong>, angka, boolean, larik, dan nilai kosong. Banyak client dan server dapat membaca JSON.</p>
+        </details>
+        <details class="istilah">
+          <summary>Alur kerja end-to-end</summary>
+          <p>Program membuat objek, melakukan serialize menjadi JSON, mengirimnya lewat kabel, lalu program tujuan melakukan deserialize menjadi objek lagi. Respons berjalan dengan urutan kebalikan.</p>
+        </details>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 960 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur objek menjadi teks JSON dan kembali menjadi objek</title>
+            <desc id="alur-svg-desc">Objek di memory di-serialize menjadi teks JSON, dikirim lewat kabel, lalu di-deserialize menjadi objek di seberang.</desc>
+            <defs>
+              <marker id="alur-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="30" y="88" width="170" height="96" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="115" y="124" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">objek</text>
+            <text x="115" y="153" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">di memory</text>
+            <rect x="266" y="64" width="174" height="144" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="353" y="113" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">serialize</text>
+            <text x="353" y="145" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">teks JSON</text>
+            <text x="353" y="175" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">siap kirim</text>
+            <rect x="506" y="88" width="170" height="96" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="591" y="124" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">kabel</text>
+            <text x="591" y="153" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">dikirim</text>
+            <rect x="742" y="64" width="188" height="144" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="836" y="113" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">deserialize</text>
+            <text x="836" y="145" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">objek lagi</text>
+            <text x="836" y="175" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">di seberang</text>
+            <path d="M 206 136 L 258 136" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow)" />
+            <path d="M 446 136 L 498 136" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow)" />
+            <path d="M 682 136 L 734 136" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow)" />
+          </svg>
+        </div>
+        <p>Objek di memory berubah menjadi teks JSON. Kabel membawa teks itu. Program di seberang melakukan deserialize dan mendapatkan objek lagi.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Objek di memory
+{ nama: "Kuka", jumlah: 1 }
+serialize
+{"nama":"Kuka","jumlah":1}
+deserialize
+Objek lagi: nama Kuka, jumlah 1</pre>
+        </div>
+        <p>Seperti kartu pos, objek mendapat bentuk datar untuk perjalanan. Penerima membaca satu baris JSON itu, lalu memakai datanya sebagai objek lagi.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Dua program perlu bentuk pesan yang bisa dipahami bersama.</li>
+          <li>Serialize mengubah objek di memory menjadi format kirim.</li>
+          <li>Deserialize mengubah format kirim kembali menjadi objek.</li>
+          <li>Standar bersama menyamakan aturan penulisan dan pembacaan data.</li>
+          <li>JSON mudah dibaca. Format biner lebih padat dan hemat tempat.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Kenapa dua program tidak bisa saling berkirim objek langsung?</li>
+          <li>Apa yang terjadi saat serialize, dan apa kebalikannya?</li>
+          <li>Kenapa dua pihak harus memegang standar yang sama?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membongkar aturan serialize dan deserialize lebih jauh, termasuk sintaks JSON dan cara kerja di beberapa bahasa pemrograman.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Aturan sintaks JSON</a></li>
+          <li><a href="../html_notes/notes.html">Model mental OSI</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Serialisasi di Go</a></li>
+          <li><a href="../html_notes/notes.html">Serialisasi di Python</a></li>
+          <li><a href="../html_notes/notes.html">Glosarium serialisasi</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 3 / Serialisasi &amp; Deserialisasi. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+</body>
+
+</html>

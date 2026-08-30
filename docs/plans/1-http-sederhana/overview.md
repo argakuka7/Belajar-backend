@@ -1,4 +1,4 @@
-# Plan: Versi Sederhana Bab 1 HTTP + ilustrasi Arga
+# Plan: Versi Sederhana Bab 1 HTTP + ilustrasi Kuka
 
 ## Context
 
@@ -11,7 +11,7 @@ Untuk siapa: pembaca pemula mendapat halaman masuk yang bisa dipahami tanpa isti
 **Masuk.**
 - Halaman `public/1.HTTP-AND-CORS/sederhana/notes.html` dengan struktur 9 bagian yang sudah disepakati.
 - `public/assets/sederhana.css` sebagai komponen bersama (dipakai ulang bab 2-3).
-- Ilustrasi Arga: 1 utama 16:9 + 3 pendukung, disimpan di `public/assets/illustrations/01-http/`.
+- Ilustrasi Kuka: 1 utama 16:9 + 3 pendukung, disimpan di `public/assets/illustrations/01-http/`.
 - Link dua arah antara kedua versi, plus satu link penanda di `public/index.html` untuk bab yang punya versi sederhana.
 - Inventaris konsep Bab 1 dan manifest coverage di `konsep-bab1.md`.
 
@@ -25,7 +25,7 @@ Untuk siapa: pembaca pemula mendapat halaman masuk yang bisa dipahami tanpa isti
 
 - Situs statis murni. Halaman baru adalah HTML+CSS+sedikit JS vanilla, konsisten dengan design token yang sudah ada (paper, ink, rust, gold, teal).
 - Ilustrasi lokal di `public/assets/illustrations/`, bukan gambar runtime atau URL eksternal.
-- Gaya Arga terkunci oleh `kontrak-arga.md`. Gambar tanpa teks; semua label hidup di HTML.
+- Gaya Kuka terkunci oleh `kontrak-kuka.md`. Gambar tanpa teks; semua label hidup di HTML.
 - Prosa mengikuti `tools/STYLE_GUIDE.md`: bahasa Indonesia wajar, tanpa em-dash, istilah teknis tetap Inggris.
 - Repo git ada di root project. Commit dari root.
 
@@ -46,7 +46,7 @@ Untuk siapa: pembaca pemula mendapat halaman masuk yang bisa dipahami tanpa isti
 
 1. [phase-1-scaffold.md](phase-1-scaffold.md): shell halaman sederhana, CSS bersama, link dua arah.
 2. [phase-2-konten.md](phase-2-konten.md): isi 9 bagian sesuai manifest coverage.
-3. [phase-3-ilustrasi.md](phase-3-ilustrasi.md): shot list, generate, QA, simpan ilustrasi Arga.
+3. [phase-3-ilustrasi.md](phase-3-ilustrasi.md): shot list, generate, QA, simpan ilustrasi Kuka.
 4. [phase-4-integrasi.md](phase-4-integrasi.md): pasang ilustrasi + diagram + istilah, link index.html, verifikasi penuh.
 
 Urutan ini menaruh scaffold dan kontrak (yang dipakai semua fase berikutnya) lebih dulu. Ilustrasi sebelum integrasi supaya fase 4 hanya menyambung, tidak menunggu.

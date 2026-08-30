@@ -43,13 +43,13 @@
       <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
         <div class="sec-head">
           <span class="sec-num" aria-hidden="true">02</span>
-          <h2 id="analogi-title">Analogi Arga</h2>
+          <h2 id="analogi-title">Analogi Kuka</h2>
         </div>
-        <p>Arga datang ke loket kantor pos untuk meminta sebuah surat. Ia menyerahkan surat permintaan kepada petugas, lengkap dengan alamat tujuan dan isi yang ingin dikirim.</p>
-        <p>Petugas loket memeriksa surat itu lalu memberikan tanda terima bercap. Loket tidak mengingat Arga setelah urusan selesai, jadi pada kunjungan berikutnya Arga perlu membawa kartu identitas lagi.</p>
+        <p>Kuka datang ke loket kantor pos untuk meminta sebuah surat. Ia menyerahkan surat permintaan kepada petugas, lengkap dengan alamat tujuan dan isi yang ingin dikirim.</p>
+        <p>Petugas loket memeriksa surat itu lalu memberikan tanda terima bercap. Loket tidak mengingat Kuka setelah urusan selesai, jadi pada kunjungan berikutnya Kuka perlu membawa kartu identitas lagi.</p>
         <details class="istilah">
           <summary>Peta sederhananya</summary>
-          <p>Surat Arga adalah request, jawaban loket adalah respons, dan jalur pos adalah TCP yang membawa pesan dari satu tempat ke tempat lain.</p>
+          <p>Surat Kuka adalah request, jawaban loket adalah respons, dan jalur pos adalah TCP yang membawa pesan dari satu tempat ke tempat lain.</p>
         </details>
       </section>
 
@@ -59,8 +59,8 @@
           <h2 id="ilustrasi-title">Ilustrasi</h2>
         </div>
         <figure class="ilustrasi">
-          <img src="../../assets/illustrations/01-http/01-request-respons.png" width="1672" height="941" alt="Arga menyerahkan surat ke loket dan menerima tanda terima dalam alur request dan respons HTTP.">
-          <figcaption>Arga menyerahkan surat, loket mengembalikan tanda terima.</figcaption>
+          <img src="../../assets/illustrations/01-http/01-request-respons.png" width="1672" height="941" alt="Kuka menyerahkan surat ke loket dan menerima tanda terima dalam alur request dan respons HTTP.">
+          <figcaption>Kuka menyerahkan surat, loket mengembalikan tanda terima.</figcaption>
         </figure>
         <p>Perhatikan dua arahnya saja. Surat masuk lewat celah atas. Tanda terima keluar lewat celah bawah.</p>
       </section>
@@ -70,7 +70,7 @@
           <span class="sec-num" aria-hidden="true">04</span>
           <h2 id="konsep-title">Penjelasan konsep</h2>
         </div>
-        <p>Di loket pos, surat permintaan Arga adalah request. Tanda terimanya adalah respons. Di HTTP, browser jadi client dan loket jadi server.</p>
+        <p>Di loket pos, surat permintaan Kuka adalah request. Tanda terimanya adalah respons. Di HTTP, browser jadi client dan loket jadi server.</p>
         <p>Surat punya tiga bagian: baris perintah untuk mengatakan apa yang diminta, label di sampul sebagai <strong>header</strong>, dan isi surat sebagai <strong>body</strong>.</p>
         <p><strong>Method</strong> adalah kata kerja pada kertas permintaan: <code>GET</code> untuk mengambil, <code>POST</code> untuk menitipkan, lalu <code>PUT</code>, <code>PATCH</code>, atau <code>DELETE</code> untuk mengganti atau menghapus.</p>
         <p><strong>Status code</strong> adalah cap pada tanda terima: <code>200</code> berarti berhasil, <code>404</code> berarti alamat tidak ditemukan, dan <code>500</code> berarti mesin server bermasalah.</p>
@@ -80,7 +80,7 @@
         </figure>
         <p><strong>HTTPS</strong> seperti amplop tersegel, sehingga tukang pos di perjalanan tidak bisa membaca atau mengubah isi surat.</p>
         <figure class="ilustrasi">
-          <img src="../../assets/illustrations/01-http/04-https.png" width="1672" height="941" loading="lazy" alt="Surat dalam amplop tersegel bergerak dari Arga menuju loket melalui jalur pos.">
+          <img src="../../assets/illustrations/01-http/04-https.png" width="1672" height="941" loading="lazy" alt="Surat dalam amplop tersegel bergerak dari Kuka menuju loket melalui jalur pos.">
           <figcaption>Amplop tersegel sepanjang perjalanan.</figcaption>
         </figure>
         <p>Istilah yang cukup dikenali dulu, ketuk untuk membuka:</p>
@@ -109,7 +109,7 @@
           <p>Jalur pos tetap terbuka untuk beberapa surat, jadi loket tidak perlu membuka dan menutup jalur setiap kali.</p>
         </details>
         <figure class="ilustrasi">
-          <img src="../../assets/illustrations/01-http/02-stateless.png" width="1672" height="941" loading="lazy" alt="Arga membawa kartu identitas di depan loket yang tidak menyimpan catatan kunjungan.">
+          <img src="../../assets/illustrations/01-http/02-stateless.png" width="1672" height="941" loading="lazy" alt="Kuka membawa kartu identitas di depan loket yang tidak menyimpan catatan kunjungan.">
           <figcaption>Loket tidak menyimpan apa pun.</figcaption>
         </figure>
       </section>
