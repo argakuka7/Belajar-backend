@@ -169,6 +169,11 @@
   line-height: 1.8;
   color: var(--bfp-ink-faint);
 }
+.bfp-footer a {
+  color: var(--bfp-accent);
+  text-decoration: none;
+  font-weight: 600;
+}
 
 /* ---------- Drawer toggle (small screens only) ---------- */
 .bfp-toc-toggle {
