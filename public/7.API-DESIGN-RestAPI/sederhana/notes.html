@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu restoran yang tertulis konsisten / Bab 7 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 7 tentang desain REST API untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 7 / VERSI SEDERHANA</p>
+      <h1>Menu restoran yang tertulis konsisten.</h1>
+      <p class="lede">REST seperti menu restoran yang rapi. Kuka belajar membaca nama hidangan, memilih cara memesan, dan memahami jawaban dapur tanpa perlu dituntun.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Restoran menjadi sulit dilayani ketika setiap tamu menyebut hidangan dengan nama dan cara yang berbeda. Server juga kacau jika satu client memakai <strong>REST</strong> dengan aturan yang berubah-ubah.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka membuka menu. Ia ingin memesan kopi, tetapi nama hidangan, cara memesan, dan jawaban saat kopi habis harus jelas sejak awal.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka membaca menu yang sama seperti tamu lain. Semua hidangan punya nama yang mudah ditebak. Ia memilih kopi, lalu memakai kata kerja yang jelas untuk mengirim pesanannya.</p>
+        <p>Dapur tidak perlu mengenal Kuka secara pribadi. Dapur cukup membaca pesanan, memeriksa isinya, dan mengembalikan piring atau slip alasan dengan bentuk yang sudah disepakati.</p>
+        <details class="istilah">
+          <summary>Peta sederhananya</summary>
+          <p>Hidangan di menu adalah <strong>resource</strong>. Baris alamat seperti <strong>endpoint</strong>. Kata kerja seperti GET atau POST adalah <strong>method</strong>. Piring atau slip dari dapur adalah respons. Menu yang tetap konsisten adalah kontrak antara client dan server.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/07-api/01-menu.png" width="1672" height="941" alt="Kuka membaca papan menu besar dengan gambar hidangan yang tersusun rapi dalam kelompok, sementara pelayan mesin menunggu di sampingnya.">
+          <figcaption>Menu tertulis rapi.</figcaption>
+        </figure>
+        <p>Menu yang tertulis rapi membuat tamu baru bisa memesan sendiri. API yang konsisten memberi bantuan yang sama kepada client baru.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>REST adalah gaya merancang API dengan resource, nama alamat yang konsisten, dan pesan HTTP yang punya arti jelas. Resource menyimpan keadaan seperti menu kopi atau pesanan Kuka. Yang berpindah antara client dan server adalah representasi keadaan itu.</p>
+        <p>Karena pola namanya konsisten, client dapat menebak cara membaca atau mengubah resource tanpa bertanya kepada pembuat server untuk setiap endpoint.</p>
+        <h3>Anatomi route</h3>
+        <p>Route sebaiknya menyebut benda, bukan perintah. <code>/menu/kopi</code> menyebut resource kopi di dalam menu. Bentuk seperti <code>/buat-kopi</code> mencampur nama benda dan aksi.</p>
+        <p>Kata kerja datang dari method. <code>GET</code> membaca, <code>POST</code> membuat atau mengirim, <code>PUT</code> mengganti seluruh resource, <code>PATCH</code> memperbarui sebagian, dan <code>DELETE</code> menghapus. Garis miring menunjukkan hubungan, sedangkan query dapat memberi page, sort, atau filter.</p>
+        <h3>Method dan idempotensi</h3>
+        <p><strong>Idempotensi</strong> berarti mengulang operasi menghasilkan efek server yang sama seperti menjalankannya sekali. Jika Kuka mengirim permintaan yang sama lagi karena jaringan sempat terputus, dapur tidak boleh membuat dua piring tanpa alasan.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/07-api/02-idempoten.png" width="1672" height="941" loading="lazy" alt="Kuka menekan tombol panggil dua kali dengan dua tangan, tetapi hanya satu piring kopi berada di atas meja.">
+          <figcaption>Satu tombol, satu kopi.</figcaption>
+        </figure>
+        <p><code>GET</code>, <code>PUT</code>, dan <code>DELETE</code> biasanya idempotent. <code>POST</code> biasanya membuat resource baru setiap kali. Dengan kunci idempotensi, server dapat mengenali pengulangan POST dan menghindari pekerjaan ganda.</p>
+        <details class="istilah">
+          <summary>Aksi kustom</summary>
+          <p>Beberapa permintaan tidak pas dengan CRUD, seperti membatalkan pesanan atau menerbitkan ulang tiket. Pakai aksi kustom hanya ketika method biasa tidak cukup. Buat namanya jelas dan jangan mengubah setiap kata kerja bisnis menjadi route khusus.</p>
+        </details>
+        <h3>API daftar</h3>
+        <p>Menu yang panjang tidak perlu dikirim sekaligus. <code>page</code> membagi daftar menjadi halaman. <code>sort</code> memilih urutan. <code>filter</code> menyaring hidangan yang ingin dilihat. Server perlu memberi nilai default yang masuk akal supaya permintaan sederhana tetap mudah dipakai.</p>
+        <h3>Status code</h3>
+        <p>Status code adalah cap singkat yang menjelaskan hasil request. <code>200</code> berarti berhasil dibaca atau diproses. <code>201</code> berarti resource baru dibuat. <code>204</code> berarti berhasil tanpa isi balasan. <code>400</code> berarti request perlu diperbaiki. <code>404</code> berarti resource yang dicari tidak ada. <code>500</code> berarti masalah berada di server.</p>
+        <p>Cap ini membantu client memilih langkah berikutnya. Client dapat memperbaiki input untuk <code>400</code>, mencari alamat lain untuk <code>404</code>, atau mencoba lagi nanti saat server mengirim <code>500</code>.</p>
+        <h3>Respons error</h3>
+        <p>Jika pesanan gagal, server tidak boleh hanya mengembalikan piring kosong. Respons error perlu menyebut status dan alasan yang dapat dibaca, misalnya kopi tidak tersedia atau jumlah yang diminta tidak masuk akal.</p>
+        <details class="istilah">
+          <summary>Versioning</summary>
+          <p>Menu edisi baru boleh menambah hidangan atau memperbaiki bentuk jawaban, tetapi perubahan besar dapat memecah tamu lama. Versioning memberi nomor edisi seperti v1 dan v2. Tamu yang masih memakai edisi lama tetap dilayani sampai siap pindah.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/07-api/03-menu-versi.png" width="1672" height="941" loading="lazy" alt="Dua papan menu berada di dinding, satu diberi bendera kecil, sementara Kuka memegang papan menu lama dan pelayan mengangguk.">
+          <figcaption>Edisi lama tetap dilayani.</figcaption>
+        </figure>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur pesanan REST di restoran</title>
+            <desc id="alur-svg-desc">Tamu membaca menu, mengirim POST kopi, dapur memeriksa pesanan, lalu mengembalikan 200 jika jadi atau 400 dengan alasan.</desc>
+            <defs>
+              <marker id="alur-arrow-api" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="30" y="145" width="175" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="117" y="181" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="22" font-weight="600">tamu</text>
+            <text x="117" y="208" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">baca menu</text>
+            <rect x="280" y="145" width="205" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="382" y="181" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">pesan</text>
+            <text x="382" y="208" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">POST /kopi</text>
+            <rect x="560" y="145" width="175" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="647" y="181" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="22" font-weight="600">dapur</text>
+            <text x="647" y="208" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">cek</text>
+            <rect x="850" y="70" width="170" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="935" y="106" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="22" font-weight="600">jadi</text>
+            <text x="935" y="133" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">200</text>
+            <rect x="850" y="235" width="170" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="935" y="271" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="22" font-weight="600">slip alasan</text>
+            <text x="935" y="298" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">400</text>
+            <path d="M 213 188 L 272 188" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-api)" />
+            <path d="M 493 188 L 552 188" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-api)" />
+            <path d="M 743 175 C 780 145 800 120 842 120" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-api)" />
+            <path d="M 743 205 C 780 240 800 270 842 270" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-api)" />
+            <text x="790" y="96" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">berhasil</text>
+            <text x="790" y="292" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">gagal</text>
+          </svg>
+        </div>
+        <p>Tamu membaca menu, lalu mengirim method dan nama menu. Dapur memeriksa pesanan. Respons menyebut pesanan jadi atau mengirim slip alasan dengan <code>400</code>.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <div>
+            <p>Pesanan 1: POST /kopi, kunci K-7</p>
+            <p>Server: membuat satu kopi</p>
+            <p>Pesanan 2: POST /kopi, kunci K-7</p>
+            <p>Server: mengenali pengulangan</p>
+            <p>Hasil: tetap satu kopi, 200, idempoten</p>
+          </div>
+        </div>
+        <p>Kartu pos kedua tiba karena jaringan mengulang pesan. Kunci yang sama membuat server mengembalikan hasil pertama, bukan membuat piring baru.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>REST membuat kontrak yang konsisten antara client dan server.</li>
+          <li>Route menyebut resource dengan nama benda, sedangkan method menyebut tindakannya.</li>
+          <li>GET, PUT, dan DELETE biasanya idempotent. POST perlu perlindungan jika aman diulang itu penting.</li>
+          <li>API daftar memakai page, sort, dan filter agar menu panjang tetap mudah dibaca.</li>
+          <li>Status code memberi cap standar tentang hasil request.</li>
+          <li>Respons error perlu menyebut alasan yang dapat dibaca, bukan hanya mengirim piring kosong.</li>
+          <li>Versioning menjaga client lama tetap dapat memakai edisi API yang mereka kenal.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Apa itu REST dalam satu kalimat?</li>
+          <li>Kenapa pesanan yang sama dikirim dua kali tidak boleh menghasilkan dua piring?</li>
+          <li>Apa gunanya status code bagi pengirim request?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas standar REST, pilihan route, method, status code, dan bentuk respons error dengan contoh yang lebih lengkap.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Enam batasan REST</a></li>
+          <li><a href="../html_notes/notes.html">Kenapa REST membingungkan sekarang</a></li>
+          <li><a href="../html_notes/notes.html">Aturan emas untuk API</a></li>
+          <li><a href="../html_notes/notes.html">Batasan vs konvensi</a></li>
+          <li><a href="../html_notes/notes.html">Delapan prinsip</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <p>Contoh platform PM dan kode Go penuh ada di <a href="../html_notes/notes.html">../html_notes/notes.html</a>.</p>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 7 / Desain REST API. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+</body>
+
+</html>

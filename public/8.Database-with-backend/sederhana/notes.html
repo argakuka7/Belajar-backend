@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gudang dengan buku besar berpenjaga / Bab 8 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 8 tentang database dengan backend untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 8 / VERSI SEDERHANA</p>
+      <h1>Gudang dengan buku besar berpenjaga.</h1>
+      <p class="lede">Kuka masuk ke gudang restoran dan menemukan buku besar yang tidak mudah hilang. Setiap bahan punya laci, setiap catatan punya aturan, dan perpindahan bahan harus selesai utuh.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Restoran perlu mengingat bahan yang masuk, bahan yang keluar, dan jumlah yang tersisa. Catatan di kertas bisa basah, tertukar, atau hilang saat listrik padam. <strong>database</strong> menyimpan informasi lintas waktu supaya restoran dapat melanjutkan pekerjaan besok.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka menutup gudang pada malam hari. Pagi berikutnya ia membuka pintu dan menemukan jumlah tepung, tomat, dan beras masih tercatat. Buku besar menjaga ingatan gudang tetap utuh.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka berjalan melewati pintu restoran menuju gudang. Di sana ada lemari berlaci banyak dan buku besar tebal di atas meja. Setiap laci menyimpan satu jenis bahan agar petugas tidak mencampur tepung dengan saus.</p>
+        <p>Seorang penjaga membaca permintaan sebelum catatan masuk ke buku besar. Ia menolak bahan tanpa label dan menolak catatan yang menunjuk pemasok yang tidak ada.</p>
+        <details class="istilah">
+          <summary>Peta istilah gudang</summary>
+          <p>Buku besar adalah database. Penjaga dan aturan pengelola buku adalah <strong>DBMS</strong>. Laci adalah tabel. Baris catatan adalah data. Permintaan membaca atau menulis adalah query. Garis penghubung antarkartu adalah join. Perpindahan bahan yang harus utuh adalah <strong>transaksi</strong>.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/08-database/01-gudang.png" width="1672" height="941" alt="Kuka berdiri di depan lemari arsip besar dengan banyak laci dan buku besar terbuka di meja kecil di sampingnya.">
+          <figcaption>Gudang dengan buku besar.</figcaption>
+        </figure>
+        <p>Gudang bukan sekadar ruangan penuh kotak. Ia punya susunan, catatan, dan penjaga. Database memberi backend tempat yang dapat diandalkan untuk mengingat keadaan restoran.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Database biasanya menyimpan data di disk. Disk lebih lambat daripada RAM, tetapi isinya tetap ada setelah program berhenti atau mesin dimatikan. RAM cocok untuk meja kerja sementara, sedangkan disk cocok untuk buku besar yang harus bertahan.</p>
+        <p>DBMS adalah perangkat lunak yang mengatur penyimpanan dan permintaan terhadap database. Ia mencari catatan, mengubahnya, dan menjaga beberapa orang tetap dapat bekerja tanpa saling menimpa. File teks polos tidak punya penjaga, struktur, dan kontrol konkurensi yang sama.</p>
+        <p>Tiap jenis isi perlu tempat yang tepat. Angka jumlah bahan masuk ke laci angka. Nama pemasok masuk ke laci teks. Tanggal kedatangan masuk ke laci tanggal. Tipe data membuat bentuk catatan lebih jelas sebelum data disimpan.</p>
+        <p>Hubungan membantu kita membaca catatan yang saling terkait. Kartu pemasok dapat terhubung ke banyak kartu bahan. Satu bahan juga dapat dipakai oleh banyak pesanan. Model yang jelas membuat hubungan itu mudah dicari tanpa menyalin semua informasi berkali-kali.</p>
+        <p><strong>constraint</strong> adalah aturan yang dijaga langsung oleh database. Penjaga dapat menolak jumlah minus, label kosong, atau catatan yang menunjuk pemasok yang tidak ada. Dengan begitu integritas data tidak hanya bergantung pada kode aplikasi.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/08-database/02-transaksi.png" width="1672" height="941" loading="lazy" alt="Kuka memindahkan satu bola dari laci kiri ke laci kanan, sementara kedua laci memiliki papan catatan yang kembar.">
+          <figcaption>Dua catatan, satu hasil.</figcaption>
+        </figure>
+        <p>Query adalah permintaan untuk membaca atau mengubah data. Join menggabungkan catatan dari beberapa laci berdasarkan hubungan yang sama. Satu laporan dapat menampilkan bahan sekaligus nama pemasoknya tanpa menyalin nama pemasok di setiap catatan.</p>
+        <p>Transaksi mengelompokkan beberapa perubahan menjadi satu pekerjaan. Jika restoran memindahkan bahan dari rak kering ke rak dingin, catatan keluar dan catatan masuk harus berhasil bersama. Jika salah satunya gagal, keduanya dibatalkan. ACID memberi jaminan bahwa perubahan tetap utuh, konsisten, terisolasi dari pekerjaan lain, dan bertahan setelah berhasil dicatat.</p>
+        <details class="istilah">
+          <summary>Disk dan RAM</summary>
+          <p>Disk adalah rak permanen yang menyimpan catatan meski gudang tutup. RAM adalah meja kerja cepat yang kosong saat listrik mati. Database mengandalkan disk untuk ketahanan, lalu memakai RAM untuk membantu pekerjaan yang sedang berlangsung.</p>
+        </details>
+        <details class="istilah">
+          <summary>Relasional dan non-relasional</summary>
+          <p>Database relasional memakai laci berkolom rapi dan hubungan yang jelas. Database non-relasional memberi kotak yang lebih lentur untuk isi yang bentuknya dapat berbeda. Pilihan bergantung pada bentuk data dan hubungan yang perlu dijaga.</p>
+        </details>
+        <details class="istilah">
+          <summary>Migrasi</summary>
+          <p>Migrasi adalah rencana renovasi rak yang dicatat dan dijalankan bertahap. Struktur gudang berubah dengan urutan yang dapat dilacak, sementara pekerjaan tetap punya cara untuk kembali ke susunan sebelumnya jika perlu.</p>
+        </details>
+        <details class="istilah">
+          <summary>Index</summary>
+          <p><strong>index</strong> seperti daftar isi di sampul buku besar. Penjaga dapat langsung menemukan halaman yang dicari, alih-alih membaca setiap halaman dari awal. Index mempercepat baca, tetapi setiap perubahan catatan perlu memperbarui daftar itu.</p>
+        </details>
+        <details class="istilah">
+          <summary>Trigger</summary>
+          <p>Trigger adalah bel otomatis. Saat jumlah stok berubah, bel dapat meminta catatan waktu diperbarui atau memberi tanda kepada petugas. Aturan kecil ini berjalan tanpa harus diingat oleh setiap bagian aplikasi.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/08-database/03-constraint.png" width="1672" height="941" loading="lazy" alt="Mesin penjaga di depan laci gudang menolak satu kotak tanpa tanda, dengan tanda blok kecil di antara keduanya.">
+          <figcaption>Penjaga menolak kotak tanpa tanda.</figcaption>
+        </figure>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur permintaan data di database</title>
+            <desc id="alur-svg-desc">Service meminta data, repository menulis permintaan, penjaga database memeriksa aturan, data kembali, dan transaksi dicatat utuh.</desc>
+            <defs>
+              <marker id="alur-arrow-database" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="22" y="150" width="190" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="117" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">service</text>
+            <text x="117" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">minta data</text>
+            <rect x="260" y="150" width="190" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="355" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">repository</text>
+            <text x="355" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">tulis permintaan</text>
+            <rect x="498" y="150" width="204" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="600" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">penjaga database</text>
+            <text x="600" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">cek aturan</text>
+            <rect x="750" y="150" width="166" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="833" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">data</text>
+            <text x="833" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">kembali</text>
+            <rect x="964" y="150" width="214" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1071" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">transaksi</text>
+            <text x="1071" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">dicatat utuh</text>
+            <path d="M 220 193 L 252 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-database)" />
+            <path d="M 458 193 L 490 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-database)" />
+            <path d="M 710 193 L 742 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-database)" />
+            <path d="M 924 193 L 956 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-database)" />
+            <text x="600" y="305" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">aturan lolos, catatan tetap utuh</text>
+            <path d="M 1071 248 C 1071 350 730 380 600 248" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-database)" />
+          </svg>
+        </div>
+        <p>Service meminta data melalui repository. Penjaga database memeriksa aturan sebelum perubahan diterima. Data kembali, lalu transaksi dicatat utuh atau tidak dicatat sama sekali.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Transfer bahan: rak kering -&gt; rak dingin
+Catatan kiri: satu tepung keluar
+Catatan kanan: satu tepung masuk
+Penjaga: dua catatan siap
+Berhasil: disimpan bersama
+Gagal: dibatalkan bersama</pre>
+        </div>
+        <p>Seperti kartu pos yang membawa dua catatan sekaligus, perpindahan bahan tidak boleh berhenti di tengah. Kedua sisi menjadi satu hasil, atau gudang kembali ke keadaan semula.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Database menyimpan informasi lintas waktu, termasuk setelah program berhenti atau listrik padam.</li>
+          <li>DBMS mengatur penyimpanan, permintaan, struktur, dan pekerjaan yang berjalan bersamaan.</li>
+          <li>Disk menjaga data tetap ada, sedangkan RAM membantu pekerjaan yang sedang berlangsung.</li>
+          <li>Tipe data dan hubungan membuat bentuk catatan serta kaitan antarlaci lebih jelas.</li>
+          <li>Constraint menjaga integritas dengan menolak catatan yang melanggar aturan.</li>
+          <li>Query membaca atau mengubah data, sedangkan join menggabungkan catatan yang saling terkait.</li>
+          <li>Transaksi dan ACID memastikan beberapa perubahan berhasil bersama atau dibatalkan bersama.</li>
+          <li>Index mempercepat pencarian, migrasi mengatur perubahan struktur, dan trigger menjalankan aturan otomatis.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Kenapa gudang butuh buku besar (database), bukan sekadar tumpukan kertas (file)?</li>
+          <li>Aturan apa yang dijaga penjaga laci (constraint)?</li>
+          <li>Apa yang terjadi jika satu dari dua catatan transfer bahan gagal?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas cara database bekerja, cara menulis query, dan cara menjaga perubahan tetap aman dengan contoh yang dapat dijalankan.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Kenapa Postgres</a></li>
+          <li><a href="../html_notes/notes.html">Esensi produksi</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <p>Kode penuh dan setup database ada di <a href="../html_notes/notes.html">versi teknis</a>.</p>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 8 / Database dengan Backend. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
