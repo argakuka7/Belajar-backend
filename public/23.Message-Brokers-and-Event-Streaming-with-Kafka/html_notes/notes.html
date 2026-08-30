@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Message Brokers & Kafka / Chapter 23 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Chapter 23 of Belajar Prinsip-Prinsip Backend: Message Brokers & Kafka. First-principles notes, diagrams and runnable Go and Python examples.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23b8402e'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='19'%20font-weight='700'%20fill='%23f3ede2'%20text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+
+  <style>
+    :root{
+  --paper: #f3ede2;
+  --paper-2: #ece3d4;
+  --ink: #211e1a;
+  --ink-soft: #5b5347;
+  --rust: #b8402e;
+  --rust-deep: #8f2f20;
+  --gold: #b07d2b;
+  --teal: #3f6f4e;
+  --line: #d8cfbe;
+  --code-bg: #232019;
+  --code-bar: #1a1813;
+  --shadow: 0 1px 0 rgba(0,0,0,.04),0 18px 40px -28px rgba(40,30,20,.5);
+}
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 24px
+    }
+
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family:"Spline Sans", system-ui, sans-serif;
+      font-size: 17px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+      background-image: radial-gradient(circle at 12% 8%, rgba(184,64,46, .05), transparent 38%), radial-gradient(circle at 88% 92%, rgba(63,111,78, .05), transparent 42%);
+    }
+
+    .hero {
+      margin-bottom: 64px;
+    }
+
+    .kicker {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+      font-size: 12.5px;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: var(--rust);
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .hero h1 {
+      font-family:"Fraunces", Georgia, serif;
+      font-weight: 900;
+      font-size: clamp(40px, 6.5vw, 78px);
+      line-height: .95;
+      letter-spacing: -.025em;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 em {
+      font-style: italic;
+      color: var(--rust);
+      font-weight: 500;
+    }
+
+    .hero .lede{
+      font-size: 19px;
+      max-width:64ch;
+      color: var(--ink-soft);
+      line-height: 1.6;
+    }
+
+    .hero .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 32px;
+    }
+
+    .hero .meta span {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+      font-size: 12px;
+      border: 1px solid var(--line);
+      background: var(--paper-2);
+      padding: 6px 13px;
+      border-radius: 30px;
+      color: var(--ink-soft);
+    }
+
+    .hero .rule {
+      height: 3px;
+      width:120px;
+      background: var(--rust);
+      margin-top: 38px;
+    }
+
+    .part-label {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+      font-size: 12px;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      color: var(--rust);
+      font-weight: 700;
+      margin: 64px 0 8px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .part-label:first-of-type {
+      margin-top: 0;
+    }
+
+    section {
+      margin-bottom: 72px;
+      scroll-margin-top: 20px;
+    }
+
+    .sec-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 16px;
+    }
+
+    .sec-num {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+      font-weight: 700;
+      font-size: 14px;
+      color: #fff;
+      background: var(--rust);
+      border-radius: 8px;
+      padding: 7px 11px;
+      line-height: 1;
+      margin-top: 8px;
+      white-space: nowrap;
+      box-shadow: 0 3px 10px rgba(184,64,46, .3);
+    }
+
+    h2 {
+      font-family:"Fraunces", Georgia, serif;
+      font-weight: 600;
+      font-size: clamp(27px, 3.6vw, 38px);
+      line-height: 1.06;
+      letter-spacing: -.015em;
+    }
+
+    h3 {
+      font-family:"Fraunces", Georgia, serif;
+      font-weight: 600;
+      font-size: 22px;
+      margin: 34px 0 12px;
+      letter-spacing: -.01em;
+    }
+
+    h4 {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--rust-deep);
+      margin: 24px 0 9px;
+    }
+
+    p {
+      margin-bottom: 15px;
+      max-width:76ch;
+    }
+
+    strong {
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    ul,
+    ol {
+      margin: 0 0 17px 0;
+      padding-left:0;
+      max-width:76ch;
+    }
+
+    li {
+      margin: 0 0 9px 28px;
+    }
+
+    li::marker {
+      color: var(--rust);
+      font-weight: 700;
+    }
+
+    code:not(pre code) {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+      font-size: .85em;
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      padding: .12em .42em;
+      border-radius: 5px;
+      color: var(--rust-deep);
+      white-space: nowrap;
+    }
+
+    .box {
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin: 22px 0;
+      border: 1px solid var(--line);
+      background: var(--paper-2);
+    }
+
+    .box .tag {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 7px;
+      display: block;
+    }
+
+    .box p:last-child {
+      margin-bottom: 0;
+    }
+
+    .box.key {
+      background: linear-gradient(180deg, rgba(176,125,43, .1), rgba(176,125,43, .04));
+      border-color: rgba(176,125,43, .4);
+    }
+
+    .box.key .tag {
+      color: var(--gold);
+    }
+
+    .box.gotcha {
+      background: linear-gradient(180deg, rgba(184,64,46, .1), rgba(184,64,46, .03));
+      border-color: rgba(184,64,46, .4);
+    }
+
+    .box.gotcha .tag {
+      color: var(--rust);
+    }
+
+    .box.note {
+      background: linear-gradient(180deg, rgba(63,111,78, .09), rgba(63,111,78, .03));
+      border-color: rgba(63,111,78, .4);
+    }
+
+    .box.note .tag {
+      color: var(--teal);
+    }
+
+    .analogy {
+      font-style: italic;
+      color: var(--ink-soft);
+      font-family:"Fraunces", Georgia, serif;
+      font-size: 18px;
+      line-height: 1.55;
+      border-left: 3px solid var(--gold);
+      padding: 6px 0 6px 22px;
+      margin: 20px 0;
+    }
+
+    .tbl-wrap {
+      overflow-x: auto;
+      margin: 22px 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width:100%;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 11px 15px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--paper-2);
+      font-weight: 700;
+      font-size: 11.5px;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--rust-deep);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td code {
+      white-space: nowrap;
+    }
+
+    .mono-cell {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+      font-weight: 700;
+      color: var(--rust-deep);
+      font-size: 13px;
+    }
+
+    .yes {
+      color: #3f6f4e;
+      font-weight: 700;
+    }
+
+    .no {
+      color: #b8402e;
+      font-weight: 700;
+    }
+
+    .cond {
+      color: #b07d2b;
+      font-weight: 700;
+    }
+
+    .sc {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .sc.s1 {
+      background: #dee5ee;
+      color: #3f6f4e;
+    }
+
+    .sc.s2 {
+      background: #e0e9dd;
+      color: #3f6f4e;
+    }
+
+    .sc.s3 {
+      background: #f0e5c9;
+      color: #b07d2b;
+    }
+
+    .sc.s4 {
+      background: #f4ded6;
+      color: #b8402e;
+    }
+
+    .sc.s5 {
+      background: #eccdc2;
+      color: #8f2f20;
+    }
+
+    .codeblock {
+      background: var(--code-bg);
+      margin: 20px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 14px 30px -16px var(--shadow);
+      border: 1px solid #35302a;
+    }
+
+    .code-bar {
+      display: flex;
+      align-items: center;
+      background: var(--code-bar);
+      padding: 0 14px;
+      border-bottom: 1px solid #35302a;
+    }
+
+    .code-bar .dots {
+      display: flex;
+      gap: 7px;
+      margin-right: 14px;
+    }
+
+    .code-bar .dots i {
+      width:11px;
+      height: 11px;
+      border-radius: 50%;
+      display: block;
+    }
+
+    .dots i:nth-child(1) {
+      background: #d05a47;
+    }
+
+    .dots i:nth-child(2) {
+      background: #cf9f4b;
+    }
+
+    .dots i:nth-child(3) {
+      background: #5a9a5f;
+    }
+
+    .code-tabs {
+      display: flex;
+    }
+
+    .code-tabs button {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+      font-size: 12.5px;
+      font-weight: 600;
+      background: none;
+      border: none;
+      color: #9c948a;
+      padding: 13px 18px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: .15s;
+    }
+
+    .code-tabs button:hover {
+      color: #e9e2d3;
+    }
+
+    .code-tabs button.on {
+      color: #fff;
+      border-bottom-color: var(--rust);
+    }
+
+    .lang-go {
+      color: #7fb0c9;
+    }
+
+    .lang-py {
+      color: #d8b66a;
+    }
+
+    .code-panel {
+      display: none;
+    }
+
+    .code-panel.on {
+      display: block;
+    }
+
+    .codeblock pre {
+      margin: 0;
+    }
+
+    .codeblock pre code {
+      font-family:"JetBrains Mono", ui-monospace, monospace !important;
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 18px 20px !important;
+      display: block;
+      overflow-x: auto;
+      background: var(--code-bg) !important;
+    }
+
+    .code-cap {
+      font-size: 13px;
+      color: var(--ink-soft);
+      font-style: italic;
+      margin: -8px 2px 22px;
+      font-family:"Fraunces", Georgia, serif;
+    }
+
+    .codeblock.single .code-bar .filename {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+      font-size: 12.5px;
+      color: #9c948a;
+      padding: 13px 4px;
+    }
+
+    .flow {
+      margin: 22px 0;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper-2);
+      padding: 24px 22px;
+    }
+
+    .flow .step {
+      display: flex;
+      gap: 15px;
+      align-items: flex-start;
+      padding: 9px 0;
+    }
+
+    .flow .step .b {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+      font-weight: 700;
+      font-size: 12px;
+      background: var(--ink);
+      color: var(--paper);
+      min-width:30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .flow .step.srv .b {
+      background: var(--teal);
+    }
+
+    .flow .step.cli .b {
+      background: var(--rust);
+    }
+
+    .flow .step .t {
+      padding-top: 3px;
+      font-size: 14.5px;
+    }
+
+    .flow .arrow {
+      color: var(--line);
+      text-align: center;
+      font-size: 18px;
+      line-height: .4;
+      margin: 0 0 0 14px;
+    }
+
+    /* method card */
+    .method {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      margin: 26px 0;
+      overflow: hidden;
+      background: var(--paper-2);
+    }
+
+    .method-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      padding: 18px 22px;
+      background: linear-gradient(180deg, rgba(33,30,26, .04), transparent);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .method-top .verb {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+      font-weight: 700;
+      font-size: 18px;
+      color: #fff;
+      background: var(--ink);
+      padding: 6px 14px;
+      border-radius: 8px;
+    }
+
+    .method-top .verb.get {
+      background: #3f6f4e;
+    }
+
+    .method-top .verb.post {
+      background: var(--rust);
+    }
+
+    .method-top .verb.put {
+      background: #8a6420;
+    }
+
+    .method-top .verb.patch {
+      background: #b07d2b;
+    }
+
+    .method-top .verb.delete {
+      background: #8f2f20;
+    }
+
+    .method-top .verb.head {
+      background: #37607f;
+    }
+
+    .method-top .verb.options {
+      background: var(--teal);
+    }
+
+    .method-top .verb.connect {
+      background: #5b5347;
+    }
+
+    .method-top .verb.trace {
+      background: #8d8475;
+    }
+
+    .method-top .props {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-left:auto;
+    }
+
+    .method-top .props span {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 20px;
+      border: 1px solid var(--line);
+      background: var(--paper);
+    }
+
+    .method-top .props .y {
+      color: #3f6f4e;
+      border-color: #bcd3b6;
+    }
+
+    .method-top .props .c {
+      color: #b07d2b;
+      border-color: #ddc79a;
+    }
+
+    .method-body {
+      padding: 6px 22px 20px;
+    }
+
+    .method-body .gloss {
+      font-family:"Fraunces", Georgia, serif;
+      font-style: italic;
+      font-size: 17px;
+      color: var(--ink-soft);
+      margin: 14px 0;
+    }
+
+    .foot {
+      border-top: 3px solid var(--rust);
+      margin-top: 56px;
+      padding-top: 28px;
+      color: var(--ink-soft);
+      font-size: 14px;
+    }
+
+    .foot strong {
+      color: var(--ink);
+    }
+
+    .toc-toggle {
+      display: none;
+    }
+
+    /* ============ VISUALIZATION STYLES (added) ============ */
+    .viz {
+      margin: 30px 0;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #f6f0e6, var(--paper-2));
+      padding: 24px 22px 18px;
+      box-shadow: 0 10px 26px -18px var(--shadow);
+    }
+
+    .viz-cap {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--rust);
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .viz-cap::before {
+      content: "";
+      width:18px;
+      height: 2px;
+      background: var(--rust);
+      display: inline-block;
+    }
+
+    .viz-title {
+      font-family:"Fraunces", Georgia, serif;
+      font-weight: 600;
+      font-size: 18px;
+      letter-spacing: -.01em;
+      margin-bottom: 16px;
+      color: var(--ink);
+    }
+
+    .viz svg {
+      display: block;
+      width:100%;
+      height: auto;
+      overflow: visible;
+    }
+
+    .viz svg text {
+      font-family:"Spline Sans", system-ui, sans-serif;
+    }
+
+    .viz svg .mono {
+      font-family:"JetBrains Mono", ui-monospace, monospace;
+    }
+
+    .viz svg .serif {
+      font-family:"Fraunces", Georgia, serif;
+    }
+
+    .viz-note {
+      font-size: 12.5px;
+      color: var(--ink-soft);
+      font-style: italic;
+      font-family:"Fraunces", Georgia, serif;
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--line);
+    }
+
+    @media(max-width:980px) {
+
+      .toc-toggle {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        position: fixed;
+        top: 16px;
+        left:16px;
+        z-index: 60;
+        background: var(--ink);
+        color: var(--paper);
+        border: none;
+        font-family:"JetBrains Mono", ui-monospace, monospace;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 11px 16px;
+        border-radius: 10px;
+        cursor: pointer;
+        box-shadow: 0 6px 18px var(--shadow);
+      }
+
+      .method-top .props {
+        margin-left:0;
+        width:100%;
+      }}
+
+    @media(max-width:560px) {
+      body {
+        font-size: 16px;
+      }}
+
+    ::selection {
+      background: var(--rust);
+      color: #fff;
+    }</style>
+<style>
+.chapter-nav{position:fixed;bottom:0;left:0;right:0;z-index:9998;display:flex;align-items:center;justify-content:space-between;padding:14px clamp(16px,4vw,48px);background:rgba(243,237,226,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1.5px solid #c7bca6;box-shadow:0 -8px 32px -16px rgba(40,30,20,.18);font-family:"JetBrains Mono", ui-monospace, monospace;}
+.nav-chapter-link{display:flex;align-items:center;gap:12px;text-decoration:none;color:#5b5347;padding:10px 18px;border-radius:10px;transition:all .2s ease;max-width:38%;}
+.nav-chapter-link:hover{background:rgba(184,64,46,.08);color:#b8402e;transform:translateY(-1px);}
+.nav-chapter-link.nav-next{text-align:right;flex-direction:row;}
+.nav-arrow{font-size:22px;color:#b8402e;font-weight:700;flex:none;}
+.nav-label{display:flex;flex-direction:column;gap:2px;font-size:13.5px;line-height:1.3;}
+.nav-small{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#8d8475;font-weight:600;}
+.nav-indicator{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#b8402e;font-weight:700;text-decoration:none;padding:8px 16px;border:1.5px solid #c7bca6;border-radius:40px;background:rgba(255,255,255,.5);transition:all .2s;white-space:nowrap;}
+.nav-indicator:hover{background:#b8402e;color:#fff;border-color:#b8402e;}
+.nav-dot{display:inline-block;width:7px;height:7px;background:#b8402e;border-radius:50%;margin-right:4px;vertical-align:middle;}
+.nav-sep{color:#c7bca6;margin:0 2px;}
+.nav-disabled{visibility:hidden;pointer-events:none;}
+@media(max-width:700px){.nav-label{font-size:11.5px;}.nav-chapter-link{padding:8px 10px;max-width:38%;}.chapter-nav{padding:10px 12px;}.nav-small{font-size:9px;letter-spacing:.16em;}}
+@media(max-width:520px){.nav-label{display:none;}.nav-chapter-link{max-width:none;padding:8px 12px;}.nav-arrow{font-size:20px;}.nav-indicator{font-size:11px;padding:7px 13px;letter-spacing:.12em;}}
+body{padding-bottom:80px;}
+</style>
+  <link rel="stylesheet" href="../../assets/copy-button.css">
+  <link rel="stylesheet" href="../../assets/enhancements.css">
+  <link rel="stylesheet" href="../../assets/shell.css">
+  <link rel="stylesheet" href="../../assets/theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="../../assets/theme.js"></script>
+</head>
+
+<body>
+<button class="bfp-toc-toggle" id="bfpTocToggle" aria-controls="bfpToc" aria-expanded="false"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>Contents</button>
+<div class="bfp-toc-scrim" id="bfpTocScrim"></div>
+<div class="bfp-shell">
+    <aside class="bfp-toc" id="bfpToc">
+      <div class="bfp-brand"><span class="bfp-brand-name">Kafka</span><span class="bfp-brand-slash">/</span><span class="bfp-brand-lens">the backend lens</span></div>
+      <div class="bfp-brand-sub">Chapter 23 / Field Manual</div>
+      <div class="bfp-toc-rule"></div>
+      <nav class="bfp-toc-nav">
+        <a class="bfp-toc-link" href="#s1"><span class="bfp-toc-num">01</span><span class="bfp-toc-text">What Kafka Actually Is</span></a>
+        <a class="bfp-toc-link" href="#s2"><span class="bfp-toc-num">02</span><span class="bfp-toc-text">Queue vs Log</span></a>
+        <a class="bfp-toc-link" href="#s3"><span class="bfp-toc-num">03</span><span class="bfp-toc-text">The Commit Log</span></a>
+        <a class="bfp-toc-link" href="#s4"><span class="bfp-toc-num">04</span><span class="bfp-toc-text">Topics &amp; Partitions</span></a>
+        <a class="bfp-toc-link" href="#s5"><span class="bfp-toc-num">05</span><span class="bfp-toc-text">Brokers, Replication &amp; Durability</span></a>
+        <a class="bfp-toc-link" href="#s6"><span class="bfp-toc-num">06</span><span class="bfp-toc-text">Producers</span></a>
+        <a class="bfp-toc-link" href="#s7"><span class="bfp-toc-num">07</span><span class="bfp-toc-text">Consumers &amp; Consumer Groups</span></a>
+        <a class="bfp-toc-link" href="#s8"><span class="bfp-toc-num">08</span><span class="bfp-toc-text">Offsets &amp; Offset Management</span></a>
+        <a class="bfp-toc-link" href="#s9"><span class="bfp-toc-num">09</span><span class="bfp-toc-text">Delivery Semantics</span></a>
+        <a class="bfp-toc-link" href="#s10"><span class="bfp-toc-num">10</span><span class="bfp-toc-text">Ordering Guarantees</span></a>
+        <a class="bfp-toc-link" href="#s11"><span class="bfp-toc-num">11</span><span class="bfp-toc-text">Retention &amp; Log Compaction</span></a>
+        <a class="bfp-toc-link" href="#s12"><span class="bfp-toc-num">12</span><span class="bfp-toc-text">Schemas &amp; the Schema Registry</span></a>
+        <a class="bfp-toc-link" href="#s13"><span class="bfp-toc-num">13</span><span class="bfp-toc-text">Event-Driven Patterns</span></a>
+        <a class="bfp-toc-link" href="#s14"><span class="bfp-toc-num">14</span><span class="bfp-toc-text">Event Sourcing &amp; CQRS</span></a>
+        <a class="bfp-toc-link" href="#s15"><span class="bfp-toc-num">15</span><span class="bfp-toc-text">Outbox &amp; Change Data Capture</span></a>
+        <a class="bfp-toc-link" href="#s16"><span class="bfp-toc-num">16</span><span class="bfp-toc-text">Stream Processing</span></a>
+        <a class="bfp-toc-link" href="#s17"><span class="bfp-toc-num">17</span><span class="bfp-toc-text">Kafka vs Traditional Queues</span></a>
+        <a class="bfp-toc-link" href="#s18"><span class="bfp-toc-num">18</span><span class="bfp-toc-text">Consumer Pitfalls</span></a>
+        <a class="bfp-toc-link" href="#s19"><span class="bfp-toc-num">19</span><span class="bfp-toc-text">Operations &amp; Monitoring</span></a>
+        <a class="bfp-toc-link" href="#s20"><span class="bfp-toc-num">20</span><span class="bfp-toc-text">Designing with Kafka</span></a>
+        <a class="bfp-toc-link" href="#s21"><span class="bfp-toc-num">21</span><span class="bfp-toc-text">Cheat-Sheet</span></a>
+      </nav>
+    </aside>
+    <main class="bfp-content">
+
+      <header class="hero">
+        <div class="kicker">A detailed backend reference</div>
+        <h1>Kafka, <em>log</em> di jantung sistem Anda.</h1>
+        <p class="lede">Penelusuran dari prinsip dasar tentang platform event-streaming terdistribusi yang menggerakkan sistem saraf LinkedIn, Uber, Netflix, dan kebanyakan fintech modern: dari satu gagasan yang menopang segalanya (commit log append-only), lewat partisi, consumer group, offset dan semantik pengiriman, sampai retensi, skema, pola event-driven, trik outbox/CDC, dan stream processing. Ditulis bukan hanya menyebut <em>apa</em> fungsi tiap bagian tapi <em>kenapa</em> ia ada dan <em>bagaimana</em> ia bekerja di dalamnya. Kode producer/consumer di Go dan Python.</p>
+        <div class="meta">
+          <span>Distributed commit log</span>
+          <span>Partitions &amp; consumer groups</span>
+          <span>Go 1.22+ / Python 3.11+</span>
+          <span>21 sections</span>
+        </div>
+        <div class="rule"></div>
+      </header>
+
+      <div class="part-label">Part I / The Log Model</div>
+
+      <!-- 1 -->
+      <section id="s1">
+        <div class="sec-head"><div class="sec-num">01</div><h2>Apa Sebenarnya Kafka Itu</h2></div>
+        <p>Buang pemasaran dan Kafka satu hal: <strong>log peristiwa terdistribusi, append-only, tahan lama yang dibaca banyak consumer independen dengan kecepatan mereka sendiri.</strong> Bukan antrean, bukan database, bukan message bus dalam arti klasik, sebuah <em>log</em>. Producer menambahkan record ke ujung; consumer membaca maju dari posisi yang mereka lacak sendiri; dan record <em>tetap</em> setelah dibaca, selama retensi terkonfigurasi. Begitu satu gambar itu masuk kepala Anda, setiap fitur di manual ini konsekuensinya.</p>
+
+        <p>Deskripsi resminya "platform event streaming terdistribusi," dan tiap kata layak tempatnya. <strong>Distributed</strong>: ia berjalan sebagai klaster broker, mereplikasi data demi toleransi kegagalan dan scaling horizontal. <strong>Event streaming</strong>: ia dibangun di sekitar aliran <em>event</em> immutable yang tak terbatas dan berkelanjutan (sesuatu terjadi: order ditempatkan, pembayaran jelas, sensor membaca), bukan panggilan request/response. <strong>Platform</strong>: producer, consumer, ekosistem konektor, dan stream processing semuanya duduk di log yang sama.</p>
+
+        <div class="analogy">A traditional message queue is a to-do list: you take an item, do it, and it's gone. Kafka
+          is a <em>ship's logbook</em>: every event is written down in order and stays in the book. Ten different
+          officers can each read the log from wherever they left off, re-read yesterday's entries, or start from the
+          beginning, and reading never erases a line.</div>
+
+        <div class="viz">
+          <div class="viz-cap">The shape of Kafka</div>
+          <div class="viz-title">Producers append; the log persists; many consumers read independently</div>
+          <svg viewBox="0 0 720 230" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="Producers writing events to an append-only log, which is retained, while several independent consumer groups read from their own positions">
+            <rect x="20" y="40" width="120" height="40" rx="9" fill="#b8402e"/><text x="80" y="65" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">producers</text>
+            <defs><marker id="k1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0 0 L7 3 L0 6 Z" fill="#8f2f20"/></marker><marker id="k2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0 0 L7 3 L0 6 Z" fill="#3f6f4e"/></marker></defs>
+            <path d="M142 75 C180 90 200 100 230 104" stroke="#8f2f20" stroke-width="1.8" marker-end="url(#k1)"/><text x="180" y="98" class="mono" font-size="9" fill="#8f2f20">append -&gt;</text>
+            <!-- the log -->
+            <text x="235" y="100" class="mono" font-size="10" font-weight="700" fill="#b07d2b">THE LOG (append-only, retained)</text>
+            <g>
+              <rect x="232" y="108" width="44" height="34" rx="4" fill="#f0e5c9" stroke="#b07d2b"/><text x="254" y="129" class="mono" font-size="10" fill="#8a6420">e0</text>
+              <rect x="278" y="108" width="44" height="34" rx="4" fill="#f0e5c9" stroke="#b07d2b"/><text x="300" y="129" class="mono" font-size="10" fill="#8a6420">e1</text>
+              <rect x="324" y="108" width="44" height="34" rx="4" fill="#f0e5c9" stroke="#b07d2b"/><text x="346" y="129" class="mono" font-size="10" fill="#8a6420">e2</text>
+              <rect x="370" y="108" width="44" height="34" rx="4" fill="#f0e5c9" stroke="#b07d2b"/><text x="392" y="129" class="mono" font-size="10" fill="#8a6420">e3</text>
+              <rect x="416" y="108" width="44" height="34" rx="4" fill="#f0e5c9" stroke="#b07d2b"/><text x="438" y="129" class="mono" font-size="10" fill="#8a6420">e4</text>
+              <rect x="462" y="108" width="44" height="34" rx="4" fill="#f0e6cc" stroke="#b07d2b" stroke-dasharray="3 2"/><text x="484" y="129" class="mono" font-size="10" fill="#9a9182">...</text>
+            </g>
+            <text x="232" y="160" class="mono" font-size="8.5" fill="#9a9182">offset 0 &nbsp;&nbsp; 1 &nbsp;&nbsp;&nbsp; 2 &nbsp;&nbsp;&nbsp; 3 &nbsp;&nbsp;&nbsp; 4 -&gt; new writes go to the tail</text>
+            <!-- consumers reading at different offsets -->
+            <rect x="540" y="40" width="160" height="34" rx="8" fill="#e0e9dd" stroke="#3f6f4e"/><text x="620" y="62" font-size="10" font-weight="700" fill="#3f6f4e" text-anchor="middle">consumer A @ offset 4</text>
+            <rect x="540" y="100" width="160" height="34" rx="8" fill="#e0e9dd" stroke="#3f6f4e"/><text x="620" y="122" font-size="10" font-weight="700" fill="#3f6f4e" text-anchor="middle">consumer B @ offset 1</text>
+            <rect x="540" y="160" width="160" height="34" rx="8" fill="#e0e9dd" stroke="#3f6f4e"/><text x="620" y="182" font-size="10" font-weight="700" fill="#3f6f4e" text-anchor="middle">consumer C @ offset 0</text>
+            <path d="M460 120 C500 100 510 70 538 60" stroke="#3f6f4e" stroke-width="1.4" fill="none" marker-end="url(#k2)"/>
+            <path d="M300 130 C420 150 470 130 538 120" stroke="#3f6f4e" stroke-width="1.4" fill="none" marker-end="url(#k2)"/>
+            <path d="M254 142 C360 200 460 195 538 182" stroke="#3f6f4e" stroke-width="1.4" fill="none" marker-end="url(#k2)"/>
+            <text x="360" y="220" class="serif" font-size="12.5" font-style="italic" fill="#5b5347" text-anchor="middle">Each consumer tracks its own position; reading e1 doesn't remove it, another consumer can still read it.</text>
+          </svg>
+          <div class="viz-note">This decoupling, durable retained events plus per-consumer positions, is the
+            whole game. It's what lets one stream of events feed many unrelated systems independently.</div>
+        </div>
+
+        <div class="box key"><span class="tag">The one definition</span>
+          <p>Kafka <strong>commit log terdistribusi, tahan lama, append-only</strong> berisi event immutable, dipartisi untuk skala dan direplikasi untuk toleransi kegagalan, yang <strong>dibaca banyak consumer independen di offset mereka sendiri</strong>: dengan event <em>dipertahankan</em> setelah dibaca. Segala hal lain detail di atas itu.</p>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section id="s2">
+        <div class="sec-head"><div class="sec-num">02</div><h2>Antrean vs Log: Kenapa Kafka Berbeda</h2></div>
+        <p>Ini bagian terpenting di manual, karena mencampurkan Kafka dengan message queue tradisional akar sebagian besar kebingungan. Bab task-queues mencakup model antrean secara mendalam, producer, worker, broker seperti RabbitMQ dan SQS, retry, visibility timeout. Kafka <em>jenis benda yang berbeda</em>, dan perbedaannya bukan detail; ia mengubah masalah apa yang dipecahkan.</p>
+
+        <div class="viz">
+          <div class="viz-cap">The fundamental contrast</div>
+          <div class="viz-title">A queue distributes &amp; deletes; a log retains &amp; replays</div>
+          <svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="Left: a queue where each message is delivered to one consumer and removed. Right: a log where every consumer reads all messages independently and nothing is removed on read">
+            <text x="180" y="22" class="mono" font-size="11" font-weight="700" fill="#8f2f20" text-anchor="middle">QUEUE (RabbitMQ, SQS), competing consumers</text>
+            <rect x="30" y="40" width="120" height="30" rx="6" fill="#eccdc2" stroke="#8f2f20"/><text x="90" y="60" font-size="10" fill="#8f2f20" text-anchor="middle">msg in</text>
+            <g class="mono" font-size="10" fill="#7a1f1f"><rect x="40" y="86" width="34" height="26" rx="4" fill="#eccdc2" stroke="#8f2f20"/><text x="57" y="104" text-anchor="middle">m3</text><rect x="78" y="86" width="34" height="26" rx="4" fill="#eccdc2" stroke="#8f2f20"/><text x="95" y="104" text-anchor="middle">m2</text><rect x="116" y="86" width="34" height="26" rx="4" fill="#eccdc2" stroke="#8f2f20"/><text x="133" y="104" text-anchor="middle">m1</text></g>
+            <defs><marker id="qa" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#8f2f20"/></marker></defs>
+            <path d="M160 99 H210" stroke="#8f2f20" stroke-width="1.5" marker-end="url(#qa)"/>
+            <rect x="212" y="78" width="60" height="24" rx="5" fill="#e8b9b9"/><text x="242" y="95" font-size="9" fill="#7a1f1f" text-anchor="middle">worker 1</text>
+            <rect x="212" y="108" width="60" height="24" rx="5" fill="#e8b9b9"/><text x="242" y="125" font-size="9" fill="#7a1f1f" text-anchor="middle">worker 2</text>
+            <text x="180" y="160" font-size="10.5" font-style="italic" fill="#8f2f20" text-anchor="middle">each message goes to ONE worker</text>
+            <text x="180" y="178" font-size="10.5" font-style="italic" fill="#8f2f20" text-anchor="middle">&amp; is DELETED once acked</text>
+            <text x="180" y="200" class="mono" font-size="9.5" fill="#8f2f20" text-anchor="middle">no replay / order across consumers lost</text>
+
+            <line x1="360" y1="34" x2="360" y2="220" stroke="#d8cfbe" stroke-dasharray="4 4"/>
+
+            <text x="545" y="22" class="mono" font-size="11" font-weight="700" fill="#3f6f4e" text-anchor="middle">LOG (Kafka), independent consumers</text>
+            <g class="mono" font-size="10" fill="#3f6f4e"><rect x="400" y="50" width="34" height="26" rx="4" fill="#e0e9dd" stroke="#3f6f4e"/><text x="417" y="68" text-anchor="middle">e0</text><rect x="436" y="50" width="34" height="26" rx="4" fill="#e0e9dd" stroke="#3f6f4e"/><text x="453" y="68" text-anchor="middle">e1</text><rect x="472" y="50" width="34" height="26" rx="4" fill="#e0e9dd" stroke="#3f6f4e"/><text x="489" y="68" text-anchor="middle">e2</text><rect x="508" y="50" width="34" height="26" rx="4" fill="#e0e9dd" stroke="#3f6f4e"/><text x="525" y="68" text-anchor="middle">e3</text></g>
+            <text x="473" y="92" class="mono" font-size="8.5" fill="#9a9182">retained, nothing deleted on read</text>
+            <rect x="560" y="108" width="130" height="26" rx="6" fill="#dbeede" stroke="#3f6f4e"/><text x="625" y="125" font-size="9" fill="#3f6f4e" text-anchor="middle">billing reads all</text>
+            <rect x="560" y="140" width="130" height="26" rx="6" fill="#dbeede" stroke="#3f6f4e"/><text x="625" y="157" font-size="9" fill="#3f6f4e" text-anchor="middle">analytics reads all</text>
+            <rect x="560" y="172" width="130" height="26" rx="6" fill="#dbeede" stroke="#3f6f4e"/><text x="625" y="189" font-size="9" fill="#3f6f4e" text-anchor="middle">search reads all</text>
+            <path d="M544 70 C552 100 552 118 558 121" stroke="#3f6f4e" stroke-width="1.3" fill="none" marker-end="url(#k2)"/>
+            <text x="473" y="222" font-size="10.5" font-style="italic" fill="#3f6f4e" text-anchor="middle">every consumer sees EVERY event / can replay from any offset</text>
+          </svg>
+        </div>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Dimensi</th><th>Antrean tradisional (bab 10)</th><th>Log Kafka</th></tr></thead>
+            <tbody>
+              <tr><td>Setelah pesan dibaca</td><td>Dihapus (dikonsumsi sekali)</td><td>Dipertahankan (sampai retensi kedaluwarsa)</td></tr>
+              <tr><td>Siapa yang menerima pesan</td><td>Satu consumer yang bersaing</td><td>Setiap consumer group, independen</td></tr>
+              <tr><td>Replay / baca ulang</td><td>Tidak, sudah hilang</td><td>Ya, seek ke offset mana pun</td></tr>
+              <tr><td>Posisi consumer</td><td>Dilacak &amp; dihapus broker</td><td>Consumer melacak offsetnya sendiri</td></tr>
+              <tr><td>Urutan</td><td>Lemah/tidak ada lintas consumer</td><td>Ketat dalam satu partisi</td></tr>
+              <tr><td>Model mental</td><td>Distribusi kerja (daftar tugas)</td><td>Riwayat peristiwa / sumber kebenaran (logbook)</td></tr>
+              <tr><td>Titik manis</td><td>Offloading tugas, pemrosesan job</td><td>Event streaming, banyak subscriber, replay, throughput tinggi</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box note"><span class="tag">They coexist, this isn't either/or</span>
+          <p>Anda sering memakai keduanya: Kafka sebagai tulang punggung event tahan lama (order, pembayaran, klik di-stream ke banyak sistem), dan task queue (Celery/SQS, bab 10) untuk job latar diskret (kirim email ini, resize gambar itu). Perbandingan penuh dan "yang mana kapan" di bagian 17. Untuk sekarang pegang bedanya: <strong>antrean = distribusikan kerja dan lupakan; log = catat event dan biarkan banyak sistem mengonsumsi &amp; memutar ulangnya.</strong></p>
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section id="s3">
+        <div class="sec-head"><div class="sec-num">03</div><h2>Commit Log</h2></div>
+        <p>Semua yang Kafka lakukan bertumpu pada struktur data paling rendah hati dalam komputasi: <strong>log append-only</strong>: urutan record terurut yang hanya bisa Anda tambahkan di ujung, tidak pernah menyisipkan di tengah atau memodifikasi. Tiap record mendapat <strong>offset</strong> yang naik monoton (0, 1, 2, ...) yang menjadi alamat permanennya. Ini struktur yang sama yang dipakai database untuk write-ahead log dan daya tahannya; wawasan Kafka menjadikan log itu sendiri <em>abstraksi primer yang publik</em> alih-alih detail internal tersembunyi.</p>
+
+        <div class="viz">
+          <div class="viz-cap">Append-only, offset-addressed</div>
+          <div class="viz-title">Writes go to the tail; the offset is a permanent address</div>
+          <svg viewBox="0 0 720 170" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="An append-only log with offsets increasing left to right, new records added only at the tail, and a reader pointer advancing forward">
+            <g class="mono" font-size="11">
+              <rect x="30" y="50" width="64" height="40" rx="5" fill="#ece3d4" stroke="#b07d2b"/><text x="62" y="75" fill="#8a6420" text-anchor="middle">rec</text>
+              <rect x="96" y="50" width="64" height="40" rx="5" fill="#ece3d4" stroke="#b07d2b"/><text x="128" y="75" fill="#8a6420" text-anchor="middle">rec</text>
+              <rect x="162" y="50" width="64" height="40" rx="5" fill="#ece3d4" stroke="#b07d2b"/><text x="194" y="75" fill="#8a6420" text-anchor="middle">rec</text>
+              <rect x="228" y="50" width="64" height="40" rx="5" fill="#ece3d4" stroke="#b07d2b"/><text x="260" y="75" fill="#8a6420" text-anchor="middle">rec</text>
+              <rect x="294" y="50" width="64" height="40" rx="5" fill="#ece3d4" stroke="#b07d2b"/><text x="326" y="75" fill="#8a6420" text-anchor="middle">rec</text>
+              <rect x="360" y="50" width="64" height="40" rx="5" fill="#fbf6e8" stroke="#b07d2b" stroke-dasharray="4 3"/><text x="392" y="75" fill="#bca96a" text-anchor="middle">new</text>
+            </g>
+            <g class="mono" font-size="9" fill="#9a9182"><text x="62" y="106" text-anchor="middle">0</text><text x="128" y="106" text-anchor="middle">1</text><text x="194" y="106" text-anchor="middle">2</text><text x="260" y="106" text-anchor="middle">3</text><text x="326" y="106" text-anchor="middle">4</text><text x="392" y="106" text-anchor="middle">5</text></g>
+            <defs><marker id="la3" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0 0 L7 3 L0 6 Z" fill="#b8402e"/></marker></defs>
+            <path d="M440 70 H520" stroke="#b8402e" stroke-width="1.8" marker-end="url(#la3)"/><text x="600" y="66" class="mono" font-size="10" fill="#8f2f20">append only at the tail</text>
+            <path d="M62 120 H326" stroke="#3f6f4e" stroke-width="1.6" marker-end="url(#la3)" marker-start="url(#la3)"/>
+            <text x="194" y="140" class="mono" font-size="9.5" fill="#3f6f4e" text-anchor="middle">a reader advances forward by offset; it never goes back unless you seek</text>
+            <text x="360" y="160" class="serif" font-size="12" font-style="italic" fill="#5b5347" text-anchor="middle">No updates, no deletes-in-place, no random inserts, just append and read. That constraint is the superpower.</text>
+          </svg>
+        </div>
+
+        <h4>Kenapa log append-only begitu cepat dan begitu berguna</h4>
+        <ul>
+          <li><strong>I/O sekuensial murah.</strong> Menambahkan ke ujung file dan membacanya maju operasi disk sekuensial, jauh lebih cepat daripada akses acak, bahkan di SSD. Kafka bersandar pada OS page cache dan transfer <em>zero-copy</em> untuk memindahkan data dari disk ke jaringan tanpa melewati memori aplikasi, begitulah ia menopang jutaan pesan per detik di perangkat keras sederhana.</li>
+          <li><strong>Immutabilitas sederhana &amp; aman.</strong> Record tidak pernah berubah, jadi tidak ada lock untuk update, tidak ada konflik baca/tulis, dan pembaca serentak tidak pernah mengganggu. Riwayat immutable juga sepele di-cache dan mudah dinalar.</li>
+          <li><strong>Log <em>adalah</em> riwayatnya.</strong> Karena tidak ada yang ditimpa, log catatan lengkap terurut dari semua yang terjadi, persis yang membuat replay (bagian 11), event sourcing (bagian 14), dan memberi makan consumer baru dari awal mungkin.</li>
+        </ul>
+
+        <div class="box key"><span class="tag">One structure, everything follows</span>
+          <p>Pegang log append-only dengan mantap: tulis menambahkan dan mendapat offset; baca bergerak maju; record immutable dan dipertahankan. Partisi (bagian 4) hanya banyak log seperti itu; consumer group (bagian 7) penanda buku di dalamnya; semantik pengiriman (bagian 9) soal seberapa hati-hati Anda melacak penanda itu. Seluruh sistem gagasan log, di-scaling dan direplikasi.</p>
+        </div>
+      </section>
+
+      <div class="part-label">Part II / Architecture</div>
+
+      <!-- 4 -->
+      <section id="s4">
+        <div class="sec-head"><div class="sec-num">04</div><h2>Topik &amp; Partisi</h2></div>
+        <p><strong>Topic</strong> aliran bernama dari event terkait, <code>orders</code>, <code>payments</code>, <code>page-views</code>. Ia kanal logis yang ditulis producer dan dibaca consumer. Tapi topic bukan satu log; ia dipecah menjadi <strong>partisi</strong>, dan partisi tempat semua mekanik nyata hidup. Partisi sekaligus unit Kafka untuk <em>paralelisme</em>, <em>urutan</em>, dan <em>penyimpanan</em>, tiga properti terpenting dalam sistem, semuanya menumpang satu konsep ini.</p>
+
+        <div class="viz">
+          <div class="viz-cap">A topic is partitioned</div>
+          <div class="viz-title">One topic, several independent append-only logs; a key picks the partition</div>
+          <svg viewBox="0 0 720 240" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="A topic split into three partitions, each an append-only log, with a producer hashing record keys to choose a partition so same-key records stay ordered">
+            <rect x="20" y="30" width="120" height="50" rx="9" fill="#b8402e"/><text x="80" y="52" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">producer</text><text x="80" y="69" class="mono" font-size="8.5" fill="#f4d9cf" text-anchor="middle">key -&gt; hash</text>
+            <text x="430" y="22" class="mono" font-size="10.5" font-weight="700" fill="#b07d2b">TOPIC: orders (3 partitions)</text>
+            <defs><marker id="pa4" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#8f2f20"/></marker></defs>
+            <!-- P0 -->
+            <text x="180" y="55" class="mono" font-size="9" fill="#8a6420">P0</text>
+            <g class="mono" font-size="9"><rect x="200" y="40" width="36" height="26" rx="3" fill="#f0e5c9" stroke="#b07d2b"/><rect x="238" y="40" width="36" height="26" rx="3" fill="#f0e5c9" stroke="#b07d2b"/><rect x="276" y="40" width="36" height="26" rx="3" fill="#f0e5c9" stroke="#b07d2b"/><rect x="314" y="40" width="36" height="26" rx="3" fill="#f0e6cc" stroke="#b07d2b" stroke-dasharray="3 2"/></g>
+            <!-- P1 -->
+            <text x="180" y="115" class="mono" font-size="9" fill="#8a6420">P1</text>
+            <g class="mono" font-size="9"><rect x="200" y="100" width="36" height="26" rx="3" fill="#f0e5c9" stroke="#b07d2b"/><rect x="238" y="100" width="36" height="26" rx="3" fill="#f0e5c9" stroke="#b07d2b"/><rect x="276" y="100" width="36" height="26" rx="3" fill="#f0e6cc" stroke="#b07d2b" stroke-dasharray="3 2"/></g>
+            <!-- P2 -->
+            <text x="180" y="175" class="mono" font-size="9" fill="#8a6420">P2</text>
+            <g class="mono" font-size="9"><rect x="200" y="160" width="36" height="26" rx="3" fill="#f0e5c9" stroke="#b07d2b"/><rect x="238" y="160" width="36" height="26" rx="3" fill="#f0e5c9" stroke="#b07d2b"/><rect x="276" y="160" width="36" height="26" rx="3" fill="#f0e5c9" stroke="#b07d2b"/><rect x="314" y="160" width="36" height="26" rx="3" fill="#f0e5c9" stroke="#b07d2b"/><rect x="352" y="160" width="36" height="26" rx="3" fill="#f0e6cc" stroke="#b07d2b" stroke-dasharray="3 2"/></g>
+            <path d="M142 50 C165 50 175 52 198 53" stroke="#8f2f20" stroke-width="1.4" fill="none" marker-end="url(#pa4)"/>
+            <path d="M142 58 C165 90 175 110 198 113" stroke="#8f2f20" stroke-width="1.4" fill="none" marker-end="url(#pa4)"/>
+            <path d="M142 66 C165 130 175 170 198 173" stroke="#8f2f20" stroke-width="1.4" fill="none" marker-end="url(#pa4)"/>
+            <text x="430" y="120" class="serif" font-size="12" font-style="italic" fill="#5b5347">Ordering is guaranteed WITHIN a partition, not across them.</text>
+            <text x="430" y="142" class="serif" font-size="12" font-style="italic" fill="#5b5347">Records with the same key always land on the same partition,</text>
+            <text x="430" y="164" class="serif" font-size="12" font-style="italic" fill="#5b5347">so all events for one order stay in order.</text>
+            <text x="430" y="200" class="mono" font-size="9.5" fill="#8f2f20">partition = hash(key) % numPartitions</text>
+          </svg>
+        </div>
+
+        <h4>Tiga peran partisi</h4>
+        <ul>
+          <li><strong>Paralelisme.</strong> Partisi bisa hidup di broker berbeda dan dikonsumsi consumer berbeda sekaligus, jadi throughput topic berskala dengan jumlah partisinya. Lebih banyak partisi -&gt; lebih banyak konsumsi paralel (sampai batas consumer group, bagian 7).</li>
+          <li><strong>Urutan.</strong> Kafka menjamin urutan <em>dalam satu partisi</em> dan tidak berjanji apa pun <em>lintas partisi</em>. Ini kompromi sentral (bagian 10): untuk menjaga event terkait terurut, rutekan mereka ke partisi yang sama via <strong>key</strong> bersama (semua event untuk <code>order-42</code> memakai key <code>"order-42"</code>, jadi mereka terurut ketat relatif satu sama lain).</li>
+          <li><strong>Penyimpanan.</strong> Setiap partisi secara fisik satu set file segmen di disk broker, log append-only aktual dari bagian 3. Retensi dan kompaksi (bagian 11) beroperasi per partisi.</li>
+        </ul>
+
+        <div class="box gotcha"><span class="tag">Partition count is a one-way-ish decision</span>
+          <p>Anda bisa <em>menaikkan</em> partisi topic belakangan, tapi melakukannya <strong>memecah stabilitas key-ke-partisi</strong> (modulo berubah, jadi key yang ada bisa pindah) dan karenanya memecah jaminan urutan untuk key yang sedang berjalan. Dan Anda tidak bisa dengan mudah <em>menurunkannya</em>. Jadi pilih jumlah partisi sengaja di depan berdasarkan target throughput dan paralelisme consumer maksimum yang akan Anda butuhkan, terlalu sedikit membatasi scaling Anda, terlalu banyak menambah overhead (bagian 19, bagian 20).</p>
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section id="s5">
+        <div class="sec-head"><div class="sec-num">05</div><h2>Broker, Replikasi &amp; Daya Tahan</h2></div>
+        <p>Klaster Kafka satu set <strong>broker</strong> (server); partisi tersebar di antara mereka, dan begitulah klaster berskala dan selamat dari kegagalan. Daya tahan datang dari <strong>replikasi</strong>: tiap partisi punya satu replika <strong>leader</strong> dan beberapa replika <strong>follower</strong> di broker lain. Semua baca dan tulis pergi ke leader; follower terus menyalin darinya. Jika broker leader mati, follower dipromosikan, tanpa data hilang, ketidaktersediaan singkat. Ini pola pikir desired-state/failover yang sama dengan bab Kubernetes, diterapkan ke data.</p>
+
+        <div class="viz">
+          <div class="viz-cap">Replication</div>
+          <div class="viz-title">Each partition has a leader and in-sync followers on other brokers</div>
+          <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="Three brokers each holding leader and follower replicas of partitions, with producers and consumers talking only to leaders and followers replicating">
+            <g>
+              <rect x="30" y="40" width="190" height="150" rx="12" fill="#f3eee4" stroke="#3f6f4e"/><text x="125" y="60" class="mono" font-size="10" font-weight="700" fill="#3f6f4e" text-anchor="middle">Broker 1</text>
+              <rect x="50" y="72" width="150" height="32" rx="7" fill="#b8402e"/><text x="125" y="92" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">P0 (leader)</text>
+              <rect x="50" y="112" width="150" height="30" rx="7" fill="#e0e9dd" stroke="#3f6f4e"/><text x="125" y="131" font-size="9.5" fill="#3f6f4e" text-anchor="middle">P1 (follower)</text>
+              <rect x="50" y="148" width="150" height="30" rx="7" fill="#e0e9dd" stroke="#3f6f4e"/><text x="125" y="167" font-size="9.5" fill="#3f6f4e" text-anchor="middle">P2 (follower)</text>
+            </g>
+            <g>
+              <rect x="265" y="40" width="190" height="150" rx="12" fill="#f3eee4" stroke="#3f6f4e"/><text x="360" y="60" class="mono" font-size="10" font-weight="700" fill="#3f6f4e" text-anchor="middle">Broker 2</text>
+              <rect x="285" y="72" width="150" height="30" rx="7" fill="#e0e9dd" stroke="#3f6f4e"/><text x="360" y="91" font-size="9.5" fill="#3f6f4e" text-anchor="middle">P0 (follower)</text>
+              <rect x="285" y="110" width="150" height="32" rx="7" fill="#b8402e"/><text x="360" y="130" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">P1 (leader)</text>
+              <rect x="285" y="148" width="150" height="30" rx="7" fill="#e0e9dd" stroke="#3f6f4e"/><text x="360" y="167" font-size="9.5" fill="#3f6f4e" text-anchor="middle">P2 (follower)</text>
+            </g>
+            <g>
+              <rect x="500" y="40" width="190" height="150" rx="12" fill="#f3eee4" stroke="#3f6f4e"/><text x="595" y="60" class="mono" font-size="10" font-weight="700" fill="#3f6f4e" text-anchor="middle">Broker 3</text>
+              <rect x="520" y="72" width="150" height="30" rx="7" fill="#e0e9dd" stroke="#3f6f4e"/><text x="595" y="91" font-size="9.5" fill="#3f6f4e" text-anchor="middle">P0 (follower)</text>
+              <rect x="520" y="110" width="150" height="30" rx="7" fill="#e0e9dd" stroke="#3f6f4e"/><text x="595" y="129" font-size="9.5" fill="#3f6f4e" text-anchor="middle">P1 (follower)</text>
+              <rect x="520" y="146" width="150" height="32" rx="7" fill="#b8402e"/><text x="595" y="166" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">P2 (leader)</text>
+            </g>
+            <text x="360" y="208" class="serif" font-size="12" font-style="italic" fill="#5b5347" text-anchor="middle">Leaders are spread across brokers for balance; each follower replicates its leader. Lose a broker -&gt; its leaders' followers take over.</text>
+          </svg>
+        </div>
+
+        <h4>Kenop daya tahan: acks &amp; ISR</h4>
+        <p>Seberapa aman sebuah tulis bergantung dua setelan. <strong><code>acks</code></strong> producer menyebut berapa replika yang harus mengonfirmasi sebelum tulis dianggap selesai: <code>acks=0</code> (fire-and-forget, bisa kehilangan data), <code>acks=1</code> (leader saja, hilang jika leader mati sebelum follower menyalin), atau <code>acks=all</code> (leader plus semua <strong>in-sync replica</strong>: pilihan aman). <strong>ISR</strong> (in-sync replica set) follower yang saat ini mengejar leader; memasangkan <code>acks=all</code> dengan <code>min.insync.replicas=2</code> berarti tulis hanya sukses jika setidaknya dua replika memilikinya, selamat dari satu kehilangan broker dengan nol kehilangan data.</p>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Setelan</th><th>Jaminan</th><th>Kompromi</th></tr></thead>
+            <tbody>
+              <tr><td><code>acks=0</code></td><td>Tidak ada, fire and forget</td><td>Tercepat; bisa diam-diam kehilangan data</td></tr>
+              <tr><td><code>acks=1</code></td><td>Leader memilikinya</td><td>Cepat; hilang jika leader gagal sebelum replikasi</td></tr>
+              <tr><td><code>acks=all</code> + <code>min.insync.replicas=2</code></td><td>&gt;=2 replika memilikinya sebelum sukses</td><td>Paling aman; latensi sedikit lebih tinggi, standar untuk data penting</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box note"><span class="tag">ZooKeeper is gone, KRaft</span>
+          <p>Kafka lama mengandalkan klaster <strong>ZooKeeper</strong> terpisah untuk menyimpan metadata dan memilih leader. Kafka modern memakai <strong>KRaft</strong> (Kafka Raft), melipat peran itu ke broker itu sendiri via quorum controller berbasis Raft, lebih sedikit bagian yang bergerak, failover lebih cepat, ops lebih sederhana. Jika Anda membaca dokumen lama menyebut ZooKeeper, KRaft penggantinya.</p>
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section id="s6">
+        <div class="sec-head"><div class="sec-num">06</div><h2>Producer</h2></div>
+        <p><strong>Producer</strong> menerbitkan record ke topic. Tiga perhatian producer membentuk kebenaran dan performa: <strong>key</strong> (yang menentukan partisi dan karenanya urutan, bagian 4), <strong>acks</strong> (daya tahan, bagian 5), dan <strong>batching</strong> (producer mengelompokkan record dan mengompresnya untuk throughput). Record pasangan key/value plus header opsional dan timestamp; value payload event Anda (sering Avro/Protobuf, bagian 12).</p>
+
+        <div class="codeblock" data-cb>
+          <div class="code-bar"><div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs"><button class="on" data-lang="go"><span class="lang-go">&#9679;</span> Go</button><button data-lang="py"><span class="lang-py">&#9679;</span> Python</button></div></div>
+          <div class="code-panel on" data-panel="go"><pre><code class="language-go">// Using confluent-kafka-go (librdkafka). kafka-go (segmentio) is a pure-Go alternative.
+p, _ := kafka.NewProducer(&kafka.ConfigMap{
+    "bootstrap.servers": "localhost:9092",
+    "acks":              "all",   // durability: leader + in-sync replicas (sec 5)
+    "enable.idempotence": true,   // no duplicates on producer retry (sec 9)
+    "linger.ms":         5,       // wait up to 5ms to batch records (throughput)
+    "compression.type":  "zstd",
+})
+defer p.Close()
+
+topic := "orders"
+// The KEY decides the partition -&gt; all events for one order stay ordered (sec 4, sec 10).
+err := p.Produce(&kafka.Message{
+    TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
+    Key:            []byte("order-42"),
+    Value:          []byte(`{"event":"placed","amount":1999}`),
+}, nil)
+if err != nil { log.Fatal(err) }
+
+// Producing is async + batched; Flush blocks until queued messages are delivered.
+p.Flush(5000)
+
+// Delivery reports tell you the final partition/offset (or an error) per message:
+//   for e := range p.Events() { if m, ok := e.(*kafka.Message); ok { ... } }</code></pre></div>
+          <div class="code-panel" data-panel="py"><pre><code class="language-python"># Using confluent-kafka (librdkafka). kafka-python / aiokafka are alternatives.
+from confluent_kafka import Producer
+
+p = Producer({
+    "bootstrap.servers": "localhost:9092",
+    "acks": "all",                 # durability: leader + in-sync replicas (sec 5)
+    "enable.idempotence": True,    # no duplicates on producer retry (sec 9)
+    "linger.ms": 5,                # batch window for throughput
+    "compression.type": "zstd",
+})
+
+def on_delivery(err, msg):         # async callback: final partition/offset or error
+    if err:
+        print("delivery failed:", err)
+    else:
+        print(f"delivered to {msg.topic()}[{msg.partition()}]@{msg.offset()}")
+
+# The KEY decides the partition -&gt; all events for one order stay ordered (sec 4, sec 10).
+p.produce(
+    "orders",
+    key=b"order-42",
+    value=b'{"event":"placed","amount":1999}',
+    on_delivery=on_delivery,
+)
+p.flush()                          # block until queued messages are delivered</code></pre></div>
+        </div>
+
+        <div class="box gotcha"><span class="tag">No key = round-robin = no ordering</span>
+          <p>Jika Anda tidak set key, record tersebar lintas partisi (round-robin / sticky), memaksimalkan paralelisme tapi melepas hubungan urutan apa pun di antara mereka. Itu baik untuk event independen; itu bug jika event itu perlu tetap terurut (semua pembaruan satu akun, misalnya). <strong>Key berdasarkan batas urutan/entitas Anda</strong>: biasanya ID entitas, kapan pun urutan penting (bagian 10).</p>
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section id="s7">
+        <div class="sec-head"><div class="sec-num">07</div><h2>Consumer &amp; Consumer Group</h2></div>
+        <p><strong>Consumer</strong> membaca record dari partisi. Abstraksi yang kuat <strong>consumer group</strong>: satu set consumer berbagi group ID yang secara kooperatif membagi partisi topic di antara mereka supaya <em>setiap partisi dibaca tepat satu consumer dalam group</em>. Tambah consumer ke group dan Kafka <strong>rebalance</strong>, menetapkan ulang partisi untuk menyebar beban. Begitulah Anda scaling konsumsi horizontal, dan ini mekanisme di balik berbagi-kerja dan broadcast.</p>
+
+        <div class="viz">
+          <div class="viz-cap">Consumer groups</div>
+          <div class="viz-title">Within a group, partitions are split; different groups each get everything</div>
+          <svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="A topic with four partitions; group A with two consumers splits them two each, while group B reads all four independently">
+            <text x="90" y="22" class="mono" font-size="10" font-weight="700" fill="#b07d2b">topic: 4 partitions</text>
+            <g><rect x="20" y="34" width="120" height="28" rx="6" fill="#f0e5c9" stroke="#b07d2b"/><text x="80" y="53" font-size="10" fill="#8a6420" text-anchor="middle">P0</text>
+            <rect x="20" y="70" width="120" height="28" rx="6" fill="#f0e5c9" stroke="#b07d2b"/><text x="80" y="89" font-size="10" fill="#8a6420" text-anchor="middle">P1</text>
+            <rect x="20" y="106" width="120" height="28" rx="6" fill="#f0e5c9" stroke="#b07d2b"/><text x="80" y="125" font-size="10" fill="#8a6420" text-anchor="middle">P2</text>
+            <rect x="20" y="142" width="120" height="28" rx="6" fill="#f0e5c9" stroke="#b07d2b"/><text x="80" y="161" font-size="10" fill="#8a6420" text-anchor="middle">P3</text></g>
+            <defs><marker id="ca7" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#3f6f4e"/></marker><marker id="cb7" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#b8402e"/></marker></defs>
+            <!-- group A -->
+            <rect x="300" y="34" width="180" height="64" rx="10" fill="#e0e9dd" stroke="#3f6f4e" stroke-dasharray="5 3"/>
+            <text x="390" y="50" class="mono" font-size="9.5" font-weight="700" fill="#3f6f4e" text-anchor="middle">group A (2 consumers)</text>
+            <rect x="312" y="58" width="74" height="30" rx="6" fill="#dbeede" stroke="#3f6f4e"/><text x="349" y="77" font-size="9" fill="#3f6f4e" text-anchor="middle">c1 &lt;- P0,P1</text>
+            <rect x="394" y="58" width="74" height="30" rx="6" fill="#dbeede" stroke="#3f6f4e"/><text x="431" y="77" font-size="9" fill="#3f6f4e" text-anchor="middle">c2 &lt;- P2,P3</text>
+            <path d="M140 48 C220 48 240 66 300 66" stroke="#3f6f4e" stroke-width="1.2" fill="none" marker-end="url(#ca7)"/>
+            <path d="M140 120 C220 120 240 80 300 76" stroke="#3f6f4e" stroke-width="1.2" fill="none" marker-end="url(#ca7)"/>
+            <!-- group B -->
+            <rect x="300" y="120" width="180" height="64" rx="10" fill="#f7e9e2" stroke="#b8402e" stroke-dasharray="5 3"/>
+            <text x="390" y="136" class="mono" font-size="9.5" font-weight="700" fill="#8f2f20" text-anchor="middle">group B (1 consumer)</text>
+            <rect x="330" y="144" width="120" height="30" rx="6" fill="#f7d9d0" stroke="#b8402e"/><text x="390" y="163" font-size="9" fill="#8f2f20" text-anchor="middle">c1 &lt;- P0,P1,P2,P3</text>
+            <path d="M140 156 C220 156 240 156 298 156" stroke="#b8402e" stroke-width="1.2" fill="none" marker-end="url(#cb7)"/>
+            <text x="585" y="80" class="serif" font-size="11.5" font-style="italic" fill="#3f6f4e" text-anchor="middle">group A splits the load</text>
+            <text x="585" y="98" class="serif" font-size="11.5" font-style="italic" fill="#3f6f4e" text-anchor="middle">(scale out within a group)</text>
+            <text x="585" y="150" class="serif" font-size="11.5" font-style="italic" fill="#8f2f20" text-anchor="middle">group B is independent</text>
+            <text x="585" y="168" class="serif" font-size="11.5" font-style="italic" fill="#8f2f20" text-anchor="middle">it sees ALL events too</text>
+            <text x="360" y="218" class="serif" font-size="12" font-style="italic" fill="#5b5347" text-anchor="middle">Same group = work-sharing (each event once). Different groups = broadcast (each group gets everything).</text>
+            <text x="360" y="240" class="mono" font-size="9.5" fill="#8f2f20" text-anchor="middle">max useful consumers in a group = number of partitions (extra consumers sit idle)</text>
+          </svg>
+        </div>
+
+        <div class="codeblock" data-cb>
+          <div class="code-bar"><div class="dots"><i></i><i></i><i></i></div>
+            <div class="code-tabs"><button class="on" data-lang="go"><span class="lang-go">&#9679;</span> Go</button><button data-lang="py"><span class="lang-py">&#9679;</span> Python</button></div></div>
+          <div class="code-panel on" data-panel="go"><pre><code class="language-go">c, _ := kafka.NewConsumer(&kafka.ConfigMap{
+    "bootstrap.servers": "localhost:9092",
+    "group.id":          "billing",        // the consumer GROUP, scale by adding instances
+    "auto.offset.reset": "earliest",       // where to start if no committed offset (sec 8)
+    "enable.auto.commit": false,           // we'll commit manually for at-least-once (sec 9)
+})
+defer c.Close()
+c.Subscribe("orders", nil)                 // Kafka assigns this instance some partitions
+
+for {
+    msg, err := c.ReadMessage(-1)          // blocks for the next record
+    if err != nil { continue }
+
+    process(msg.Value)                     // do the work FIRST...
+    c.CommitMessage(msg)                   // ...THEN commit the offset (at-least-once, sec 9)
+}</code></pre></div>
+          <div class="code-panel" data-panel="py"><pre><code class="language-python">from confluent_kafka import Consumer
+
+c = Consumer({
+    "bootstrap.servers": "localhost:9092",
+    "group.id": "billing",                 # the consumer GROUP, scale by adding instances
+    "auto.offset.reset": "earliest",       # where to start if no committed offset (sec 8)
+    "enable.auto.commit": False,           # commit manually for at-least-once (sec 9)
+})
+c.subscribe(["orders"])                    # Kafka assigns this instance some partitions
+
+try:
+    while True:
+        msg = c.poll(1.0)                  # wait up to 1s for the next record
+        if msg is None:
+            continue
+        if msg.error():
+            print("error:", msg.error()); continue
+
+        process(msg.value())               # do the work FIRST...
+        c.commit(msg)                      # ...THEN commit the offset (at-least-once, sec 9)
+finally:
+    c.close()                              # leave the group cleanly -&gt; triggers a rebalance</code></pre></div>
+        </div>
+
+        <div class="box gotcha"><span class="tag">Partitions cap your parallelism</span>
+          <p>Karena satu partisi dikonsumsi paling banyak satu consumer <em>per group</em>, sebuah group bisa berguna memiliki paling banyak consumer aktif sebanyak partisi topic. Topic 4 partisi dengan 6 anggota group meninggalkan 2 consumer menganggur. Jadi <em>paralelisme konsumsi maksimum Anda ditetapkan jumlah partisi</em> (bagian 4), alasan lain mengukur partisi untuk throughput puncak Anda di depan (bagian 20).</p>
+        </div>
+      </section>
+
+      <div class="part-label">Part III / Guarantees</div>
+
+      <!-- 8 -->
+      <section id="s8">
+        <div class="sec-head"><div class="sec-num">08</div><h2>Offset &amp; Manajemen Offset</h2></div>
+        <p><strong>Offset</strong> posisi record di partisinya (bagian 3). Tugas consumer melacak offset mana yang sudah ia proses, <strong>committed offset</strong>-nya: supaya saat restart atau rebalance ia melanjutkan dari tempat yang tepat alih-alih membaca ulang semuanya atau melewatkan record. Kafka menyimpan offset committed ini di topic internal (<code><em>_consumer</em>offsets</code>), ber-key group + partisi. Celah antara offset terbaru di partisi dan committed offset group adalah <strong>consumer lag</strong>: metrik kesehatan terpenting tunggal untuk consumer (bagian 19).</p>
+
+        <div class="viz">
+          <div class="viz-cap">Position &amp; lag</div>
+          <div class="viz-title">Committed offset, current position, and the lag to the tail</div>
+          <svg viewBox="0 0 720 170" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="A partition log with a committed offset behind the current read position, and lag measured from the read position to the latest offset at the tail">
+            <g class="mono" font-size="9">
+              <rect x="30" y="60" width="40" height="30" rx="4" fill="#cfe0d2" stroke="#3f6f4e"/><rect x="70" y="60" width="40" height="30" rx="4" fill="#cfe0d2" stroke="#3f6f4e"/><rect x="110" y="60" width="40" height="30" rx="4" fill="#cfe0d2" stroke="#3f6f4e"/>
+              <rect x="150" y="60" width="40" height="30" rx="4" fill="#f0e5c9" stroke="#b07d2b"/><rect x="190" y="60" width="40" height="30" rx="4" fill="#f0e5c9" stroke="#b07d2b"/>
+              <rect x="230" y="60" width="40" height="30" rx="4" fill="#f7e2d8" stroke="#b8402e"/><rect x="270" y="60" width="40" height="30" rx="4" fill="#f7e2d8" stroke="#b8402e"/><rect x="310" y="60" width="40" height="30" rx="4" fill="#f7e2d8" stroke="#b8402e"/>
+            </g>
+            <text x="90" y="50" font-size="9.5" fill="#3f6f4e" text-anchor="middle">processed &amp; committed</text>
+            <text x="170" y="50" font-size="9.5" fill="#b07d2b" text-anchor="middle">read, not yet committed</text>
+            <text x="290" y="50" font-size="9.5" fill="#b8402e" text-anchor="middle">unread (lag)</text>
+            <defs><marker id="oa8" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#211e1a"/></marker></defs>
+            <line x1="150" y1="100" x2="150" y2="120" stroke="#3f6f4e" stroke-width="1.5"/><text x="150" y="135" font-size="9" fill="#3f6f4e" text-anchor="middle">committed offset</text>
+            <line x1="230" y1="100" x2="230" y2="120" stroke="#b07d2b" stroke-width="1.5"/><text x="230" y="135" font-size="9" fill="#b07d2b" text-anchor="middle">current position</text>
+            <line x1="350" y1="100" x2="350" y2="120" stroke="#b8402e" stroke-width="1.5"/><text x="350" y="135" font-size="9" fill="#b8402e" text-anchor="middle">log end (tail)</text>
+            <path d="M232 150 H348" stroke="#211e1a" stroke-width="1.4" marker-start="url(#oa8)" marker-end="url(#oa8)"/><text x="430" y="154" class="mono" font-size="10" font-weight="700" fill="#8f2f20">LAG = tail - position</text>
+            <text x="540" y="80" class="serif" font-size="11.5" font-style="italic" fill="#5b5347" text-anchor="middle">Growing lag means the</text>
+            <text x="540" y="98" class="serif" font-size="11.5" font-style="italic" fill="#5b5347" text-anchor="middle">consumer is falling behind</text>
+          </svg>
+        </div>
+
+        <h4>Kapan Anda commit menentukan jaminan Anda</h4>
+        <p>Pilihan antara <strong>auto-commit</strong> (Kafka secara berkala commit di latar) dan <strong>manual commit</strong> (Anda commit eksplisit) sebenarnya pilihan tentang semantik pengiriman (bagian 9). Urutan "proses pesan" versus "commit offset" segalanya: commit <em>setelah</em> memproses dan crash di antara berarti Anda akan memproses ulang (at-least-once); commit <em>sebelum</em> memproses dan crash berarti Anda akan melewatkan (at-most-once). Auto-commit pada timer bisa melakukan <em>entah yang mana</em> tergantung timing, itulah kenapa consumer yang sensitif kebenaran commit manual setelah kerja selesai (seperti kode bagian 7).</p>
+
+        <div class="box note"><span class="tag">Offsets are per group, and you can seek</span>
+          <p>Karena setiap <em>group</em> punya offset committed sendiri, group baru bisa mulai dari <code>earliest</code> dan memutar ulang seluruh riwayat yang dipertahankan, dasar untuk mem-bootstrap consumer baru atau membangun ulang tampilan (bagian 14). Anda juga bisa eksplisit <code>seek</code> consumer ke offset atau timestamp mana pun untuk memproses ulang rentang. Immutabilitas log yang dipertahankan (bagian 3) yang membuat ini mungkin; antrean tidak bisa melakukannya.</p>
+        </div>
+      </section>
+
+      <!-- 9 -->
+      <section id="s9">
+        <div class="sec-head"><div class="sec-num">09</div><h2>Semantik Pengiriman</h2></div>
+        <p>Pertanyaan yang harus dijawab setiap sistem pesan terdistribusi: jika hal gagal dan retry, berapa kali sebuah pesan mungkin dikirim? Ada tiga jaminan mungkin, dan Kafka bisa memberi Anda salah satunya tergantung konfigurasi, jadi Anda harus memilih secara sadar berdasarkan apa yang bisa ditoleransi pemrosesan Anda.</p>
+
+        <div class="viz">
+          <div class="viz-cap">Three semantics</div>
+          <div class="viz-title">The trade-off between losing messages and duplicating them</div>
+          <svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="Three boxes: at-most-once may lose, at-least-once may duplicate, exactly-once neither but is costlier">
+            <rect x="20" y="40" width="210" height="120" rx="12" fill="#f0e5c9" stroke="#b07d2b"/>
+            <text x="125" y="64" font-size="13" font-weight="700" fill="#b07d2b" text-anchor="middle">At-most-once</text>
+            <text x="125" y="88" class="mono" font-size="9" fill="#5b5347" text-anchor="middle">commit BEFORE processing</text>
+            <text x="125" y="110" font-size="11" fill="#8f2f20" text-anchor="middle">may LOSE messages</text>
+            <text x="125" y="128" font-size="11" fill="#3f6f4e" text-anchor="middle">never duplicates</text>
+            <text x="125" y="148" font-size="9.5" font-style="italic" fill="#5b5347" text-anchor="middle">ok for lossy metrics</text>
+
+            <rect x="255" y="40" width="210" height="120" rx="12" fill="#e0e9dd" stroke="#3f6f4e"/>
+            <text x="360" y="64" font-size="13" font-weight="700" fill="#3f6f4e" text-anchor="middle">At-least-once</text>
+            <text x="360" y="88" class="mono" font-size="9" fill="#5b5347" text-anchor="middle">commit AFTER processing</text>
+            <text x="360" y="110" font-size="11" fill="#3f6f4e" text-anchor="middle">never loses</text>
+            <text x="360" y="128" font-size="11" fill="#8f2f20" text-anchor="middle">may DUPLICATE</text>
+            <text x="360" y="148" font-size="9.5" font-style="italic" fill="#5b5347" text-anchor="middle">the common default + idempotency</text>
+
+            <rect x="490" y="40" width="210" height="120" rx="12" fill="#f7e9e2" stroke="#b8402e"/>
+            <text x="595" y="64" font-size="13" font-weight="700" fill="#8f2f20" text-anchor="middle">Exactly-once</text>
+            <text x="595" y="88" class="mono" font-size="9" fill="#5b5347" text-anchor="middle">idempotent producer + txns</text>
+            <text x="595" y="110" font-size="11" fill="#3f6f4e" text-anchor="middle">no loss, no dupes</text>
+            <text x="595" y="128" font-size="11" fill="#b07d2b" text-anchor="middle">costlier / Kafka-to-Kafka</text>
+            <text x="595" y="148" font-size="9.5" font-style="italic" fill="#5b5347" text-anchor="middle">read-process-write pipelines</text>
+            <text x="360" y="186" class="serif" font-size="12" font-style="italic" fill="#5b5347" text-anchor="middle">Most systems choose at-least-once and make processing idempotent, the pragmatic sweet spot.</text>
+          </svg>
+        </div>
+
+        <div class="box key"><span class="tag">At-least-once + idempotent consumers = the practical answer</span>
+          <p>Exactly-once end-to-end sejati sempit: <code>enable.idempotence</code> Kafka menghentikan duplikat <em>producer</em>, dan <strong>transaksi</strong> memberi exactly-once untuk stream processing Kafka-<em>ke</em>-Kafka (konsumsi, transformasi, produksi, dan commit offset secara atomik). Tapi begitu consumer Anda menulis ke sistem <em>eksternal</em> (database, API pembayaran), exactly-once melintasi batas itu tidak gratis. Pendekatan teruji perang: pilih <strong>at-least-once</strong> dan buat pemrosesan Anda <strong>idempotent</strong>: aman menerapkan event yang sama dua kali (dedup dengan event ID, upsert alih-alih insert). Ini disiplin idempotensi yang sama dengan bab task-queues (bagian 14 di sana) dan idempotency key REST, dan itulah kenapa duplikat jadi tidak berbahaya alih-alih katastrofal.</p>
+        </div>
+
+        <div class="codeblock single">
+          <div class="code-bar"><div class="dots"><i></i><i></i><i></i></div><span class="filename">making at-least-once safe: idempotent processing (pseudocode, both languages)</span></div>
+          <pre><code class="language-sql">-- The consumer may see the same event twice on retry/rebalance.
+-- Make the write idempotent so a duplicate is a no-op:
+
+-- (a) dedupe by a unique event id
+INSERT INTO processed_events (event_id) VALUES ($1)
+ON CONFLICT (event_id) DO NOTHING;        -- second delivery inserts nothing
+-- ...only do the side effect if the insert affected a row.
+
+-- (b) or make the effect itself idempotent, upsert the end state, don't increment
+INSERT INTO account_balance (account_id, balance) VALUES ($1, $2)
+ON CONFLICT (account_id) DO UPDATE SET balance = EXCLUDED.balance;
+-- applying the same "balance = 100" twice lands on the same state.</code></pre>
+        </div>
+      </section>
+
+      <!-- 10 -->
+      <section id="s10">
+        <div class="sec-head"><div class="sec-num">10</div><h2>Jaminan Urutan</h2></div>
+        <p>Satu kalimat untuk dihafal: <strong>Kafka menjamin urutan dalam partisi, dan tidak di tempat lain.</strong> Record di partisi P dikirim ke consumer dalam urutan offset persis saat ditulis. Lintas partisi topic yang sama, <em>tidak ada</em> urutan global, record saling bersisip arbitrer. Ini bukan keterbatasan yang harus dikerjakan melainkan harga langsung paralelisme tingkat partisi (bagian 4): Anda bisa punya urutan total, atau skala horizontal, tapi tidak keduanya sekaligus untuk stream yang sama.</p>
+
+        <div class="viz">
+          <div class="viz-cap">Ordering vs parallelism</div>
+          <div class="viz-title">Keying preserves per-entity order; the trade-off is partition skew</div>
+          <svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="Events for order-42 all routed to one partition in strict order, while different orders spread across partitions for parallelism">
+            <text x="20" y="24" class="mono" font-size="10" font-weight="700" fill="#8f2f20">key = order id -&gt; same order's events stay together &amp; ordered</text>
+            <rect x="30" y="38" width="120" height="40" rx="8" fill="#b8402e"/><text x="90" y="62" font-size="10.5" font-weight="700" fill="#fff" text-anchor="middle">producer</text>
+            <defs><marker id="oa10" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#8f2f20"/></marker></defs>
+            <text x="200" y="56" class="mono" font-size="9" fill="#8a6420">P0</text>
+            <g class="mono" font-size="8.5"><rect x="220" y="42" width="84" height="22" rx="3" fill="#f0e5c9" stroke="#b07d2b"/><text x="262" y="57" text-anchor="middle">o42:placed</text><rect x="306" y="42" width="92" height="22" rx="3" fill="#f0e5c9" stroke="#b07d2b"/><text x="352" y="57" text-anchor="middle">o42:paid</text><rect x="400" y="42" width="104" height="22" rx="3" fill="#f0e5c9" stroke="#b07d2b"/><text x="452" y="57" text-anchor="middle">o42:shipped</text></g>
+            <text x="200" y="100" class="mono" font-size="9" fill="#8a6420">P1</text>
+            <g class="mono" font-size="8.5"><rect x="220" y="86" width="84" height="22" rx="3" fill="#f0e5c9" stroke="#b07d2b"/><text x="262" y="101" text-anchor="middle">o88:placed</text><rect x="306" y="86" width="92" height="22" rx="3" fill="#f0e5c9" stroke="#b07d2b"/><text x="352" y="101" text-anchor="middle">o88:paid</text></g>
+            <path d="M150 52 C175 52 185 52 218 52" stroke="#8f2f20" stroke-width="1.3" fill="none" marker-end="url(#oa10)"/>
+            <path d="M150 60 C175 90 185 96 218 96" stroke="#8f2f20" stroke-width="1.3" fill="none" marker-end="url(#oa10)"/>
+            <text x="540" y="56" class="serif" font-size="11" font-style="italic" fill="#3f6f4e" text-anchor="middle">o42 strictly ordered in P0;</text>
+            <text x="540" y="74" class="serif" font-size="11" font-style="italic" fill="#3f6f4e" text-anchor="middle">o88 strictly ordered in P1;</text>
+            <text x="540" y="92" class="serif" font-size="11" font-style="italic" fill="#5b5347" text-anchor="middle">P0 vs P1 order = undefined</text>
+            <text x="360" y="150" class="serif" font-size="12" font-style="italic" fill="#8f2f20" text-anchor="middle">Risk: a "hot" key (one huge customer) overloads its single partition, partition skew (sec 18).</text>
+            <text x="360" y="176" class="serif" font-size="12" font-style="italic" fill="#5b5347" text-anchor="middle">Choose the key at the granularity where order matters but load still spreads.</text>
+          </svg>
+        </div>
+
+        <div class="box gotcha"><span class="tag">Two ordering foot-guns</span>
+          <p>Pertama, <strong>key skew</strong>: jika urutan menuntut keying pada nilai kasar (mis. satu mega-tenant), semua lalu lintas tenant itu mengerucut ke satu partisi, membatasi throughput-nya berapa pun jumlah partisi yang ada (bagian 18). Kedua, <strong>retry bisa mengubah urutan</strong>: dengan producer non-idempotent dan banyak request in-flight, pesan yang di-retry bisa mendarat setelah yang belakangan. Mengaktifkan <code>enable.idempotence</code> (bagian 6) mengawetkan urutan per-partisi bahkan lintas retry, alasan lain ia default yang masuk akal.</p>
+        </div>
+      </section>
+
+      <!-- 11 -->
+      <section id="s11">
+        <div class="sec-head"><div class="sec-num">11</div><h2>Retensi &amp; Kompaksi Log</h2></div>
+        <p>Karena record dipertahankan setelah dibaca (bagian 2), Kafka butuh aturan kapan <em>menghapusnya</em>, kalau tidak log tumbuh selamanya. Ada dua kebijakan pembersihan, dan mereka menjawab kebutuhan berbeda. <strong>Retensi waktu/ukuran</strong> (default) menyimpan record selama jendela, katakanlah 7 hari atau 50 GB per partisi, lalu menghapus yang tertua. <strong>Kompaksi log</strong> lebih cerdas: ia menyimpan record <em>terbaru</em> untuk tiap key dan mengumpulkan versi lama key itu, mengubah log menjadi snapshot yang terus diperbarui dari "nilai saat ini per key."</p>
+
+        <div class="viz">
+          <div class="viz-cap">Retention vs compaction</div>
+          <div class="viz-title">Delete by age, or keep the latest value per key</div>
+          <svg viewBox="0 0 720 210" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="Top: time retention dropping old records. Bottom: compaction keeping only the latest record per key">
+            <text x="20" y="22" class="mono" font-size="10.5" font-weight="700" fill="#b07d2b">delete policy (time/size), drop the oldest</text>
+            <g class="mono" font-size="9"><rect x="30" y="32" width="50" height="28" rx="4" fill="#efe7d6" stroke="#bbb" stroke-dasharray="3 2"/><text x="55" y="50" fill="#999" text-anchor="middle">old</text><rect x="84" y="32" width="50" height="28" rx="4" fill="#efe7d6" stroke="#bbb" stroke-dasharray="3 2"/><text x="109" y="50" fill="#999" text-anchor="middle">old</text><rect x="138" y="32" width="50" height="28" rx="4" fill="#f0e5c9" stroke="#b07d2b"/><text x="163" y="50" fill="#8a6420" text-anchor="middle">keep</text><rect x="192" y="32" width="50" height="28" rx="4" fill="#f0e5c9" stroke="#b07d2b"/><text x="217" y="50" fill="#8a6420" text-anchor="middle">keep</text><rect x="246" y="32" width="50" height="28" rx="4" fill="#f0e5c9" stroke="#b07d2b"/><text x="271" y="50" fill="#8a6420" text-anchor="middle">keep</text></g>
+            <text x="430" y="50" font-size="10.5" font-style="italic" fill="#5b5347">records past the window are deleted regardless of key</text>
+
+            <text x="20" y="100" class="mono" font-size="10.5" font-weight="700" fill="#3f6f4e">compact policy, keep latest per KEY</text>
+            <text x="30" y="118" class="mono" font-size="8.5" fill="#5b5347">before:</text>
+            <g class="mono" font-size="8"><rect x="80" y="106" width="64" height="22" rx="3" fill="#efe7d6" stroke="#bbb"/><text x="112" y="121" fill="#999" text-anchor="middle">k=A v=1</text><rect x="148" y="106" width="64" height="22" rx="3" fill="#efe7d6" stroke="#bbb"/><text x="180" y="121" fill="#999" text-anchor="middle">k=B v=1</text><rect x="216" y="106" width="64" height="22" rx="3" fill="#efe7d6" stroke="#bbb"/><text x="248" y="121" fill="#999" text-anchor="middle">k=A v=2</text><rect x="284" y="106" width="64" height="22" rx="3" fill="#efe7d6" stroke="#bbb"/><text x="316" y="121" fill="#999" text-anchor="middle">k=A v=3</text></g>
+            <defs><marker id="ra11" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto"><path d="M0 0 L7 3 L0 6 Z" fill="#3f6f4e"/></marker></defs>
+            <path d="M360 117 H410" stroke="#3f6f4e" stroke-width="1.6" marker-end="url(#ra11)"/>
+            <text x="30" y="160" class="mono" font-size="8.5" fill="#5b5347">after:</text>
+            <g class="mono" font-size="8"><rect x="80" y="148" width="64" height="22" rx="3" fill="#dbeede" stroke="#3f6f4e"/><text x="112" y="163" fill="#3f6f4e" text-anchor="middle">k=B v=1</text><rect x="148" y="148" width="64" height="22" rx="3" fill="#dbeede" stroke="#3f6f4e"/><text x="180" y="163" fill="#3f6f4e" text-anchor="middle">k=A v=3</text></g>
+            <text x="430" y="160" font-size="10.5" font-style="italic" fill="#3f6f4e">only the newest value of each key survives, a live snapshot</text>
+            <text x="360" y="196" class="serif" font-size="12" font-style="italic" fill="#5b5347" text-anchor="middle">Compaction makes a topic usable as a durable, replayable key/value store of current state.</text>
+          </svg>
+        </div>
+
+        <div class="box note"><span class="tag">Compaction powers state &amp; the replay story</span>
+          <p>Topic ter-kompaksi cara Kafka memegang state <em>saat ini</em> selamanya tanpa pertumbuhan tak terbatas, basis untuk snapshot event-sourcing (bagian 14), state store dan KTable Kafka Streams (bagian 16), dan data config/pencarian yang bisa diputar ulang consumer baru dari nol untuk membangun ulang gambaran lengkap. Topic retensi-waktu menjawab "apa yang terjadi baru-baru ini"; topic ter-kompaksi menjawab "apa state terbaru dari semuanya." Pilih kebijakan berdasarkan pertanyaan mana yang ada untuk dijawab topic Anda.</p>
+        </div>
+      </section>
+
+      <div class="part-label">Part IV / Schemas &amp; Patterns</div>
+
+      <!-- 12 -->
+      <section id="s12">
+        <div class="sec-head"><div class="sec-num">12</div><h2>Skema &amp; Schema Registry</h2></div>
+        <p>Kafka sendiri memperlakukan nilai record sebagai byte buram, ia tidak tahu atau peduli isinya. Kebebasan itu jebakan di skala: jika producer dan consumer tidak setuju pada bentuk payload, producer yang mengubah field diam-diam memecah setiap consumer hilir (bahaya contract-drift yang diperingatkan bab gRPC dan serialisasi, kini tersebar lintas banyak tim independen). Perbaikannya <strong>skema</strong> untuk tiap topic plus <strong>Schema Registry</strong> yang menyimpan skema, menetapkan ID, dan <em>menegakkan kompatibilitas</em> saat mereka berevolusi.</p>
+
+        <div class="viz">
+          <div class="viz-cap">Schema Registry</div>
+          <div class="viz-title">Producers and consumers share a registered, versioned schema</div>
+          <svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="A producer registering and serializing with a schema, the registry storing versioned schemas and enforcing compatibility, and a consumer fetching the schema to deserialize">
+            <rect x="20" y="80" width="130" height="44" rx="9" fill="#b8402e"/><text x="85" y="100" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">producer</text><text x="85" y="116" class="mono" font-size="8" fill="#f4d9cf" text-anchor="middle">serialize + schema id</text>
+            <rect x="295" y="30" width="170" height="56" rx="10" fill="#211e1a"/><text x="380" y="54" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">Schema Registry</text><text x="380" y="72" class="mono" font-size="8" fill="#e9e2d3" text-anchor="middle">versioned / checks compat</text>
+            <rect x="295" y="110" width="170" height="44" rx="10" fill="#f0e5c9" stroke="#b07d2b"/><text x="380" y="130" font-size="10.5" font-weight="700" fill="#b07d2b" text-anchor="middle">topic (bytes + id)</text><text x="380" y="146" class="mono" font-size="8" fill="#5b5347" text-anchor="middle">Kafka stores only bytes</text>
+            <rect x="570" y="80" width="130" height="44" rx="9" fill="#e0e9dd" stroke="#3f6f4e"/><text x="635" y="100" font-size="11" font-weight="700" fill="#3f6f4e" text-anchor="middle">consumer</text><text x="635" y="116" class="mono" font-size="8" fill="#5b5347" text-anchor="middle">fetch schema, decode</text>
+            <defs><marker id="sa12" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#8f2f20"/></marker></defs>
+            <path d="M120 88 C200 60 240 56 293 54" stroke="#8f2f20" stroke-width="1.4" fill="none" marker-end="url(#sa12)"/><text x="205" y="50" class="mono" font-size="8" fill="#8f2f20">register</text>
+            <path d="M150 110 C200 122 240 128 293 130" stroke="#8f2f20" stroke-width="1.4" fill="none" marker-end="url(#sa12)"/><text x="210" y="124" class="mono" font-size="8" fill="#8f2f20">produce</text>
+            <path d="M465 130 C510 128 540 122 568 112" stroke="#8f2f20" stroke-width="1.4" fill="none" marker-end="url(#sa12)"/>
+            <path d="M568 96 C540 70 510 56 467 54" stroke="#8f2f20" stroke-width="1.4" fill="none" marker-end="url(#sa12)"/><text x="520" y="50" class="mono" font-size="8" fill="#8f2f20">fetch by id</text>
+            <text x="360" y="184" class="serif" font-size="12" font-style="italic" fill="#5b5347" text-anchor="middle">The registry rejects an incompatible schema change, breaking changes fail at deploy, not in production.</text>
+          </svg>
+        </div>
+
+        <h4>Format &amp; kompatibilitas</h4>
+        <p>Format serialisasi umum <strong>Avro</strong> (pasangan tradisional Kafka, ringkas dengan kisah evolusi skema kaya), <strong>Protobuf</strong> (IDL yang sama dengan bab gRPC, makin populer), dan <strong>JSON Schema</strong> (terbaca, lebih besar). Registry menegakkan <strong>mode kompatibilitas</strong>: biasanya kompatibilitas <em>backward</em>, artinya consumer baru bisa membaca data lama: Anda boleh menambah field opsional dan menghapus yang punya default, tapi tidak boleh mengganti nama atau mengubah tipe field. Ini persis disiplin perubahan aditif dari bab gRPC (bagian 04 di sana: nomor field, jangan pernah pakai ulang) dan versioning REST, ditegakkan otomatis oleh server.</p>
+
+        <div class="box key"><span class="tag">A schema is a cross-team contract</span>
+          <p>Di armada microservice, skema topic API publik yang diandalkan banyak tim independen. Schema Registry mengubah "tolong jangan pecahkan payload" dari konvensi suku menjadi gerbang yang diperiksa mesin, peran yang sama dimainkan buf untuk file <code>.proto</code> gRPC. Perlakukan perubahan skema dengan perhatian yang sama seperti perubahan API apa pun: aditif dan kompatibel secara default.</p>
+        </div>
+      </section>
+
+      <!-- 13 -->
+      <section id="s13">
+        <div class="sec-head"><div class="sec-num">13</div><h2>Pola Event-Driven</h2></div>
+        <p>Kafka substrat untuk <strong>event-driven architecture (EDA)</strong>, tempat layanan berkomunikasi dengan memancarkan dan bereaksi terhadap event alih-alih saling memanggil langsung. Alih-alih service order <em>memerintah</em> service email, inventaris, dan analitik (kopling ketat, service order harus kenal semuanya), ia cukup <em>mengumumkan</em> "OrderPlaced" ke topic, dan service mana pun yang tertarik berlangganan. Producer tidak tahu, atau peduli, siapa yang mengonsumsi. Ini pembayaran dalam dari decoupling log (bagian 1): Anda menambah consumer baru tanpa menyentuh producer.</p>
+
+        <div class="viz">
+          <div class="viz-cap">Choreography</div>
+          <div class="viz-title">One event, many independent reactions, the producer is unaware</div>
+          <svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="An order service emitting an OrderPlaced event to a topic, which email, inventory, and analytics services each consume independently">
+            <rect x="20" y="80" width="130" height="48" rx="9" fill="#b8402e"/><text x="85" y="100" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">order service</text><text x="85" y="117" class="mono" font-size="8" fill="#f4d9cf" text-anchor="middle">emits OrderPlaced</text>
+            <defs><marker id="ea13" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#8f2f20"/></marker></defs>
+            <path d="M152 104 H243" stroke="#8f2f20" stroke-width="1.8" marker-end="url(#ea13)"/>
+            <rect x="245" y="84" width="150" height="40" rx="9" fill="#f0e5c9" stroke="#b07d2b"/><text x="320" y="108" font-size="10.5" font-weight="700" fill="#b07d2b" text-anchor="middle">topic: orders</text>
+            <g stroke="#3f6f4e" stroke-width="1.4" fill="none"><path d="M396 96 C450 64 480 56 530 52" marker-end="url(#k2)"/><path d="M396 104 H530" marker-end="url(#k2)"/><path d="M396 112 C450 152 480 158 530 162" marker-end="url(#k2)"/></g>
+            <rect x="532" y="32" width="168" height="40" rx="9" fill="#e0e9dd" stroke="#3f6f4e"/><text x="616" y="56" font-size="10" font-weight="700" fill="#3f6f4e" text-anchor="middle">email service</text>
+            <rect x="532" y="84" width="168" height="40" rx="9" fill="#e0e9dd" stroke="#3f6f4e"/><text x="616" y="108" font-size="10" font-weight="700" fill="#3f6f4e" text-anchor="middle">inventory service</text>
+            <rect x="532" y="136" width="168" height="40" rx="9" fill="#e0e9dd" stroke="#3f6f4e"/><text x="616" y="160" font-size="10" font-weight="700" fill="#3f6f4e" text-anchor="middle">analytics service</text>
+            <text x="360" y="192" class="serif" font-size="12" font-style="italic" fill="#5b5347" text-anchor="middle">Add a "loyalty-points" consumer tomorrow, zero changes to the order service.</text>
+          </svg>
+        </div>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Pola</th><th>Apa yang dibawa event</th><th>Kompromi</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Event notification</strong></td><td>Hanya "X terjadi" + ID</td><td>Pesan kecil; consumer harus memanggil balik untuk detail (kopling, beban)</td></tr>
+              <tr><td><strong>Event-carried state transfer</strong></td><td>State relevan penuh di event</td><td>Consumer mandiri (tanpa callback); pesan lebih besar, kemungkinan duplikasi</td></tr>
+              <tr><td><strong>Choreography</strong></td><td>Service bereaksi ke event secara otonom</td><td>Kopling longgar, mudah diperluas; alur lebih sulit dilihat end-to-end</td></tr>
+              <tr><td><strong>Orchestration</strong></td><td>Koordinator menggerakkan langkah-langkah (saga)</td><td>Alur eksplisit terlihat; memperkenalkan kembali koordinator sentral</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box gotcha"><span class="tag">Decoupling isn't free</span>
+          <p>EDA menukar kejelasan panggilan langsung demi fleksibilitas. Sisi bawahnya tidak ada satu tempat yang mendeskripsikan seluruh alur kerja, "apa yang terjadi saat order ditempatkan?" kini tersebar di banyak subscriber, yang membuat debugging dan penalaran lebih sulit. Mitigasi dengan observabilitas baik (trace/correlation ID lewat header event, gagasan yang sama dengan bagian 13/bagian 15 bab lapisan dan logging), skema event jelas (bagian 12), dan memilih orkestrasi (saga eksplisit) saat alur benar-benar butuh urutan terkoordinasi yang terlihat.</p>
+        </div>
+      </section>
+
+      <!-- 14 -->
+      <section id="s14">
+        <div class="sec-head"><div class="sec-num">14</div><h2>Event Sourcing &amp; CQRS</h2></div>
+        <p>Dua pola lanjutan yang dimungkinkan log, sering dikacaukan, sering dipasangkan. <strong>Event sourcing</strong> menyimpan state sebagai <em>urutan event yang menghasilkannya</em> alih-alih hanya snapshot saat ini: alih-alih baris <code>balance = 100</code>, Anda menyimpan <code>Deposited 60</code>, <code>Deposited 50</code>, <code>Withdrew 10</code>, dan menurunkan saldo dengan memutar ulangnya. Log immutable terurut yang dipertahankan Kafka (bagian 3) event store alami. <strong>CQRS</strong> (Command Query Responsibility Segregation) memisahkan model tulis dari satu atau lebih model baca yang dioptimalkan untuk query.</p>
+
+        <div class="viz">
+          <div class="viz-cap">Event sourcing + CQRS</div>
+          <div class="viz-title">The event log is the source of truth; read models are derived projections</div>
+          <svg viewBox="0 0 720 210" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="Commands append events to a log which is the source of truth; consumers project those events into specialized read models like a search index and a SQL view">
+            <rect x="20" y="84" width="110" height="44" rx="9" fill="#b8402e"/><text x="75" y="104" font-size="10.5" font-weight="700" fill="#fff" text-anchor="middle">command</text><text x="75" y="120" class="mono" font-size="8" fill="#f4d9cf" text-anchor="middle">"deposit 60"</text>
+            <defs><marker id="es14" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#8f2f20"/></marker></defs>
+            <path d="M132 106 H193" stroke="#8f2f20" stroke-width="1.6" marker-end="url(#es14)"/>
+            <rect x="195" y="78" width="170" height="56" rx="10" fill="#f0e5c9" stroke="#b07d2b"/><text x="280" y="100" font-size="10.5" font-weight="700" fill="#b07d2b" text-anchor="middle">event log</text><text x="280" y="118" class="mono" font-size="8" fill="#5b5347" text-anchor="middle">SOURCE OF TRUTH (append-only)</text>
+            <g stroke="#3f6f4e" stroke-width="1.4" fill="none"><path d="M366 96 C420 70 450 60 500 56" marker-end="url(#k2)"/><path d="M366 116 C420 142 450 152 500 156" marker-end="url(#k2)"/></g>
+            <rect x="502" y="34" width="196" height="44" rx="9" fill="#e0e9dd" stroke="#3f6f4e"/><text x="600" y="54" font-size="10" font-weight="700" fill="#3f6f4e" text-anchor="middle">read model: search index</text><text x="600" y="70" class="mono" font-size="8" fill="#5b5347" text-anchor="middle">projection for fast queries</text>
+            <rect x="502" y="134" width="196" height="44" rx="9" fill="#e0e9dd" stroke="#3f6f4e"/><text x="600" y="154" font-size="10" font-weight="700" fill="#3f6f4e" text-anchor="middle">read model: SQL view</text><text x="600" y="170" class="mono" font-size="8" fill="#5b5347" text-anchor="middle">projection for reporting</text>
+            <text x="360" y="200" class="serif" font-size="12" font-style="italic" fill="#5b5347" text-anchor="middle">Lost a read model? Rebuild it by replaying the log from offset 0. The events are the truth; views are disposable.</text>
+          </svg>
+        </div>
+
+        <p>Manfaatnya nyata: <strong>jejak audit lengkap</strong> (setiap perubahan fakta tercatat, emas untuk finansial dan kepatuhan), kemampuan <strong>membangun ulang state di titik masa lalu mana pun</strong> dengan memutar ulang ke offset, dan <strong>banyak model baca khusus</strong> yang masing-masing bisa dibangun ulang dari log yang sama (kompaksi, bagian 11, menyediakan snapshot untuk menghindari memutar ulang dari awal zaman).</p>
+
+        <div class="box gotcha"><span class="tag">Powerful, and not free, don't reach for it by default</span>
+          <p>Event sourcing menambah kompleksitas nyata: evolusi skema event <em>historis</em> sulit (Anda tidak pernah bisa mengubah masa lalu, hanya cara menafsirkannya), membangun ulang state punya biaya, dan "apa nilai saat ini?" kini butuh proyeksi alih-alih baca baris. Ia bersinar untuk domain audit-berat dan kompleks (pembayaran, buku besar, tepat fintech) tempat riwayat <em>adalah</em> nilainya. Untuk CRUD biasa, database normal lebih sederhana dan benar, pakai polanya tempat jejak audit dan replay benar-benar membayar kompleksitasnya, bukan sebagai arsitektur default.</p>
+        </div>
+      </section>
+
+      <!-- 15 -->
+      <section id="s15">
+        <div class="sec-head"><div class="sec-num">15</div><h2>Pola Outbox &amp; Change Data Capture</h2></div>
+        <p>Masalah halus dan penting di sistem event-driven: saat service harus <strong>memperbarui database-nya dan menerbitkan event</strong>, melakukannya sebagai dua operasi terpisah tidak aman. Jika commit DB sukses tapi publish Kafka gagal (atau sebaliknya), sistem Anda menyimpang, order ada tapi tidak ada event "OrderPlaced", atau event menyala untuk order yang di-rollback. Ini <strong>masalah dual-write</strong>, dan Anda tidak bisa memperbaikinya dengan menukar urutan dua tulis, selalu ada jendela crash di antara keduanya.</p>
+
+        <div class="viz">
+          <div class="viz-cap">The dual-write problem &amp; the outbox fix</div>
+          <div class="viz-title">Write the event into the same DB transaction; relay it to Kafka afterward</div>
+          <svg viewBox="0 0 720 230" xmlns="http://www.w3.org/2000/svg" role="img"
+            aria-label="Top: writing to DB then Kafka separately risks divergence on a crash between them. Bottom: writing business data and an outbox row in one transaction, then a relay publishing the outbox to Kafka">
+            <text x="20" y="22" class="mono" font-size="10" font-weight="700" fill="#8f2f20">naive dual write, can diverge</text>
+            <rect x="30" y="34" width="100" height="34" rx="7" fill="#eccdc2" stroke="#8f2f20"/><text x="80" y="55" font-size="9.5" fill="#8f2f20" text-anchor="middle">commit DB</text>
+            <text x="140" y="55" font-size="13" fill="#8f2f20">&#8594;</text>
+            <text x="160" y="50" font-size="9" font-style="italic" fill="#8f2f20">&#9889; crash here</text>
+            <rect x="250" y="34" width="110" height="34" rx="7" fill="#eccdc2" stroke="#8f2f20"/><text x="305" y="55" font-size="9.5" fill="#8f2f20" text-anchor="middle">publish Kafka</text>
+            <text x="380" y="55" font-size="10.5" font-style="italic" fill="#8f2f20">DB updated but event never sent</text>
+
+            <text x="20" y="104" class="mono" font-size="10" font-weight="700" fill="#3f6f4e">outbox pattern, atomic</text>
+            <rect x="30" y="118" width="220" height="72" rx="10" fill="#e0e9dd" stroke="#3f6f4e"/><text x="140" y="138" font-size="10" font-weight="700" fill="#3f6f4e" text-anchor="middle">ONE DB transaction</text>
+            <rect x="46" y="148" width="92" height="32" rx="6" fill="#dbeede" stroke="#3f6f4e"/><text x="92" y="168" font-size="8.5" fill="#3f6f4e" text-anchor="middle">orders row</text>
+            <rect x="144" y="148" width="92" height="32" rx="6" fill="#dbeede" stroke="#3f6f4e"/><text x="190" y="168" font-size="8.5" fill="#3f6f4e" text-anchor="middle">outbox row</text>
+            <defs><marker id="ob15" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#8f2f20"/></marker></defs>
+            <path d="M252 154 H300" stroke="#8f2f20" stroke-width="1.6" marker-end="url(#ob15)"/>
+            <rect x="302" y="138" width="120" height="34" rx="8" fill="#211e1a"/><text x="362" y="159" font-size="9.5" font-weight="700" fill="#fff" text-anchor="middle">relay / CDC</text>
+            <path d="M424 154 H472" stroke="#8f2f20" stroke-width="1.6" marker-end="url(#ob15)"/>
+            <rect x="474" y="138" width="120" height="34" rx="8" fill="#f0e5c9" stroke="#b07d2b"/><text x="534" y="159" font-size="9.5" font-weight="700" fill="#b07d2b" text-anchor="middle">Kafka topic</text>
+            <text x="360" y="212" class="serif" font-size="12" font-style="italic" fill="#5b5347" text-anchor="middle">Both rows commit together or not at all; a separate relay reliably forwards the outbox, no lost or phantom events.</text>
+          </svg>
+        </div>
+
+        <p><strong>Pola outbox</strong> menyelesaikannya dengan satu transaksi lokal: tulis perubahan bisnis Anda <em>dan</em> baris "outbox" yang mendeskripsikan event ke dalam <em>transaksi database yang sama</em>, jadi mereka commit secara atomik. Proses <strong>relay</strong> terpisah lalu membaca baris outbox baru dan menerbitkannya ke Kafka (retry sampai sukses, at-least-once, karenanya consumer tetap idempotent, bagian 9). Cara modern ber-friction-rendah menjalankan relay itu <strong>Change Data Capture (CDC)</strong>: tool seperti <strong>Debezium</strong> men-tail log transaksi database dan meng-stream perubahan yang di-commit langsung ke Kafka, tanpa polling aplikasi.</p>
+
+        <div class="codeblock single">
+          <div class="code-bar"><div class="dots"><i></i><i></i><i></i></div><span class="filename">outbox: business write + event in one transaction</span></div>
+          <pre><code class="language-sql">BEGIN;
+
+-- 1) the actual business change
+INSERT INTO orders (id, customer_id, amount, status)
+VALUES ('order-42', 'cust-7', 1999, 'PLACED');
+
+-- 2) the event to publish, written in the SAME transaction -&gt; atomic with (1)
+INSERT INTO outbox (id, aggregate, event_type, payload, created_at)
+VALUES (gen_random_uuid(), 'order-42', 'OrderPlaced',
+        '{"id":"order-42","amount":1999}', now());
+
+COMMIT;   -- both succeed together, or neither does, no dual-write gap
+
+-- A relay (or Debezium CDC on the transaction log) then reads new `outbox`
+-- rows and produces them to Kafka, marking each published. Retries are safe
+-- because downstream consumers are idempotent (sec 9).</code></pre>
+        </div>
+
+        <div class="box key"><span class="tag">The standard answer to "DB + Kafka together"</span>
+          <p>Kapan pun sebuah tulis harus secara atomik menghasilkan event, umum di pembayaran dan sistem order, raih outbox (sering via Debezium CDC). Ia mengubah masalah transaksi terdistribusi yang mustahil menjadi transaksi lokal biasa plus relay idempotent yang andal. Ini salah satu pola paling berharga praktis di seluruh toolkit event-driven.</p>
+        </div>
+      </section>
+
+      <div class="part-label">Part V / Processing, Ops &amp; Practice</div>
+
+      <!-- 16 -->
+      <section id="s16">
+        <div class="sec-head"><div class="sec-num">16</div><h2>Stream Processing</h2></div>
+        <p>Sejauh ini consumer membaca event satu per satu. <strong>Stream processing</strong> disiplin menghitung <em>secara berkelanjutan</em> di atas stream, memfilter, mentransformasi, mengagregasi, meng-join, menghasilkan stream turunan baru. Alih-alih "baca event, lakukan satu hal," Anda mengekspresikan query berdiri seperti "hitungan bergulir 5 menit dari pembayaran gagal per merchant" yang diperbarui selamanya saat event tiba. Library Kafka untuk ini <strong>Kafka Streams</strong> (JVM); <strong>ksqlDB</strong> menawarkan lapisan mirip SQL, dan <strong>Apache Flink</strong> kelas berat untuk job besar kompleks.</p>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Konsep</th><th>Makna</th></tr></thead>
+            <tbody>
+              <tr><td><strong>KStream</strong></td><td>Stream tak terbatas dari event independen (tampilan append log), setiap record penting.</td></tr>
+              <tr><td><strong>KTable</strong></td><td>Changelog yang ditafsirkan sebagai state saat ini per key, tampilan topic ter-kompaksi (bagian 11); nilai terbaru menang.</td></tr>
+              <tr><td><strong>Operasi ber-state</strong></td><td>Agregasi/join yang mengingat lintas event, didukung state store lokal (sendiri topic Kafka ter-kompaksi untuk toleransi kegagalan).</td></tr>
+              <tr><td><strong>Windowing</strong></td><td>Mengelompokkan event berdasarkan waktu (tumbling, hopping, session) untuk mengagregasi "per 5 menit," dll.</td></tr>
+              <tr><td><strong>Event vs processing time</strong></td><td>Kapan event <em>terjadi</em> vs kapan Anda <em>memproses</em>-nya, keduanya berbeda, dan data terlambat/tak-terurut harus ditangani.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box note"><span class="tag">The stream/table duality</span>
+          <p>Gagasan inti yang elegan: <strong>stream</strong> dan <strong>table</strong> dua tampilan dari data yang sama. Stream perubahan yang <em>diagregasi</em> per key memberi table (state saat ini); <em>changelog</em> table adalah stream pembaruan. Ini persis perbedaan retensi-vs-kompaksi (bagian 11) dinaikkan ke model pemrograman, dan itulah kenapa topic ter-kompaksi <em>adalah</em> table dan topic normal <em>adalah</em> stream. Kebanyakan engineer backend mengonsumsi stream dengan consumer polos (bagian 7); raih framework stream-processing saat Anda butuh agregasi ber-state, join, atau windowing yang menyakitkan jika diracik tangan.</p>
+        </div>
+      </section>
+
+      <!-- 17 -->
+      <section id="s17">
+        <div class="sec-head"><div class="sec-num">17</div><h2>Kafka vs Antrean Tradisional</h2></div>
+        <p>Kembali ke perbedaan bagian 2 dengan konteks cukup untuk memutuskan dengan baik. Ini pertanyaan yang mengirim orang ke bab task-queues dan kembali: <strong>apakah saya mau Kafka atau message queue (RabbitMQ, SQS, dunia Celery/Sidekiq)?</strong> Mereka cukup tumpang tindih untuk membingungkan dan cukup berbeda untuk berpengaruh.</p>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Dimensi</th><th>Kafka (log)</th><th>RabbitMQ / SQS (antrean)</th></tr></thead>
+            <tbody>
+              <tr><td>Model inti</td><td>Log event tahan lama, bisa diputar ulang</td><td>Antrean kerja sementara</td></tr>
+              <tr><td>Setelah konsumsi</td><td>Dipertahankan; bisa diputar ulang group mana pun</td><td>Dihapus setelah di-ack</td></tr>
+              <tr><td>Fan-out ke banyak sistem</td><td>Natif, tiap group membaca semua</td><td>Butuh konfig exchange/fan-out; bukan default</td></tr>
+              <tr><td>Throughput</td><td>Sangat tinggi (jutaan/detik)</td><td>Tinggi, tapi biasanya lebih rendah</td></tr>
+              <tr><td>Urutan</td><td>Kuat per partisi</td><td>Lemah; mode FIFO terbatas/lambat</td></tr>
+              <tr><td>Routing/prioritas/TTL per pesan</td><td>Terbatas, bukan modelnya</td><td>Kaya (routing key, prioritas, delay, DLQ)</td></tr>
+              <tr><td>Replay / time-travel</td><td>Ya, seek ke offset mana pun</td><td>Tidak</td></tr>
+              <tr><td>Terbaik untuk</td><td>Event streaming, banyak subscriber, replay, analitik, event sourcing</td><td>Offloading tugas, job mirip RPC, routing kompleks, kontrol per-pesan</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box key"><span class="tag">The decision heuristic</span>
+          <p>Rengkuh <strong>Kafka</strong> saat event adalah fakta yang dipedulikan banyak sistem, saat Anda butuh throughput tinggi, urutan, atau kemampuan memutar ulang riwayat, tulang punggung streaming. Rengkuh <strong>antrean</strong> (bab 10) saat Anda menyerahkan unit kerja diskret untuk dilakukan sekali, terutama dengan routing per-pesan, prioritas, delay, atau penanganan dead-letter. Mereka saling melengkapi: sangat banyak sistem nyata menjalankan Kafka sebagai tulang punggung event <em>dan</em> task queue untuk job latar. Jangan memaksa semantik task-queue ke Kafka (TTL per-pesan, prioritas, ack selektif), itu berenang melawan desainnya.</p>
+        </div>
+      </section>
+
+      <!-- 18 -->
+      <section id="s18">
+        <div class="sec-head"><div class="sec-num">18</div><h2>Jebakan Consumer</h2></div>
+        <p>Kebanyakan rasa sakit Kafka produksi muncul di sisi consumer. Ini mode kegagalan yang menggigit tim nyata, layak dikenali sebelum mereka page Anda jam 2 pagi.</p>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Jebakan</th><th>Apa yang terjadi</th><th>Mitigasi</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Badai rebalance</strong></td><td>Rebalance group yang sering (pemrosesan lambat memicu poll timeout, anggota dinyatakan mati) menghentikan konsumsi berulang</td><td>Jaga kerja per-poll terbatas, setel <code>max.poll.records</code> / <code>max.poll.interval.ms</code>; geser kerja lambat; pakai cooperative/incremental rebalancing</td></tr>
+              <tr><td><strong>Poison pill</strong></td><td>Satu pesan yang tidak bisa diproses (skema buruk, data buruk) membuat consumer crash &amp; retry selamanya, partisi macet</td><td>Tangkap error per-record; rutekan record buruk ke <em>dead-letter topic</em> dan lanjutkan</td></tr>
+              <tr><td><strong>Consumer lag</strong></td><td>Producer melampaui consumer; lag tumbuh tanpa batas; data basi</td><td>Tambah partisi + consumer (bagian 7), percepat pemrosesan, batch; alert pada lag (bagian 19)</td></tr>
+              <tr><td><strong>Skew partisi / key</strong></td><td>Key panas (satu tenant raksasa) membebani partisi tunggalnya sementara yang lain menganggur (bagian 10)</td><td>Pilih key kardinalitas lebih tinggi, atau key komposit; isolasi tenant panas</td></tr>
+              <tr><td><strong>Pemrosesan lambat memblokir urutan</strong></td><td>Untuk menjaga urutan Anda memproses partisi serial, jadi satu record lambat menunda sisanya</td><td>Paralelkan lintas partisi, bukan di dalam; pertimbangkan pola paralelisme per-key</td></tr>
+              <tr><td><strong>Reprocessing pada celah commit</strong></td><td>Crash antara pemrosesan dan commit offset mengirim ulang record</td><td>Diharapkan di bawah at-least-once, buat pemrosesan idempotent (bagian 9)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="box gotcha"><span class="tag">Always have a dead-letter strategy</span>
+          <p>Satu pesan salah bentuk tidak boleh pernah mampu menghentikan seluruh partisi tanpa batas, itu poison pill, dan penyebab pemadaman umum. Bungkus pemrosesan per-record dalam penanganan error: pada kegagalan persisten, terbitkan record yang bermasalah (plus error dan metadata) ke <strong>dead-letter topic</strong>, commit melewatinya, dan jaga stream mengalir. Anda menyelidiki dead-letter topic belakangan alih-alih membiarkan satu record buruk memblokir semua orang, disiplin DLQ yang sama yang diterapkan bab task-queues pada job gagal.</p>
+        </div>
+      </section>
+
+      <!-- 19 -->
+      <section id="s19">
+        <div class="sec-head"><div class="sec-num">19</div><h2>Operasi &amp; Monitoring</h2></div>
+        <p>Menjalankan Kafka dengan baik bermuara pada memantau beberapa sinyal dan mengukur beberapa hal dengan benar. Anda tidak perlu menghafal setiap metrik, tapi harus tahu yang memprediksi masalah.</p>
+
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Pantau</th><th>Kenapa penting</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Consumer lag</strong></td><td>Metrik kesehatan utama (bagian 8): lag yang tumbuh berarti consumer tidak bisa mengejar, data makin basi. Alert padanya.</td></tr>
+              <tr><td><strong>Partisi under-replicated</strong></td><td>Replika jatuh keluar dari ISR (bagian 5), daya tahan berisiko; broker mungkin kesulitan.</td></tr>
+              <tr><td><strong>Disk &amp; throughput broker</strong></td><td>Retensi (bagian 11) berarti topic mengonsumsi disk nyata; disk atau jaringan jenuh men-throttle klaster.</td></tr>
+              <tr><td><strong>Frekuensi rebalance</strong></td><td>Rebalance sering (bagian 18) menandakan consumer tidak stabil dan menyebabkan keheningan.</td></tr>
+              <tr><td><strong>Latensi &amp; error request</strong></td><td>Latensi dan tingkat error produce/fetch memunculkan masalah broker atau klien lebih awal.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Keputusan sizing yang benar-benar Anda buat</h4>
+        <ul>
+          <li><strong>Jumlah partisi</strong>: men-set paralelisme consumer maksimum dan throughput (bagian 4, bagian 7). Perkirakan dari target throughput dan jumlah consumer puncak; condong sedikit tinggi, tapi tidak liar (tiap partisi punya overhead, dan ribuan per broker menyakitkan). Sulit diubah belakangan, jadi pikirkan ke depan (bagian 20).</li>
+          <li><strong>Faktor replikasi</strong>: biasanya 3 di produksi: mentoleransi satu kehilangan broker dengan ruang cadangan. Pasangkan dengan <code>min.insync.replicas=2</code> dan <code>acks=all</code> (bagian 5).</li>
+          <li><strong>Retensi</strong>: berapa lama event hidup (dan karenanya pemakaian disk dan jendela replay). Set per topic seberapa jauh ke belakang consumer mungkin perlu membaca.</li>
+        </ul>
+
+        <div class="box note"><span class="tag">Tooling</span>
+          <p>Observabilitas standar: ekspor metrik JMX broker dan klien ke Prometheus + Grafana (stack yang sama dipakai bab task-queues dan logging), dan awasi consumer lag secara khusus dengan lag exporter atau UI seperti Kafka UI / Conduktor / AKHQ. <code>kafka-consumer-groups.sh --describe</code> memberi bacaan CLI cepat lag group per partisi saat men-debug langsung.</p>
+        </div>
+      </section>
+
+      <!-- 20 -->
+      <section id="s20">
+        <div class="sec-head"><div class="sec-num">20</div><h2>Mendesain dengan Kafka</h2></div>
+        <p>Menarik manual ke penilaian desain. Kafka tool kuat dan tajam; dipakai di tempatnya transformatif, dipakai sebagai message bus generik liabilitas. Beberapa prinsip memisahkan desain Kafka yang baik dari yang menyakitkan.</p>
+
+        <h4>Prinsip desain</h4>
+        <ul>
+          <li><strong>Modelkan topic di sekitar event/fakta, bukan perintah atau RPC.</strong> Topic adalah stream dari "hal yang terjadi" (<code>PaymentSettled</code>), dikonsumsi siapa pun yang peduli, bukan cara menyuruh service spesifik melakukan sesuatu. Jika Anda mendapati ingin request/response, Anda ingin gRPC/REST, bukan Kafka.</li>
+          <li><strong>Pilih partition key berdasarkan batas urutan Anda.</strong> Key berdasarkan entitas yang event-nya harus tetap terurut (akun, order, user), tapi pada granularitas yang tetap menyebar beban, untuk menghindari partisi panas (bagian 10, bagian 18). Key keputusan per-topic paling konsekuensial.</li>
+          <li><strong>Asumsikan at-least-once; bangun consumer idempotent.</strong> Jangan mengejar exactly-once end-to-end lintas sistem eksternal (bagian 9). Dedup dengan event ID atau pakai upsert supaya duplikat tidak berbahaya, lebih murah dan lebih kokoh.</li>
+          <li><strong>Kelola skema sejak hari pertama.</strong> Pakai Schema Registry dengan kompatibilitas backward (bagian 12) supaya tim independen bisa berevolusi dengan aman. Skema topic kontrak.</li>
+          <li><strong>Pakai outbox untuk tulis DB-dan-event.</strong> Jangan pernah dual-write; buat event atomik dengan data dan relay (bagian 15).</li>
+          <li><strong>Ukur partisi untuk puncak di depan.</strong> Repartisi memecah urutan key (bagian 4), jadi rencanakan pertumbuhan alih-alih bereaksi padanya.</li>
+        </ul>
+
+        <div class="box key"><span class="tag">When Kafka, and when not</span>
+          <p><strong>Rengkuh Kafka</strong> saat Anda punya stream event yang dikonsumsi banyak sistem, butuh throughput tinggi atau replay, sedang melakukan event-driven architecture, event sourcing, pipeline analitik, atau ingestion log/metrik. <strong>Jangan</strong> merengkuhnya untuk request/response sederhana (pakai gRPC/REST, bab gRPC), untuk job latar diskret dengan routing atau prioritas per-pesan (pakai task queue, bab 10), atau sebagai satu-satunya datastore untuk pencarian titik (pakai database). Mencocokkan tool ke bentuk masalah seluruh keterampilannya.</p>
+        </div>
+      </section>
+
+      <!-- 21 -->
+      <section id="s21">
+        <div class="sec-head"><div class="sec-num">21</div><h2>Crib-Sheet</h2></div>
+        <p>Seluruh manual dipadatkan menjadi yang Anda raih saat tertekan.</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Konsep</th><th>Satu baris</th></tr></thead>
+            <tbody>
+              <tr><td>Kafka</td><td>Commit log append-only terdistribusi, tahan lama, dari event yang dibaca banyak consumer di offset mereka sendiri.</td></tr>
+              <tr><td>Antrean vs log</td><td>Antrean: dikonsumsi sekali &amp; dihapus. Log: dipertahankan, bisa diputar ulang, tiap group membaca semua.</td></tr>
+              <tr><td>Commit log</td><td>Append-only, immutable, ber-alamat offset, I/O sekuensial, basis dari segalanya.</td></tr>
+              <tr><td>Topic</td><td>Stream bernama, dipecah menjadi partisi.</td></tr>
+              <tr><td>Partisi</td><td>Unit paralelisme, urutan, dan penyimpanan. Key sama -&gt; partisi sama.</td></tr>
+              <tr><td>Broker / replikasi</td><td>Klaster server; tiap partisi punya replika leader + follower (ISR).</td></tr>
+              <tr><td>acks / ISR</td><td><code>acks=all</code> + <code>min.insync.replicas=2</code> = tanpa kehilangan data pada satu kegagalan broker.</td></tr>
+              <tr><td>Producer</td><td>Menambahkan record ber-key; key menentukan partisi; idempotence menghindari dup saat retry.</td></tr>
+              <tr><td>Consumer group</td><td>Membagi partisi di antara anggota. Group sama = berbagi kerja; group berbeda = broadcast.</td></tr>
+              <tr><td>Batas paralelisme</td><td>Consumer berguna maksimum per group = jumlah partisi.</td></tr>
+              <tr><td>Offset / lag</td><td>Posisi Anda per partisi; lag = ekor - posisi = metrik kesehatan kunci.</td></tr>
+              <tr><td>Waktu commit</td><td>Commit setelah memproses = at-least-once; sebelum = at-most-once.</td></tr>
+              <tr><td>Pengiriman</td><td>At-most / at-least / exactly-once. Pilih at-least-once + consumer idempotent.</td></tr>
+              <tr><td>Urutan</td><td>Dijamin hanya dalam partisi. Key berdasarkan batas urutan Anda.</td></tr>
+              <tr><td>Retensi</td><td>Hapus berdasarkan waktu/ukuran, atau kompak untuk menyimpan nilai terbaru per key.</td></tr>
+              <tr><td>Kompaksi</td><td>Terbaru-per-key -&gt; snapshot state saat ini yang tahan lama dan bisa diputar ulang (table).</td></tr>
+              <tr><td>Schema Registry</td><td>Skema ber-versi (Avro/Protobuf) dengan kompatibilitas backward yang ditegakkan.</td></tr>
+              <tr><td>EDA</td><td>Pancarkan event; consumer bereaksi independen, kopling longgar, mudah diperluas.</td></tr>
+              <tr><td>Event sourcing / CQRS</td><td>Log sumber kebenaran; model baca proyeksi yang bisa dibangun ulang.</td></tr>
+              <tr><td>Outbox / CDC</td><td>Tulis data + event dalam satu txn DB; relay (Debezium) ke Kafka, tanpa celah dual-write.</td></tr>
+              <tr><td>Stream processing</td><td>Komputasi berkelanjutan (filter/agregasi/join/window); dualitas KStream vs KTable.</td></tr>
+              <tr><td>Jebakan</td><td>Badai rebalance, poison pill (pakai DLQ), lag, key skew.</td></tr>
+              <tr><td>vs antrean</td><td>Kafka = event streaming/replay/throughput; antrean = kerja + routing/prioritas. Pakai keduanya.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="foot">
+          <p><strong>Seluruh topik dalam satu tarikan napas:</strong> Kafka commit log append-only terdistribusi, tahan lama (bagian 1-3), tidak seperti antrean, event dipertahankan dan setiap consumer group membaca semuanya dan bisa memutar ulang (bagian 2). Topic dipecah menjadi partisi, unit paralelisme, urutan, dan penyimpanan (bagian 4), tersebar lintas broker dan direplikasi untuk daya tahan via leader, follower, dan ISR (bagian 5). Producer menambahkan record ber-key (bagian 6); consumer group membagi partisi untuk scaling keluar, dengan paralelisme dibatasi jumlah partisi (bagian 7). Setiap consumer melacak offsetnya, dan lag ke ekor sinyal kesehatan kunci (bagian 8); kapan Anda commit menentukan semantik pengiriman Anda, dan pilihan pragmatis at-least-once dengan consumer idempotent (bagian 9). Urutan hanya berlaku dalam partisi, jadi Anda key berdasarkan batas urutan dan waspadai skew (bagian 10); retensi menghapus berdasarkan usia sementara kompaksi menyimpan nilai terbaru per key (bagian 11). Schema Registry mengatur payload lintas tim (bagian 12); log menopang event-driven architecture (bagian 13), event sourcing dan CQRS (bagian 14), dan pola outbox/CDC untuk tulis DB-dan-event atomik (bagian 15). Stream processing menghitung berkelanjutan di atasnya (bagian 16); pilih Kafka di atas antrean untuk streaming, replay, dan throughput (bagian 17), jaga dari badai rebalance, poison pill, lag, dan skew (bagian 18), pantau lag dan ISR (bagian 19), dan rancang topic di sekitar event yang dipilih key dengan masuk akal, dengan consumer idempotent dan skema terkelola (bagian 20).</p>
+          <p style="margin-top:14px;font-family:'JetBrains Mono', ui-monospace, monospace;font-size:12px;letter-spacing:.05em;">Berpijak pada dokumentasi Apache Kafka &amp; Confluent / literatur log/stream-table (Kreps) / Debezium untuk CDC / contoh Go 1.22+ (confluent-kafka-go) / Python 3.11+ (confluent-kafka).</p>
+        </div>
+      </section>
+
+    
+      <footer class="bfp-footer">Belajar Prinsip-Prinsip Backend / Chapter 23 / Kafka. Code targets Go 1.22+ and Python 3.11+.</footer>
+</main>
+</div>
+<button class="toc-toggle" onclick="document.querySelector('.toc').classList.toggle('open')"> Contents</button>
+
+  
+
+  <script>
+    hljs.highlightAll();
+    document.querySelectorAll('[data-cb]').forEach(block => {
+      const btns = block.querySelectorAll('.code-tabs button');
+      const panels = block.querySelectorAll('.code-panel');
+      btns.forEach(btn => btn.addEventListener('click', () => {
+        const lang = btn.dataset.lang;
+        btns.forEach(b => b.classList.toggle('on', b === btn));
+        panels.forEach(p => p.classList.toggle('on', p.dataset.panel === lang));
+      }));
+    });
+</script>
+<!-- CHAPTER NAVIGATION -->
+<nav class="chapter-nav" id="chapterNav">
+  <a href="../../22.Automated-Testing-Unit-Integration-and-E2E/html_notes/notes.html" class="nav-chapter-link"><span class="nav-arrow"><svg class="ico-arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="13.5" y1="8" x2="3.5" y2="8"/><polyline points="7.5,4 3.5,8 7.5,12"/></svg></span><span class="nav-label"><span class="nav-small">Chapter 22</span>Automated Testing</span></a>
+  <a href="../../index.html" class="nav-indicator"><span class="nav-dot"></span> Chapter 23 <span class="nav-sep">/</span> 24</a>
+  <a href="../../24.Web-Sockets-And-Real-time-Communication-with-WebSockets/html_notes/notes.html" class="nav-chapter-link nav-next"><span class="nav-label"><span class="nav-small">Chapter 24</span>WebSockets & Real-Time</span><span class="nav-arrow"><svg class="ico-arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2.5" y1="8" x2="12.5" y2="8"/><polyline points="8.5,4 12.5,8 8.5,12"/></svg></span></a>
+</nav>
+  <script src="../../assets/copy-button.js"></script>
+  <script src="../../assets/enhancements.js"></script>
+<script src="../../assets/shell.js"></script>
+</body>
+
+</html>

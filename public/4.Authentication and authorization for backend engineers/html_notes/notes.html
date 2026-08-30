@@ -1,0 +1,1927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Authentication & Authorization / Chapter 04 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Chapter 04 of Belajar Prinsip-Prinsip Backend: Authentication & Authorization. First-principles notes, diagrams and runnable Go and Python examples.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23b8402e'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='19'%20font-weight='700'%20fill='%23f3ede2'%20text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/http.min.js"></script>
+<style>
+  :root{
+  --paper: #f3ede2;
+  --paper-2: #ece3d4;
+  --ink: #211e1a;
+  --ink-soft: #5b5347;
+  --muted: #8d8475;
+  --red: #b8402e;
+  --red-deep: #8f2f20;
+  --rule: #d8cfbe;
+  --rule-strong: #c7bca6;
+  --teal: #3f6f4e;
+  --gold: #b07d2b;
+  --code-bg: #232019;
+  --max: 1180px;
+}
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:"Spline Sans", system-ui, sans-serif;font-weight:400;
+    font-size: 17px;line-height: 1.7;-webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(circle at 20% 0%,rgba(184,64,46,.03),transparent 40%),
+                     radial-gradient(circle at 90% 60%,rgba(63,111,78,.03),transparent 45%);
+  }
+  /* ---------- SIDEBAR ---------- */
+  aside{
+    position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;
+    padding:34px 26px 60px 30px;border-right:1px solid var(--rule);
+    background:linear-gradient(180deg,var(--paper-2),var(--paper));
+  }
+  /* ---------- MAIN ---------- */
+  .bfp-content{padding:46px 60px 120px;min-width:0;}
+  .kicker{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:12px;letter-spacing:.26em;color:var(--red);text-transform:uppercase;font-weight:500;}
+  h1.title{
+    font-family:"Fraunces", Georgia, serif;font-weight:900;font-size:clamp(46px,6vw,78px);
+    line-height:.96;letter-spacing:-.02em;margin:18px 0 0;
+  }
+  h1.title em{font-style:italic;color:var(--red);}
+  .lede{font-size: 19px;color:var(--ink-soft);max-width:62ch;margin:26px 0 0;line-height: 1.6;}
+  .lede em{font-style:italic;}
+  .pills{display:flex;flex-wrap:wrap;gap:11px;margin-top:30px;}
+  .pill{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:11.5px;letter-spacing:.04em;color:var(--ink-soft);
+        border:1px solid var(--rule-strong);border-radius:30px;padding:8px 16px;background:rgba(255,255,255,.25);}
+  .titlerule{height:3px;width:120px;background:var(--red);margin:40px 0 0;}
+  /* ---------- PART / SECTION ---------- */
+  .part{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:12px;letter-spacing:.24em;color:var(--red);
+        text-transform:uppercase;margin:80px 0 14px;padding-top:30px;border-top:1px dotted var(--rule-strong);font-weight:500;}
+  section{scroll-margin-top:24px;}
+  h2{font-family:"Fraunces", Georgia, serif;font-weight:700;font-size:clamp(28px,3.4vw,40px);
+     line-height:1.08;letter-spacing:-.01em;margin:14px 0 6px;display:flex;align-items:center;gap:16px;}
+  h2 .badge{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:13px;font-weight:700;color:#fff;background:var(--red);
+            border-radius:6px;padding:5px 9px;line-height:1;flex:none;box-shadow:0 3px 0 var(--red-deep);}
+  h2 + .underh{height:1px;background:var(--rule);margin:8px 0 26px;}
+  h3{font-family:"Fraunces", Georgia, serif;font-weight:700;font-size:24px;margin:42px 0 4px;letter-spacing:-.01em;}
+  h4{font-family:"Spline Sans", system-ui, sans-serif;font-weight:700;font-size:15px;letter-spacing:.02em;
+     text-transform:uppercase;color:var(--red-deep);margin:30px 0 6px;}
+  p{margin:14px 0;max-width:70ch;}
+  strong{font-weight:700;color:var(--ink);}
+  em{font-style:italic;}
+  a.inline{color:var(--red);text-decoration:none;border-bottom:1px solid var(--rule-strong);}
+  /* inline code */
+  code.ic{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:.84em;background:var(--paper-2);
+          border:1px solid var(--rule);border-radius:4px;padding:1.5px 6px;color:var(--red-deep);}
+  /* lists */
+  ul,ol{max-width:70ch;padding-left:22px;}
+  li{margin:7px 0;}
+  li::marker{color:var(--red);}
+  /* ---------- CALLOUTS ---------- */
+  .note{border-left:3px solid var(--red);background:rgba(184,64,46,.05);padding:14px 20px;margin:24px 0;border-radius:0 8px 8px 0;}
+  .note.teal{border-left-color:var(--teal);background:rgba(63,111,78,.06);}
+  .note.gold{border-left-color:var(--gold);background:rgba(176,125,43,.07);}
+  .note .lbl{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--red);display:block;margin-bottom:4px;font-weight:600;}
+  .note.teal .lbl{color:var(--teal);}
+  .note.gold .lbl{color:var(--gold);}
+  .note p{margin:6px 0;}
+  /* ---------- CODE BLOCKS ---------- */
+  .code{margin:24px 0;border:1px solid var(--rule-strong);border-radius:10px;overflow:hidden;background:var(--code-bg);box-shadow:0 1px 0 rgba(0,0,0,.03);}
+  .code .bar{display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-bottom:1px solid #35302a;background:#1a1813;}
+  .code .bar .lang{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#9c948a;font-weight:600;}
+  .code .bar .lang.go{color:#37607f;}
+  .code .bar .lang.py{color:#b07d2b;}
+  .code .bar .dots{display:flex;gap:6px;}
+  .code .bar .dots i{width:10px;height:10px;border-radius:50%;display:block;}
+  .code .bar .dots i:nth-child(1){background:#d05a47;}
+  .code .bar .dots i:nth-child(2){background:#cf9f4b;}
+  .code .bar .dots i:nth-child(3){background:#5a9a5f;}
+  pre{margin:0;padding:18px 20px;overflow-x:auto;font-family:"JetBrains Mono", ui-monospace, monospace;font-size:13.2px;line-height:1.62;color:#e9e2d3;}
+  pre code{font-family:inherit;background:none;}
+  pre::-webkit-scrollbar{height:8px;}
+  pre::-webkit-scrollbar-thumb{background:#4a443b;border-radius:4px;}
+  .codepair{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:24px 0;}
+  @media(max-width:1000px){.codepair{grid-template-columns:1fr;}}
+  /* ---------- TABLES ---------- */
+  .tbl{margin:24px 0;border:1px solid var(--rule-strong);border-radius:10px;overflow:hidden;}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;}
+  th{background:var(--paper-2);text-align:left;font-family:"JetBrains Mono", ui-monospace, monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep);padding:11px 16px;border-bottom:1px solid var(--rule-strong);}
+  td{padding:11px 16px;border-bottom:1px solid var(--rule);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  tr:nth-child(even) td{background:rgba(255,255,255,.22);}
+  .yes{color:var(--teal);font-weight:600;}
+  .no{color:var(--red);font-weight:600;}
+  /* ---------- FIGURE ---------- */
+  figure{margin:30px 0;}
+  figure svg{width:100%;height:auto;display:block;}
+  figcaption{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:11px;letter-spacing:.06em;color:var(--muted);text-align:center;margin-top:10px;}
+  .fig-wrap{border:1px solid var(--rule-strong);border-radius:12px;background:rgba(255,255,255,.3);padding:24px;}
+  /* svg shared text */
+  .svg-t{font-family:"Spline Sans", system-ui, sans-serif;}
+  .svg-m{font-family:"JetBrains Mono", ui-monospace, monospace;}
+  /* progress bar */
+  #prog{position:fixed;top:0;left:0;height:3px;background:var(--red);width:0;z-index:50;}
+  /* mobile */
+  @media(max-width:880px){
+    .bfp-content{padding:30px 22px 80px;}}
+  footer{max-width:var(--max);margin:0 auto;padding:30px 60px 60px;border-top:1px dotted var(--rule-strong);color:var(--muted);font-family:"JetBrains Mono", ui-monospace, monospace;font-size:11.5px;letter-spacing:.06em;}
+  @media(max-width:880px){footer{padding:24px 22px 50px;}}</style>
+<style>
+.chapter-nav{position:fixed;bottom:0;left:0;right:0;z-index:9998;display:flex;align-items:center;justify-content:space-between;padding:14px clamp(16px,4vw,48px);background:rgba(243,237,226,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1.5px solid #c7bca6;box-shadow:0 -8px 32px -16px rgba(40,30,20,.18);font-family:"JetBrains Mono", ui-monospace, monospace;}
+.nav-chapter-link{display:flex;align-items:center;gap:12px;text-decoration:none;color:#5b5347;padding:10px 18px;border-radius:10px;transition:all .2s ease;max-width:38%;}
+.nav-chapter-link:hover{background:rgba(184,64,46,.08);color:#b8402e;transform:translateY(-1px);}
+.nav-chapter-link.nav-next{text-align:right;flex-direction:row;}
+.nav-arrow{font-size:22px;color:#b8402e;font-weight:700;flex:none;}
+.nav-label{display:flex;flex-direction:column;gap:2px;font-size:13.5px;line-height:1.3;}
+.nav-small{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#8d8475;font-weight:600;}
+.nav-indicator{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#b8402e;font-weight:700;text-decoration:none;padding:8px 16px;border:1.5px solid #c7bca6;border-radius:40px;background:rgba(255,255,255,.5);transition:all .2s;white-space:nowrap;}
+.nav-indicator:hover{background:#b8402e;color:#fff;border-color:#b8402e;}
+.nav-dot{display:inline-block;width:7px;height:7px;background:#b8402e;border-radius:50%;margin-right:4px;vertical-align:middle;}
+.nav-sep{color:#c7bca6;margin:0 2px;}
+.nav-disabled{visibility:hidden;pointer-events:none;}
+@media(max-width:700px){.nav-label{font-size:11.5px;}.nav-chapter-link{padding:8px 10px;max-width:38%;}.chapter-nav{padding:10px 12px;}.nav-small{font-size:9px;letter-spacing:.16em;}}
+@media(max-width:520px){.nav-label{display:none;}.nav-chapter-link{max-width:none;padding:8px 12px;}.nav-arrow{font-size:20px;}.nav-indicator{font-size:11px;padding:7px 13px;letter-spacing:.12em;}}
+body{padding-bottom:80px;}
+</style>
+  <link rel="stylesheet" href="../../assets/copy-button.css">
+  <link rel="stylesheet" href="../../assets/enhancements.css">
+  <link rel="stylesheet" href="../../assets/shell.css">
+  <link rel="stylesheet" href="../../assets/theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="../../assets/theme.js"></script>
+</head>
+<body>
+<button class="bfp-toc-toggle" id="bfpTocToggle" aria-controls="bfpToc" aria-expanded="false"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>Contents</button>
+<div class="bfp-toc-scrim" id="bfpTocScrim"></div>
+<div class="bfp-shell">
+    <aside class="bfp-toc" id="bfpToc">
+      <div class="bfp-brand"><span class="bfp-brand-name">Auth</span><span class="bfp-brand-slash">/</span><span class="bfp-brand-lens">the backend lens</span></div>
+      <div class="bfp-brand-sub">Chapter 04 / Field Manual</div>
+      <div class="bfp-toc-rule"></div>
+      <nav class="bfp-toc-nav">
+        <a class="bfp-toc-link" href="#s01"><span class="bfp-toc-num">01</span><span class="bfp-toc-text">Two-Sentence Summary</span></a>
+        <a class="bfp-toc-link" href="#s02"><span class="bfp-toc-num">02</span><span class="bfp-toc-text">A History of Auth</span></a>
+        <a class="bfp-toc-link" href="#s03"><span class="bfp-toc-num">03</span><span class="bfp-toc-text">The Three Components</span></a>
+        <a class="bfp-toc-link" href="#s04"><span class="bfp-toc-num">04</span><span class="bfp-toc-text">Sessions</span></a>
+        <a class="bfp-toc-link" href="#s05"><span class="bfp-toc-num">05</span><span class="bfp-toc-text">JSON Web Tokens</span></a>
+        <a class="bfp-toc-link" href="#s06"><span class="bfp-toc-num">06</span><span class="bfp-toc-text">Cookies</span></a>
+        <a class="bfp-toc-link" href="#s07"><span class="bfp-toc-num">07</span><span class="bfp-toc-text">Stateful Auth</span></a>
+        <a class="bfp-toc-link" href="#s08"><span class="bfp-toc-num">08</span><span class="bfp-toc-text">Stateless Auth</span></a>
+        <a class="bfp-toc-link" href="#s09"><span class="bfp-toc-num">09</span><span class="bfp-toc-text">Stateful vs Stateless</span></a>
+        <a class="bfp-toc-link" href="#s10"><span class="bfp-toc-num">10</span><span class="bfp-toc-text">API Key Auth</span></a>
+        <a class="bfp-toc-link" href="#s11"><span class="bfp-toc-num">11</span><span class="bfp-toc-text">The Delegation Problem</span></a>
+        <a class="bfp-toc-link" href="#s12"><span class="bfp-toc-num">12</span><span class="bfp-toc-text">OAuth 1.0</span></a>
+        <a class="bfp-toc-link" href="#s13"><span class="bfp-toc-num">13</span><span class="bfp-toc-text">OAuth 2.0</span></a>
+        <a class="bfp-toc-link" href="#s14"><span class="bfp-toc-num">14</span><span class="bfp-toc-text">OpenID Connect</span></a>
+        <a class="bfp-toc-link" href="#s15"><span class="bfp-toc-num">15</span><span class="bfp-toc-text">Choosing an Auth Type</span></a>
+        <a class="bfp-toc-link" href="#s16"><span class="bfp-toc-num">16</span><span class="bfp-toc-text">Authorization & RBAC</span></a>
+        <a class="bfp-toc-link" href="#s17"><span class="bfp-toc-num">17</span><span class="bfp-toc-text">Errors & Timing Attacks</span></a>
+        <a class="bfp-toc-link" href="#s18"><span class="bfp-toc-num">18</span><span class="bfp-toc-text">Debug Cheat-Sheet</span></a>
+      </nav>
+    </aside>
+    <main class="bfp-content">
+  <div class="kicker">A detailed backend reference</div>
+  <h1 class="title">Autentikasi, pertanyaan <em>siapa Anda.</em></h1>
+  <p class="lede">Penelusuran dari prinsip dasar tentang dua gagasan yang disentuh setiap backend tiap hari, <em>siapa Anda</em> (autentikasi) dan <em>apa yang bisa Anda lakukan</em> (otorisasi). Dari segel lilin dan rahasia bersama sampai sesi, JWT, cookie, OAuth 2.0, OpenID Connect, dan RBAC. Ditulis bukan hanya untuk menyebut <em>apa</em> fungsi tiap bagian, tapi mengapa ia ada dan bagaimana ia bekerja di dalamnya. Ada implementasi di Go dan Python.</p>
+  <div class="pills">
+    <span class="pill">Identity / Access</span>
+    <span class="pill">Sessions / JWT / OAuth</span>
+    <span class="pill">Go 1.22+ / Python 3.11+</span>
+    <span class="pill">18 sections</span>
+  </div>
+  <div class="titlerule"></div>
+
+  <!-- PART I -->
+  <div class="part">Part I / Foundations</div>
+
+  <!-- 01 -->
+  <section id="s01">
+    <h2>01 Ringkasan Dua Kalimat</h2>
+    <div class="underh"></div>
+    <p>Seluruh topik menyusut menjadi dua pertanyaan. <strong>Autentikasi</strong> adalah mekanisme menetapkan identitas pada subjek di dalam konteks tertentu; ia menjawab pertanyaan <em>"siapa Anda?"</em>. Konteksnya bisa platform, sistem operasi, ponsel Anda, apa pun. Proses menemukan jawaban pertanyaan itu adalah autentikasi.</p>
+    <p><strong>Otorisasi</strong> menjawab pertanyaan yang sama sekali berbeda: <em>"apa yang bisa Anda lakukan?"</em> dalam konteks itu. Kemampuan Anda, izin Anda. Proses menemukan jawaban <em>apa yang bisa Anda lakukan di sini</em> adalah otorisasi. Autentikasi menetapkan identitas lebih dulu; otorisasi memutuskan apa yang boleh dilakukan identitas itu setelahnya.</p>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 230" role="img" aria-label="Authentication versus authorization">
+          <!-- left: auth -->
+          <rect x="20" y="30" width="340" height="170" rx="14" fill="rgba(184,64,46,.06)" stroke="#b8402e" stroke-width="1.5"/>
+          <text x="40" y="62" class="svg-m" font-size="12" letter-spacing="3" fill="#b8402e">AUTHENTICATION</text>
+          <text x="40" y="108" class="svg-t" font-size="30" font-weight="700" fill="#211e1a">Who are you?</text>
+          <text x="40" y="140" class="svg-t" font-size="14" fill="#8d8475">Assign an identity to a subject</text>
+          <text x="40" y="160" class="svg-t" font-size="14" fill="#8d8475">within a given context.</text>
+          <text x="40" y="186" class="svg-m" font-size="12" fill="#8f2f20">-&gt; login, signup, identity proof</text>
+          <!-- right: authz -->
+          <rect x="400" y="30" width="340" height="170" rx="14" fill="rgba(63,111,78,.07)" stroke="#3f6f4e" stroke-width="1.5"/>
+          <text x="420" y="62" class="svg-m" font-size="12" letter-spacing="3" fill="#3f6f4e">AUTHORIZATION</text>
+          <text x="420" y="108" class="svg-t" font-size="30" font-weight="700" fill="#211e1a">What can you do?</text>
+          <text x="420" y="140" class="svg-t" font-size="14" fill="#8d8475">Your capabilities and permissions</text>
+          <text x="420" y="160" class="svg-t" font-size="14" fill="#8d8475">within that same context.</text>
+          <text x="420" y="186" class="svg-m" font-size="12" fill="#1f6b5e">-&gt; roles, scopes, access control</text>
+          <!-- arrow between -->
+          <path d="M362 115 H398" stroke="#8d8475" stroke-width="2" marker-end="url(#ar)"/>
+          <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#8d8475"/></marker></defs>
+        </svg>
+      </div>
+      <figcaption>FIG 1, Identity precedes permission. Authenticate first, authorize second.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 02 -->
+  <section id="s02">
+    <h2>02 Sejarah Autentikasi</h2>
+    <div class="underh"></div>
+    <p>Auth modern tidak muncul dari ketiadaan, setiap mekanisme yang kita pakai hari ini adalah keturunan gagasan yang jauh lebih tua. Menelusuri garis keturunannya membuat kompromi desainnya tampak jelas.</p>
+
+    <h3>Masyarakat pra-industri: kepercayaan intrinsik</h3>
+    <p>Autentikasi bersifat <em>implisit</em>. Identitas subjek sama dengan pengakuan subjek: seseorang yang sudah dihormati komunitas, tetua desa, bisa menjamin seseorang, dan kesepakatan dimeteraikan dengan jabat tangan, tindakan yang melambangkan pengakuan dan kesepakatan bersama. Elementer, tapi ia memakai bentuk autentikasi yang dibangun di atas <strong>kepercayaan kontekstual manusia</strong>. Saat populasi tumbuh dan interaksi melampaui lingkaran yang dikenal, kepercayaan implisit <em>gagal berskala</em>, tetua satu desa tidak dipercaya lintas negara atau benua. Ini menandai pencarian autentikasi <strong>eksplisit</strong>: bukti identitas yang berfungsi tanpa kenalan pribadi.</p>
+
+    <h3>Abad pertengahan: segel &amp; era kriptografis</h3>
+    <p>Masyarakat butuh sistem yang bisa berskala melampaui pengenalan pribadi. Jawabannya <strong>segel lilin</strong>: pola unik yang ditekan ke dokumen dan perjanjian, bertindak sebagai tanda tangan awal. Segel adalah <strong>token autentikasi</strong> pertama yang diadopsi luas: representasi fisik identitas yang mengandalkan <strong>kepemilikan</strong> ("sesuatu yang Anda punya"). Jika Anda memegang segel, Anda terautentikasi. Tapi segel bisa dipalsukan, menandai kasus tercatat pertama <strong>serangan bypass autentikasi</strong>: melewati autentikasi dengan niat jahat. Ini mendorong mekanisme yang lebih canggih: watermark dan kode terenkripsi di dokumentasi dagang, meletakkan fondasi pemikiran kriptografis.</p>
+
+    <h3>Revolusi industri: passphrase &amp; rahasia bersama</h3>
+    <p>Saat mesin mengubah dunia, sistem komunikasi ikut berevolusi. <strong>Telegraf</strong> menjadi infrastruktur kritis, dan bersamanya muncul kebutuhan validasi pesan yang aman. Operator memakai <strong>passphrase</strong> yang disepakati di awal: bentuk awal <strong>rahasia bersama</strong>, praktisnya kata sandi statis. Prinsipnya bergeser dari "sesuatu yang Anda miliki" (segel) ke <strong>"sesuatu yang Anda ketahui"</strong>, lompatan keamanan yang berarti dan leluhur langsung kata sandi modern.</p>
+
+    <h3>Mainframe: fase digital pertama</h3>
+    <p>Pada <strong>1961</strong>, peneliti di Project MAC MIT menggarap <strong>Compatible Time-Sharing System (CTSS)</strong> dan memperkenalkan kata sandi untuk sistem multi-pengguna, supaya banyak pengguna bisa berbagi satu komputer tanpa saling membocorkan data. Kata sandi disimpan sebagai <strong>teks polos</strong>: kerentanan kritis, yang jadi terlihat pada hari seseorang mencetak file kata sandi. Insiden itu menandai kelahiran penyimpanan kata sandi yang aman dan memotivasi filosofi yang masih kita pegang: <em>jangan pernah menyimpan kata sandi sebagai teks polos</em>. Ia berujung pada <strong>hashing</strong>.</p>
+    <div class="note teal">
+      <span class="lbl">How hashing works</span>
+      <p>Algoritma hashing menerima string teks polos dengan panjang <em>apa pun</em> lalu menjalankan komputasi satu arah yang mengembalikan string <strong>berpanjang tetap</strong>. Panjangnya tidak pernah berubah entah Anda memberi 3 atau 100 karakter, dan input yang sama selalu menghasilkan output yang sama. Ia <em>tidak bisa dibalik</em>, Anda tidak bisa memulihkan aslinya dari hash, persis itulah kenapa yang disimpan adalah hash, bukan kata sandi.</p>
+    </div>
+
+    <h3>1970-an: kriptografi asimetris</h3>
+    <p>Ledakan riset kriptografi, didorong Whitfield Diffie dan Martin Hellman, menghasilkan <strong>pertukaran key Diffie-Hellman</strong> dan konsep <strong>kriptografi asimetris</strong>: membiarkan dua pihak membangun rahasia bersama lewat medium yang tidak tepercaya. Kripto asimetris menjadi tulang punggung protokol auth modern (juga disebut <strong>PKI</strong>: public key infrastructure). Era ini juga memberi <strong>Kerberos</strong>, yang memperkenalkan <strong>autentikasi berbasis tiket</strong> memakai pihak ketiga tepercaya untuk menerbitkan tiket yang memverifikasi pengguna dan layanan, pendahulu langsung sistem berbasis token zaman sekarang.</p>
+
+    <h3>1990-an: MFA &amp; biometrik</h3>
+    <p>Saat internet tumbuh, sistem username/password sederhana tidak cukup kuat melawan <strong>brute-force</strong> dan <strong>serangan kamus</strong>. Ini melahirkan <strong>Multi-Factor Authentication (MFA)</strong>, yang menggabungkan tiga kategori bukti:</p>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 170" role="img" aria-label="Three authentication factors">
+          <g>
+            <rect x="20" y="30" width="230" height="110" rx="12" fill="rgba(184,64,46,.06)" stroke="#b8402e" stroke-width="1.4"/>
+            <text x="40" y="62" class="svg-m" font-size="11" letter-spacing="2" fill="#b8402e">FACTOR 1</text>
+            <text x="40" y="92" class="svg-t" font-size="20" font-weight="700" fill="#211e1a">Something you know</text>
+            <text x="40" y="118" class="svg-t" font-size="13" fill="#8d8475">passwords / PINs</text>
+          </g>
+          <g>
+            <rect x="265" y="30" width="230" height="110" rx="12" fill="rgba(176,125,43,.07)" stroke="#b07d2b" stroke-width="1.4"/>
+            <text x="285" y="62" class="svg-m" font-size="11" letter-spacing="2" fill="#b07d2b">FACTOR 2</text>
+            <text x="285" y="92" class="svg-t" font-size="20" font-weight="700" fill="#211e1a">Something you have</text>
+            <text x="285" y="118" class="svg-t" font-size="13" fill="#8d8475">smart cards / OTP generators</text>
+          </g>
+          <g>
+            <rect x="510" y="30" width="230" height="110" rx="12" fill="rgba(63,111,78,.07)" stroke="#3f6f4e" stroke-width="1.4"/>
+            <text x="530" y="62" class="svg-m" font-size="11" letter-spacing="2" fill="#3f6f4e">FACTOR 3</text>
+            <text x="530" y="92" class="svg-t" font-size="20" font-weight="700" fill="#211e1a">Something you are</text>
+            <text x="530" y="118" class="svg-t" font-size="13" fill="#8d8475">fingerprints / retina scans</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>FIG 2, MFA layers independent factors so one compromise is not enough.</figcaption>
+    </figure>
+    <p><strong>Autentikasi biometrik</strong> muncul di sini, memakai pengenalan pola dan model statistik untuk mengidentifikasi pengguna lewat ciri fisik unik. Tapi biometrik membawa tantangannya sendiri: <strong>false positive/negative</strong> dan <strong>keamanan template</strong>: jadi ia tidak pernah menjadi solusi satu langkah untuk semua masalah.</p>
+
+    <h3>Abad ke-21: dan masa depan</h3>
+    <p>Cloud computing, perangkat mobile, dan arsitektur berbasis API menuntut kerangka yang lebih maju. Tak satu pun metode lama cukup sendirian, dan dari sanalah lahir komponen yang masih kita pakai: <strong>OAuth</strong> dan <strong>OAuth 2.0</strong>, <strong>JWT</strong>, <strong>arsitektur zero-trust</strong>, dan sistem <strong>passwordless</strong> seperti <strong>WebAuthn</strong> (mengandalkan public/private key yang disimpan di perangkat keras). Ke depan, kandidat masa depannya adalah <strong>identitas terdesentralisasi</strong> (dibangun di atas blockchain), <strong>biometrik perilaku</strong>, dan <strong>kriptografi pasca-kuantum</strong>.</p>
+    <div class="note gold">
+      <span class="lbl">Post-quantum cryptography</span>
+      <p>Begitu komputer kuantum umum, mereka cukup cepat untuk memecahkan algoritma (RSA dan skema public/private-key lain) yang hari ini membuat data kita terasa aman; algoritma itu memang tidak pernah dirancang untuk daya komputasi setinggi itu. Kriptografi pasca-kuantum adalah keluarga teknik yang dirancang tetap aman bahkan melawan mesin kuantum. Beberapa algoritma semacam itu sudah ada.</p>
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section id="s03">
+    <h2>03 Tiga Komponen Inti</h2>
+    <div class="underh"></div>
+    <p>Sebelum bagian teknis, tiga komponen muncul berulang di setiap alur auth dan authz. Mengenalinya lebih dulu memberi Anda kosakata untuk semua yang menyusul: <strong>sesi</strong>, <strong>JWT</strong>, dan <strong>cookie</strong>.</p>
+    <ul>
+      <li><strong>Sesi</strong>: konteks sementara di sisi server yang memberi web stateless sedikit memori tentang pengguna di antara request.</li>
+      <li><strong>JWT (JSON Web Token)</strong>: token bertanda tangan yang mandiri, membawa klaim pengguna sehingga server tidak perlu state tersimpan untuk memverifikasinya.</li>
+      <li><strong>Cookie</strong>: mekanisme penyimpanan sisi browser yang dikendalikan server, otomatis menempel di setiap request berikutnya.</li>
+    </ul>
+    <p>Tiga bagian berikutnya membahas masing-masing secara bergiliran, secara mendalam.</p>
+  </section>
+
+  <!-- PART II -->
+  <div class="part">Part II / The Building Blocks</div>
+
+  <!-- 04 -->
+  <section id="s04">
+    <h2>04 Sesi</h2>
+    <div class="underh"></div>
+    <p>Saat web lahir, semua komunikasi klien-server berjalan di atas <strong>HTTP</strong>, dan sejak desain HTTP <strong>stateless</strong>: setiap request diperlakukan sebagai interaksi terisolasi. Server tidak mengingat request Anda sebelumnya; tiap request harus membawa semua informasi yang dibutuhkan server untuk menjalankan logika bisnisnya. HTTP tidak punya memori tentang pertukaran masa lalu.</p>
+    <p>Itu ideal untuk web awal, kebanyakan halaman statis, gambar statis, data yang bisa dibaca. Tidak ada yang butuh kontinuitas antar request. Tapi saat web beralih ke <strong>konten dinamis</strong>, statelessness menjadi hambatan. Situs e-commerce harus mengingat isi keranjang Anda; pengguna harus tetap login saat berpindah antar halaman. Kebutuhan inilah yang menandai dimulainya <strong>interaksi ber-state</strong>, dan <strong>sesi</strong> adalah jawabannya, cara membangun konteks <em>sisi server</em> yang sementara untuk tiap pengguna.</p>
+
+    <h3>Cara kerja sesi</h3>
+    <ol>
+      <li><strong>Pembuatan sesi.</strong> Saat pengguna login, server membuat <strong>session ID</strong> unik dan menyimpannya bersama data pengguna yang relevan (role, nama, isi keranjang, apakah pengguna terautentikasi) di <strong>penyimpanan persisten</strong>: database, atau store di memori seperti Redis.</li>
+      <li><strong>Pengiriman.</strong> Session ID, cuma sebuah key, dikirim ke klien (browser) sebagai <strong>cookie</strong>. Setiap request berikutnya menyertakan cookie itu, jadi server bisa memakai session ID untuk mengambil semua data pengguna kembali dari store.</li>
+      <li><strong>Kedaluwarsa.</strong> Sesi berumur pendek. Jika kedaluwarsanya 15 menit, setelah itu sesi tidak valid; server membuat sesi baru dan menerbitkan session ID baru. Lingkaran ini berulang.</li>
+    </ol>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 300" role="img" aria-label="Session flow">
+          <!-- lanes -->
+          <text x="90" y="30" class="svg-t" font-size="14" font-weight="700" fill="#211e1a" text-anchor="middle">Client</text>
+          <text x="380" y="30" class="svg-t" font-size="14" font-weight="700" fill="#211e1a" text-anchor="middle">Server</text>
+          <text x="670" y="30" class="svg-t" font-size="14" font-weight="700" fill="#211e1a" text-anchor="middle">Store (Redis/DB)</text>
+          <line x1="90" y1="42" x2="90" y2="285" stroke="#c7bca6" stroke-width="1.5"/>
+          <line x1="380" y1="42" x2="380" y2="285" stroke="#c7bca6" stroke-width="1.5"/>
+          <line x1="670" y1="42" x2="670" y2="285" stroke="#c7bca6" stroke-width="1.5"/>
+          <!-- steps -->
+          <path d="M90 70 H375" stroke="#b8402e" stroke-width="1.8" marker-end="url(#a2)"/>
+          <text x="95" y="63" class="svg-m" font-size="11.5" fill="#8f2f20">1 / login (user + password)</text>
+          <path d="M380 110 H665" stroke="#3f6f4e" stroke-width="1.8" marker-end="url(#a3)"/>
+          <text x="386" y="103" class="svg-m" font-size="11.5" fill="#1f6b5e">2 / store {sessionID -&gt; userData}</text>
+          <path d="M375 150 H95" stroke="#b8402e" stroke-width="1.8" marker-end="url(#a2b)"/>
+          <text x="120" y="143" class="svg-m" font-size="11.5" fill="#8f2f20">3 / Set-Cookie: sid=... (HttpOnly)</text>
+          <path d="M90 195 H375" stroke="#8d8475" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#a4)"/>
+          <text x="95" y="188" class="svg-m" font-size="11.5" fill="#8d8475">4 / request + Cookie: sid</text>
+          <path d="M380 235 H665" stroke="#3f6f4e" stroke-width="1.8" marker-end="url(#a3b)"/>
+          <text x="386" y="228" class="svg-m" font-size="11.5" fill="#1f6b5e">5 / lookup sid -&gt; userData</text>
+          <path d="M375 275 H95" stroke="#8d8475" stroke-width="1.8" marker-end="url(#a4b)"/>
+          <text x="170" y="268" class="svg-m" font-size="11.5" fill="#8d8475">6 / authorized response</text>
+          <defs>
+            <marker id="a2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#b8402e"/></marker>
+            <marker id="a2b" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#b8402e"/></marker>
+            <marker id="a3" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#3f6f4e"/></marker>
+            <marker id="a3b" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#3f6f4e"/></marker>
+            <marker id="a4" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#8d8475"/></marker>
+            <marker id="a4b" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#8d8475"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <figcaption>FIG 3, The session loop. The cookie carries only a key; the data lives server-side.</figcaption>
+    </figure>
+
+    <h3>Evolusi penyimpanannya</h3>
+    <p>Penyimpanan sesi matang dalam tiga tahap, masing-masing memecahkan masalah skalabilitas tahap sebelumnya:</p>
+    <ul>
+      <li><strong>Sesi berbasis file</strong>: pendekatan paling awal, menyimpan data dalam file di server. Sederhana, tapi menderita masalah skalabilitas saat jumlah pengguna bertambah.</li>
+      <li><strong>Sesi berbasis database</strong>: memindahkan data sesi ke database untuk pencarian lebih cepat dan ketahanan di atas restart server (sesi selamat dari restart).</li>
+      <li><strong>Store terdistribusi</strong>: akhirnya data sesi pindah ke store terdistribusi dalam memori seperti <strong>Redis</strong> atau <strong>Memcached</strong> (data di RAM, bukan disk), yang jauh lebih cepat daripada pencarian database.</li>
+    </ul>
+    <p>Kita masih memakai sesi sampai hari ini, untuk tujuan yang sama persis: memberi server sedikit memori tentang pengguna.</p>
+
+    <h4>Kode: hashing kata sandi &amp; login sesi</h4>
+    <p>Login sesi pertama memverifikasi kredensial terhadap <em>hash</em> tersimpan (tak pernah teks polos), lalu mencetak session ID acak dan menyimpan payload pengguna di Redis dengan TTL.</p>
+    <div class="codepair">
+      <div class="code">
+        <div class="bar"><span class="lang go">Go</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-go">package main
+
+import (
+    "context"
+    "crypto/rand"
+    "encoding/hex"
+    "encoding/json"
+    "net/http"
+    "time"
+
+    "github.com/redis/go-redis/v9"
+    "golang.org/x/crypto/bcrypt"
+)
+
+var rdb = redis.NewClient(&amp;redis.Options{Addr: "localhost:6379"})
+var ctx = context.Background()
+
+type User struct {
+    ID   string `json:"id"`
+    Role string `json:"role"`
+}
+
+// hash once at signup; store hash, never the password
+func HashPassword(pw string) (string, error) {
+    b, err := bcrypt.GenerateFromPassword([]byte(pw), bcrypt.DefaultCost)
+    return string(b), err
+}
+
+// bcrypt.CompareHashAndPassword is constant-time internally
+func CheckPassword(hash, pw string) bool {
+    return bcrypt.CompareHashAndPassword([]byte(hash), []byte(pw)) == nil
+}
+
+func newSessionID() string {
+    b := make([]byte, 32)
+    rand.Read(b) // cryptographically random
+    return hex.EncodeToString(b)
+}
+
+func Login(w http.ResponseWriter, u User) error {
+    sid := newSessionID()
+    data, _ := json.Marshal(u)
+    // store {sessionID -&gt; userData} with a 15-minute TTL
+    if err := rdb.Set(ctx, "sess:"+sid, data, 15*time.Minute).Err(); err != nil {
+        return err
+    }
+    http.SetCookie(w, &amp;http.Cookie{
+        Name:     "sid",
+        Value:    sid,
+        HttpOnly: true,            // JS cannot read it
+        Secure:   true,            // HTTPS only
+        SameSite: http.SameSiteLaxMode,
+        Path:     "/",
+        Expires:  time.Now().Add(15 * time.Minute),
+    })
+    return nil
+}</code></pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="lang py">Python</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-python">import json, secrets
+import bcrypt
+import redis
+from flask import Flask, request, make_response
+
+app = Flask(__name__)
+rdb = redis.Redis(host="localhost", port=6379)
+TTL = 15 * 60  # 15 minutes
+
+# hash once at signup; store hash, never the password
+def hash_password(pw: str) -&gt; bytes:
+    return bcrypt.hashpw(pw.encode(), bcrypt.gensalt())
+
+# bcrypt.checkpw is constant-time internally
+def check_password(hash_: bytes, pw: str) -&gt; bool:
+    return bcrypt.checkpw(pw.encode(), hash_)
+
+def new_session_id() -&gt; str:
+    return secrets.token_hex(32)  # cryptographically random
+
+@app.post("/login")
+def login():
+    body = request.get_json()
+    # ... look up user, check_password(stored_hash, body["password"]) ...
+    user = {"id": "u_42", "role": "admin"}
+
+    sid = new_session_id()
+    # store {sessionID -&gt; userData} with a 15-minute TTL
+    rdb.setex(f"sess:{sid}", TTL, json.dumps(user))
+
+    resp = make_response({"ok": True})
+    resp.set_cookie(
+        "sid", sid,
+        httponly=True,   # JS cannot read it
+        secure=True,     # HTTPS only
+        samesite="Lax",
+        max_age=TTL,
+        path="/",
+    )
+    return resp</code></pre>
+      </div>
+    </div>
+
+    <h3>Selami: cara menyimpan kata sandi yang benar</h3>
+    <p>"Simpan hash-nya, bukan kata sandinya" hanya setengah aturan. Hash <em>yang mana</em>, dan apa yang Anda campurkan ke dalamnya, menentukan apakah database yang bocor adalah insiden kecil atau bencana.</p>
+
+    <h4>Kenapa hash serbaguna adalah alat yang salah</h4>
+    <p>SHA-256 dan MD5 dibuat untuk <strong>cepat</strong>: persis yang <em>tidak</em> Anda inginkan untuk kata sandi. GPU atau ASIC modern menghitung <strong>miliaran</strong> hash SHA-256 per detik, jadi tabel hash cepat yang dicuri bisa di-brute-force hampir gratis. Penyimpanan kata sandi butuh <strong>fungsi hashing kata sandi</strong> (KDF lambat yang bisa disetel) yang sengaja dibuat mahal dan, idealnya, <strong>memory-hard</strong> supaya penyerang tidak bisa memparalelkan murah di GPU. Pilihan yang diterima adalah <strong>Argon2id</strong> (preferensi saat ini), <strong>scrypt</strong>, dan <strong>bcrypt</strong>.</p>
+
+    <h4>Salt: mengalahkan prekomputasi</h4>
+    <p><strong>Salt</strong> adalah nilai acak unik yang dibuat <em>per kata sandi</em> dan disimpan sebagai teks polos tepat di samping hash. Ia melakukan dua hal: kata sandi identik tidak lagi menghasilkan hash identik (jadi penyerang tidak bisa melihat kata sandi yang dipakai ulang atau memecahkan banyak sekaligus), dan <strong>rainbow table</strong> hasil prekomputasi jadi sia-sia karena penyerang butuh satu tabel terpisah per salt. Salt <strong>bukan rahasia</strong>: satu-satunya tugasnya unik.</p>
+
+    <h4>Pepper: rahasia yang tidak pernah dipegang database</h4>
+    <p><strong>Pepper</strong> adalah satu rahasia tingkat situs yang disimpan <em>di luar</em> database, di environment variable, secret manager, atau HSM. Anda HMAC kata sandi dengan pepper <em>sebelum</em> memberinya ke KDF. Hasilnya: jika hanya database yang bocor (salt + hash) tapi rahasia aplikasi tidak, hash-nya tetap tak terpecahkan, karena penyerang kekurangan pepper. Salt melindungi dari prekomputasi; pepper melindungi dari breach yang hanya menyentuh DB.</p>
+
+    <h4>Work factor / biaya</h4>
+    <p>Setiap KDF mengekspos <strong>parameter biaya</strong> yang Anda setel ke perangkat keras: biaya bcrypt (putaran logaritmik), N/r/p scrypt, dan <strong>time</strong>, <strong>memory</strong>, serta <strong>parallelism</strong> Argon2. Pilih nilai supaya satu hash memakan kira-kira <strong>250 ms</strong> di server Anda, cukup lambat untuk membatasi penyerang, cukup cepat untuk login sungguhan, dan naikkan seiring waktu begitu perangkat keras membaik. Parameter terpilih disimpan <em>di dalam</em> string hash sehingga Anda bisa memverifikasi hash lama dan men-hash ulang secara transparan saat login berikutnya ketika biaya dinaikkan.</p>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 150" role="img" aria-label="Password hashing pipeline">
+          <rect x="20" y="50" width="120" height="50" rx="9" fill="rgba(255,255,255,.5)" stroke="#211e1a" stroke-width="1.3"/>
+          <text x="80" y="80" text-anchor="middle" class="svg-t" font-size="13" font-weight="700">password</text>
+          <rect x="190" y="50" width="150" height="50" rx="9" fill="rgba(176,125,43,.08)" stroke="#b07d2b" stroke-width="1.3"/>
+          <text x="265" y="74" text-anchor="middle" class="svg-t" font-size="12.5" font-weight="700">HMAC(pw, pepper)</text>
+          <text x="265" y="90" text-anchor="middle" class="svg-t" font-size="10.5" fill="#8d8475">secret, not in DB</text>
+          <rect x="390" y="50" width="180" height="50" rx="9" fill="rgba(184,64,46,.06)" stroke="#b8402e" stroke-width="1.3"/>
+          <text x="480" y="72" text-anchor="middle" class="svg-t" font-size="12.5" font-weight="700">Argon2id(/, salt, cost)</text>
+          <text x="480" y="89" text-anchor="middle" class="svg-t" font-size="10.5" fill="#8d8475">slow / memory-hard</text>
+          <rect x="620" y="50" width="120" height="50" rx="9" fill="rgba(63,111,78,.08)" stroke="#3f6f4e" stroke-width="1.3"/>
+          <text x="680" y="74" text-anchor="middle" class="svg-t" font-size="12.5" font-weight="700">store</text>
+          <text x="680" y="90" text-anchor="middle" class="svg-t" font-size="10" fill="#8d8475">salt+params+hash</text>
+          <path d="M140 75 H188" stroke="#8d8475" stroke-width="1.7" marker-end="url(#h1)"/>
+          <path d="M340 75 H388" stroke="#8d8475" stroke-width="1.7" marker-end="url(#h2)"/>
+          <path d="M570 75 H618" stroke="#8d8475" stroke-width="1.7" marker-end="url(#h3)"/>
+          <defs>
+            <marker id="h1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#8d8475"/></marker>
+            <marker id="h2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#8d8475"/></marker>
+            <marker id="h3" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#8d8475"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <figcaption>FIG 4, Pepper (secret) -&gt; KDF with per-password salt + cost -&gt; store salt, params and hash together.</figcaption>
+    </figure>
+
+    <div class="tbl">
+      <table>
+        <thead><tr><th>KDF</th><th>Memory-hard?</th><th>Catatan</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Argon2id</strong></td><td class="yes">Ya</td><td>Bawaan pilihan; menahan GPU/ASIC; setel memory + time + parallelism.</td></tr>
+          <tr><td><strong>scrypt</strong></td><td class="yes">Ya</td><td>Pilihan memory-hard yang baik; setel N/r/p.</td></tr>
+          <tr><td><strong>bcrypt</strong></td><td class="no">Tidak</td><td>Masih bisa diterima; membatasi input di 72 byte, pre-hash input panjang.</td></tr>
+          <tr><td><strong>SHA-256 / MD5</strong></td><td class="no">Tidak</td><td class="no">Jangan untuk kata sandi, terlalu cepat.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Kode: Argon2id dengan pepper</h4>
+    <div class="codepair">
+      <div class="code">
+        <div class="bar"><span class="lang go">Go</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-go">import (
+    "crypto/hmac"
+    "crypto/rand"
+    "crypto/sha256"
+    "crypto/subtle"
+    "encoding/base64"
+    "fmt"
+    "golang.org/x/crypto/argon2"
+)
+
+var pepper = []byte(os.Getenv("PASSWORD_PEPPER")) // secret, NOT in DB
+
+// cost parameters, tune so one hash ~250ms
+const (
+    aTime    = 3         // iterations
+    aMemory  = 64 * 1024 // 64 MB, memory-hard
+    aThreads = 4
+    aKeyLen  = 32
+)
+
+func peppered(pw string) []byte {
+    m := hmac.New(sha256.New, pepper)
+    m.Write([]byte(pw))
+    return m.Sum(nil)
+}
+
+// returns an encoded string: salt + params + hash
+func HashArgon(pw string) string {
+    salt := make([]byte, 16)
+    rand.Read(salt) // unique per password
+    h := argon2.IDKey(peppered(pw), salt, aTime, aMemory, aThreads, aKeyLen)
+    return fmt.Sprintf("argon2id$%d$%d$%d$%s$%s", aTime, aMemory, aThreads,
+        base64.RawStdEncoding.EncodeToString(salt),
+        base64.RawStdEncoding.EncodeToString(h))
+}
+
+// re-derive with the SAME salt+params, then constant-time compare
+func VerifyArgon(encoded, pw string) bool {
+    var t, mem, th uint32
+    var b64salt, b64hash string
+    fmt.Sscanf(encoded, "argon2id$%d$%d$%d$%s$%s", &amp;t, &amp;mem, &amp;th, &amp;b64salt, &amp;b64hash)
+    salt, _ := base64.RawStdEncoding.DecodeString(b64salt)
+    want, _ := base64.RawStdEncoding.DecodeString(b64hash)
+    got := argon2.IDKey(peppered(pw), salt, t, mem, uint8(th), uint32(len(want)))
+    return subtle.ConstantTimeCompare(got, want) == 1
+}</code></pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="lang py">Python</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-python">import os, hmac, hashlib
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
+
+PEPPER = os.environ["PASSWORD_PEPPER"].encode()  # secret, NOT in DB
+
+# cost parameters, tune so one hash ~250ms
+ph = PasswordHasher(
+    time_cost=3,            # iterations
+    memory_cost=64 * 1024,  # 64 MB, memory-hard
+    parallelism=4,
+    hash_len=32,
+    salt_len=16,            # random salt baked into the output
+)
+
+def peppered(pw: str) -&gt; bytes:
+    return hmac.new(PEPPER, pw.encode(), hashlib.sha256).digest()
+
+# argon2-cffi embeds salt + params inside the returned string
+def hash_argon(pw: str) -&gt; str:
+    return ph.hash(peppered(pw))
+
+def verify_argon(encoded: str, pw: str) -&gt; bool:
+    try:
+        ph.verify(encoded, peppered(pw))   # constant-time internally
+    except VerifyMismatchError:
+        return False
+    # transparently upgrade old hashes when cost is raised
+    if ph.check_needs_rehash(encoded):
+        rehash_and_store(hash_argon(pw))
+    return True</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 -->
+  <section id="s05">
+    <h2>05 JSON Web Token (JWT)</h2>
+    <div class="underh"></div>
+    <p>Menjelang pertengahan 2000-an, aplikasi web telah tumbuh menjadi sistem terdistribusi global, dan sistem ber-state (sesi), meski efektif, menimbulkan hambatan. Tiga masalah mendorong industri ke pendekatan baru:</p>
+    <ul>
+      <li><strong>Memori.</strong> Menjaga data sesi untuk jutaan pengguna menjadi biaya yang mahal.</li>
+      <li><strong>Replikasi.</strong> Dalam arsitektur terdistribusi, menyinkronkan data sesi lintas server dan region (satu server di satu belahan dunia, yang lain di sisi berlawanan) memperkenalkan <strong>latensi</strong> dalam alur auth.</li>
+      <li><strong>Konsistensi.</strong> Menjaga state yang tersinkron itu tetap benar di mana-mana itu sulit.</li>
+    </ul>
+    <p>Developer ingin cara <strong>menggeser state keluar dari server</strong> sambil menjaga keamanan dan integritas. Jawabannya, diformalkan pada <strong>2015</strong>, adalah <strong>JWT</strong>: mekanisme <strong>stateless</strong> untuk memindahkan <em>klaim</em> antara dua pihak. Inovasi kuncinya: <strong>token yang mandiri</strong>. Sebuah JWT membawa data pengguna (user ID, role) dan tanda tangan kriptografis di dalam token itu sendiri, semuanya di-encode Base64.</p>
+
+    <h3>Anatomi: tiga bagian</h3>
+    <p>JWT adalah satu string ber-encode Base64URL dengan tiga bagian yang dipisah titik: header.payload.signature.</p>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 250" role="img" aria-label="JWT anatomy">
+          <rect x="20" y="24" width="230" height="200" rx="12" fill="rgba(184,64,46,.06)" stroke="#b8402e" stroke-width="1.4"/>
+          <text x="36" y="50" class="svg-m" font-size="11" letter-spacing="2" fill="#b8402e">HEADER</text>
+          <text x="36" y="78" class="svg-t" font-size="13" fill="#211e1a">Metadata about</text>
+          <text x="36" y="96" class="svg-t" font-size="13" fill="#211e1a">the token itself</text>
+          <text x="36" y="128" class="svg-m" font-size="11" fill="#8d8475">{ "alg": "HS256",</text>
+          <text x="36" y="146" class="svg-m" font-size="11" fill="#8d8475">  "typ": "JWT" }</text>
+          <text x="36" y="200" class="svg-t" font-size="12" fill="#8f2f20">signing algorithm</text>
+
+          <rect x="265" y="24" width="230" height="200" rx="12" fill="rgba(63,111,78,.07)" stroke="#3f6f4e" stroke-width="1.4"/>
+          <text x="281" y="50" class="svg-m" font-size="11" letter-spacing="2" fill="#3f6f4e">PAYLOAD</text>
+          <text x="281" y="78" class="svg-t" font-size="13" fill="#211e1a">The claims / data</text>
+          <text x="281" y="110" class="svg-m" font-size="11" fill="#8d8475">{ "sub": "u_42",</text>
+          <text x="281" y="128" class="svg-m" font-size="11" fill="#8d8475">  "iat": 1716998400,</text>
+          <text x="281" y="146" class="svg-m" font-size="11" fill="#8d8475">  "name": "Asha",</text>
+          <text x="281" y="164" class="svg-m" font-size="11" fill="#8d8475">  "role": "admin" }</text>
+          <text x="281" y="200" class="svg-t" font-size="12" fill="#1f6b5e">sub = user id / iat = issued-at</text>
+
+          <rect x="510" y="24" width="230" height="200" rx="12" fill="rgba(176,125,43,.07)" stroke="#b07d2b" stroke-width="1.4"/>
+          <text x="526" y="50" class="svg-m" font-size="11" letter-spacing="2" fill="#b07d2b">SIGNATURE</text>
+          <text x="526" y="78" class="svg-t" font-size="13" fill="#211e1a">Proves integrity</text>
+          <text x="526" y="96" class="svg-t" font-size="13" fill="#211e1a">&amp; authenticity</text>
+          <text x="526" y="128" class="svg-m" font-size="10.5" fill="#8d8475">HMACSHA256(</text>
+          <text x="526" y="144" class="svg-m" font-size="10.5" fill="#8d8475">  b64(header)+"."+</text>
+          <text x="526" y="160" class="svg-m" font-size="10.5" fill="#8d8475">  b64(payload), SECRET)</text>
+          <text x="526" y="200" class="svg-t" font-size="12" fill="#8a6210">tamper -&gt; verify fails</text>
+        </svg>
+      </div>
+      <figcaption>FIG 5, header / payload / signature. Change any byte of header or payload and the signature no longer matches.</figcaption>
+    </figure>
+
+    <p><strong>Header</strong> memegang metadata seperti algoritma penandatanganan. <strong>Payload</strong> memegang klaim: sub adalah konvensi untuk user ID (dari DB atau auth provider Anda, konteks apa pun), iat berarti "issued at", plus field opsional seperti name dan role (admin / member / editor / viewer). <strong>Signature</strong> dihitung dengan <strong>secret key</strong> yang hanya Anda pegang. Jika ada yang mengubah JWT, verifikasi dengan secret Anda gagal, Anda langsung tahu token itu tidak lagi valid. Begitulah cara memverifikasi data pengguna secara <em>stateless</em>: tanpa pencarian sesi, cukup cek tanda tangan di tiap request. Ringan dan menghemat biaya penyimpanan.</p>
+
+    <h3>Kelebihannya</h3>
+    <ul>
+      <li><strong>Stateless</strong>: tanpa biaya penyimpanan sisi server.</li>
+      <li><strong>Skalabilitas</strong>: dalam arsitektur microservice dan terdistribusi, cookie yang diterbitkan satu server tidak bisa dipakai domain lain, tapi JWT bisa dikirim ke banyak server; masing-masing memegang secret bersama, men-decode token, dan memverifikasi identitas. Server berskala ke banyak instance dan semuanya mengautentikasi serentak memakai secret bersama.</li>
+      <li><strong>Portabilitas</strong>: ringan, ramah URL, dan ber-encode Base64, JWT mudah bepergian: di header, di cookie, bahkan di nilai URL (dan di local storage, meski umumnya sebaiknya jangan).</li>
+    </ul>
+
+    <h3>Tantangannya</h3>
+    <div class="note">
+      <span class="lbl">Token theft</span>
+      <p>Karena JWT stateless, server tidak punya catatan tersimpan untuk divalidasi. Jika seseorang mendapatkan JWT Anda, mereka bisa <strong>menyamar sebagai Anda</strong> dan bertindak atas nama Anda sampai token kedaluwarsa, dan tidak ada cara bawaan untuk mencabutnya lebih awal <em>kecuali</em> server mengganti secret-nya. Tapi memutar secret mencabut token <em>semua</em> pengguna, memaksa semua orang login ulang hanya untuk mematikan satu token.</p>
+    </div>
+    <div class="note">
+      <span class="lbl">Revocation</span>
+      <p>Untuk alasan yang sama, Anda tidak bisa <strong>mencabut</strong> akses satu pengguna sesuai permintaan. Karena JWT stateless, tidak ada cara melacak status token sampai ia kedaluwarsa.</p>
+    </div>
+
+    <h3>Pendekatan hibrida (dan paradoksnya)</h3>
+    <p>Untuk mengalahkan kedua masalah itu, tim menggabungkan statelessness dengan sedikit statefulness. Pengguna login, mendapat JWT, dan mengirimnya di tiap request (biasanya di header Authorization). Server memverifikasi tanda tangan dengan secret-nya, tanpa pencarian penyimpanan. <em>Lalu</em>, setelah verifikasi lewat, server memeriksa <strong>blacklist</strong> JWT yang dicabut yang disimpan di store persisten (Redis/DB). Ini memungkinkan Anda memblokir atau mencabut pengguna untuk sementara (mis. akun yang diretas) tanpa memutar secret global.</p>
+    <div class="note gold">
+      <span class="lbl">The honest question</span>
+      <p>Seluruh alasan JWT adalah statelessness. Jika Anda toh kini melakukan pencarian store persisten untuk memeriksa validitas, kenapa tidak langsung memakai pendekatan ber-state sejak awal, yang umumnya dianggap lebih aman dan memberi kendali ini gratis? Ini perdebatan industri yang sering terjadi.</p>
+    </div>
+    <div class="note teal">
+      <span class="lbl">Practical advice</span>
+      <p>Untuk sistem menengah-ke-besar, jangan bersusah payah soal hashing, salting, algoritma, dan strategi pencabutan sendiri, pakai <strong>auth provider</strong> (Auth0, Clerk, dan semacamnya). Tugas merekalah memikirkan komponen mana yang paling aman. Latihan yang bagus untuk mengimplementasikan auth sendiri saat <em>belajar</em> backend, demi memahami bagian-bagian dan komprominya, tapi di produksi, ambil provider kecuali Anda sangat yakin dengan alur auth Anda.</p>
+    </div>
+
+    <h4>Kode: menandatangani &amp; memverifikasi JWT</h4>
+    <div class="codepair">
+      <div class="code">
+        <div class="bar"><span class="lang go">Go</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-go">package auth
+
+import (
+    "time"
+    "github.com/golang-jwt/jwt/v5"
+)
+
+var secret = []byte("keep-this-very-secret")
+
+// mint a self-contained token carrying the claims
+func Sign(userID, role string) (string, error) {
+    claims := jwt.MapClaims{
+        "sub":  userID,                              // user id
+        "role": role,                                // for authorization
+        "iat":  time.Now().Unix(),                   // issued at
+        "exp":  time.Now().Add(time.Hour).Unix(),    // expiry
+    }
+    tok := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    return tok.SignedString(secret)
+}
+
+// verify signature + expiry; returns the claims if valid
+func Verify(tokenStr string) (jwt.MapClaims, error) {
+    tok, err := jwt.Parse(tokenStr, func(t *jwt.Token) (any, error) {
+        // pin the algorithm to stop "alg: none" attacks
+        if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+            return nil, jwt.ErrSignatureInvalid
+        }
+        return secret, nil
+    })
+    if err != nil || !tok.Valid {
+        return nil, err
+    }
+    return tok.Claims.(jwt.MapClaims), nil
+}</code></pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="lang py">Python</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-python">import jwt   # PyJWT
+from datetime import datetime, timedelta, timezone
+
+SECRET = "keep-this-very-secret"
+
+# mint a self-contained token carrying the claims
+def sign(user_id: str, role: str) -&gt; str:
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub":  user_id,                 # user id
+        "role": role,                    # for authorization
+        "iat":  now,                     # issued at
+        "exp":  now + timedelta(hours=1) # expiry
+    }
+    return jwt.encode(payload, SECRET, algorithm="HS256")
+
+# verify signature + expiry; returns the claims if valid
+def verify(token: str) -&gt; dict:
+    # algorithms is a whitelist -&gt; stops "alg: none" attacks
+    return jwt.decode(token, SECRET, algorithms=["HS256"])
+
+# hybrid: after verify(), also check a revocation blacklist
+def is_revoked(rdb, jti_or_token: str) -&gt; bool:
+    return rdb.sismember("jwt:blacklist", jti_or_token)</code></pre>
+      </div>
+    </div>
+
+    <h3>Selami: penandatanganan, serangan, dan refresh token</h3>
+
+    <h4>HS256 vs RS256: penandatanganan simetris vs asimetris</h4>
+    <p>Alg di header menentukan siapa yang bisa <em>membuat</em> token valid. Dengan <strong>HS256</strong> (HMAC) ada satu secret bersama yang dipakai untuk menandatangani dan memverifikasi, jadi <em>setiap</em> layanan yang bisa memverifikasi juga bisa <strong>memalsukan</strong>. Itu baik di dalam satu batas kepercayaan, berbahaya lintas banyak. Dengan <strong>RS256</strong> / <strong>ES256</strong> (asimetris), server auth menandatangani dengan <strong>private key</strong> dan yang lain memverifikasi dengan <strong>public key</strong>. Verifier tidak bisa mencetak token, dan Anda bisa memublikasikan public key (endpoint JWKS) sehingga microservice yang tak berhubungan dan pihak ketiga memvalidasi secara independen. Inilah alasan sebenarnya JWT berskala lintas sistem terdistribusi: <em>verifikasi tidak butuh berbagi kekuatan penandatanganan.</em></p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th></th><th>HS256 (simetris)</th><th>RS256 / ES256 (asimetris)</th></tr></thead>
+        <tbody>
+          <tr><td>Key</td><td>Satu secret bersama</td><td>Private (tanda tangan) + public (verifikasi)</td></tr>
+          <tr><td>Siapa yang bisa memalsukan</td><td class="no">Siapa pun yang bisa memverifikasi</td><td class="yes">Hanya pemegang private key</td></tr>
+          <tr><td>Terbaik untuk</td><td>Satu layanan / monolit</td><td>Microservice, verifier pihak ketiga, OIDC</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Serangan alg:none dan key-confusion</h4>
+    <p>Dua kerentanan JWT klasik sama-sama berasal dari mempercayai header token itu sendiri. Pada serangan <strong>alg:none</strong>, penyerang meng-set "alg":"none" dan membuang signature; verifier naif yang "menuruti kata header" menerima token tanpa tanda tangan. Pada serangan <strong>key-confusion RS256-&gt;HS256</strong>, penyerang mengganti algoritma menjadi HS256 dan menandatangani dengan <em>public</em> key (yang jelas-jelas publik) seolah itu secret HMAC; verifier yang memilih algoritma dari header akan memvalidasinya. <strong>Pertahanan:</strong> jangan pernah membiarkan token yang memilih, sematkan algoritma yang diharapkan di sisi verifier, seperti yang sudah dilakukan cek SigningMethodHMAC dan whitelist algorithms=[...] pada kode bagian 05.</p>
+
+    <h4>Access token + refresh token</h4>
+    <p>Pola ini menyelesaikan kelemahan pencabutan tanpa membuang statelessness. Terbitkan <strong>access token berumur pendek</strong> (±5-15 menit) yang dipakai di tiap panggilan API, dan <strong>refresh token berumur panjang</strong> (hari-minggu) yang disimpan aman (cookie HttpOnly, atau penyimpanan aman di mobile). Saat access token kedaluwarsa, klien menukar refresh token dengan pasangan baru. Karena access token berumur pendek, token yang dicuri tak berguna dalam hitungan menit; karena hanya refresh token yang menyentuh store, jalur cepat per-request tetap stateless.</p>
+    <div class="note teal">
+      <span class="lbl">Rotation + reuse detection</span>
+      <p>Di tiap refresh, <strong>putar</strong>: terbitkan refresh token baru dan cabut yang lama. Jika refresh token bekas (yang sudah diputar) muncul lagi, itu sinyal kuat bahwa ia dicuri, <strong>cabut seluruh keluarga token</strong> dan paksa login ulang. Ini memberi pencabutan praktis sambil menjaga jalur access token bebas pencarian.</p>
+    </div>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 150" role="img" aria-label="Access and refresh token lifecycle">
+          <rect x="20" y="40" width="200" height="70" rx="10" fill="rgba(184,64,46,.06)" stroke="#b8402e" stroke-width="1.3"/>
+          <text x="120" y="70" text-anchor="middle" class="svg-t" font-size="14" font-weight="700">Access token</text>
+          <text x="120" y="90" text-anchor="middle" class="svg-t" font-size="11" fill="#8d8475">~10 min / sent every call</text>
+          <rect x="540" y="40" width="200" height="70" rx="10" fill="rgba(63,111,78,.07)" stroke="#3f6f4e" stroke-width="1.3"/>
+          <text x="640" y="70" text-anchor="middle" class="svg-t" font-size="14" font-weight="700">Refresh token</text>
+          <text x="640" y="90" text-anchor="middle" class="svg-t" font-size="11" fill="#8d8475">days / HttpOnly / stored</text>
+          <path d="M540 65 H222" stroke="#3f6f4e" stroke-width="1.7" marker-end="url(#r1)"/>
+          <text x="380" y="57" text-anchor="middle" class="svg-m" font-size="11" fill="#1f6b5e">mints new access token on expiry</text>
+          <path d="M222 92 H538" stroke="#b8402e" stroke-width="1.7" stroke-dasharray="5 4" marker-end="url(#r2)"/>
+          <text x="380" y="112" text-anchor="middle" class="svg-m" font-size="11" fill="#8f2f20">rotate: old refresh invalidated; reuse -&gt; revoke family</text>
+          <defs>
+            <marker id="r1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#3f6f4e"/></marker>
+            <marker id="r2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#b8402e"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <figcaption>FIG 6, Short access token for speed, rotating refresh token for control.</figcaption>
+    </figure>
+
+    <h4>Kode: verifikasi RS256 + rotasi refresh</h4>
+    <div class="codepair">
+      <div class="code">
+        <div class="bar"><span class="lang go">Go</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-go">// Verify with a PUBLIC key, pinning RS256 (blocks alg:none &amp; key confusion)
+func VerifyRS256(tokenStr string, pub *rsa.PublicKey) (jwt.MapClaims, error) {
+    tok, err := jwt.Parse(tokenStr, func(t *jwt.Token) (any, error) {
+        if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok { // pin family
+            return nil, jwt.ErrSignatureInvalid
+        }
+        return pub, nil
+    }, jwt.WithValidMethods([]string{"RS256"}))
+    if err != nil || !tok.Valid {
+        return nil, err
+    }
+    return tok.Claims.(jwt.MapClaims), nil
+}
+
+// Rotate a refresh token; detect reuse of an already-spent one.
+func Refresh(rdb *redis.Client, presented string) (string, error) {
+    family, err := rdb.Get(ctx, "rt:"+presented).Result()
+    if err != nil {
+        // not a live token, was it a previously-spent one? -&gt; theft
+        if fam, e := rdb.Get(ctx, "spent:"+presented).Result(); e == nil {
+            rdb.Del(ctx, "family:"+fam)            // revoke the whole family
+            return "", errors.New("refresh reuse detected")
+        }
+        return "", errors.New("invalid refresh token")
+    }
+    rdb.Del(ctx, "rt:"+presented)                  // consume the live token
+    rdb.Set(ctx, "spent:"+presented, family, 14*24*time.Hour) // remember it
+    newRefresh := newSessionID()
+    rdb.Set(ctx, "rt:"+newRefresh, family, 14*24*time.Hour)
+    return newRefresh, nil
+}</code></pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="lang py">Python</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-python"># Verify with a PUBLIC key, pinning RS256 (blocks alg:none &amp; key confusion)
+def verify_rs256(token: str, public_key) -&gt; dict:
+    return jwt.decode(token, public_key, algorithms=["RS256"])  # whitelist
+
+# Rotate a refresh token; detect reuse of an already-spent one.
+def refresh(rdb, presented: str) -&gt; str:
+    family = rdb.get(f"rt:{presented}")
+    if family is None:
+        # not a live token, was it previously spent? -&gt; theft
+        fam = rdb.get(f"spent:{presented}")
+        if fam is not None:
+            rdb.delete(f"family:{fam.decode()}")    # revoke the whole family
+            raise PermissionError("refresh reuse detected")
+        raise PermissionError("invalid refresh token")
+    rdb.delete(f"rt:{presented}")                   # consume the live token
+    rdb.setex(f"spent:{presented}", 14 * 24 * 3600, family)  # remember it
+    new_refresh = secrets.token_hex(32)
+    rdb.setex(f"rt:{new_refresh}", 14 * 24 * 3600, family)
+    return new_refresh</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section id="s06">
+    <h2>06 Cookie</h2>
+    <div class="underh"></div>
+    <p><strong>Cookie</strong> adalah cara menyimpan sepotong informasi, nilai string apa pun, di browser pengguna, <em>dari sisi server</em>. Bagian terakhir itu yang penting: dengan cookie, server bisa menaruh data ke browser klien lewat alur normal request/response HTTP, tunduk pada dua jaminan yang ditegakkan browser:</p>
+    <ul>
+      <li>Cookie hanya bisa diakses server (domain) yang men-set-nya; satu server tidak bisa melihat cookie server lain. Pembatasan ini fitur keamanan bawaan browser.</li>
+      <li>Cookie yang di-set server otomatis menempel di <strong>setiap request berikutnya</strong> ke server yang sama.</li>
+    </ul>
+    <p>Round-trip otomatis itulah yang membuat cookie begitu berguna untuk auth. Server menyimpan token otorisasi (JWT atau session ID, tergantung implementasi) di cookie; browser (Chrome, Firefox, Safari) mengirimnya kembali di tiap request; server memvalidasinya, mengidentifikasi dan mengotorisasi pengguna. Seluruh tarian "server menyerahkan token ke klien, klien mengembalikannya tiap kali" diotomasi mekanisme cookie, digerakkan sepenuhnya dari sisi server, karena server bisa menulis ke cookie jar klien.</p>
+    <div class="note teal">
+      <span class="lbl">HttpOnly</span>
+      <p>Menandai cookie HttpOnly berarti JavaScript tidak bisa membaca nilainya. Untuk session ID ini penting: ia memblokir satu kelas serangan pencurian token yang bekerja dengan membaca cookie dari skrip halaman. Pasangkan dengan Secure (khusus HTTPS) dan kebijakan SameSite yang masuk akal.</p>
+    </div>
+
+    <h3>Selami: CSRF dan session fixation</h3>
+    <p>Fitur terbaik cookie, penempelan otomatis ke tiap request, juga akar dari dua serangan khasnya. Keduanya relevan khusus untuk auth <em>berbasis cookie</em>.</p>
+
+    <h4>Cross-Site Request Forgery (CSRF)</h4>
+    <p>Karena browser mengirim session cookie Anda pada <em>request apa pun</em> ke sebuah domain, termasuk request yang dipicu situs <em>lain</em>, halaman penyerang bisa diam-diam menembakkan request pengubah state ke bank atau aplikasi Anda, dan browser dengan patuhnya menempelkan cookie Anda. Server melihat request terautentikasi penuh yang tak pernah ia maksud untuk dihormati. Perhatikan asimetrinya: <strong>auth token-di-header (Bearer JWT) kebal secara alami</strong>, karena halaman penyerang tidak bisa membaca atau men-set header Authorization Anda; hanya kredensial yang dibawa cookie yang terkirim otomatis. Pertahanan:</p>
+    <ul>
+      <li><strong>Cookie SameSite</strong>: Lax atau Strict menghentikan cookie ikut pada request lintas-situs. Garis pertahanan pertama.</li>
+      <li><strong>Synchronizer token</strong>: server menyematkan token acak di halaman/form; request pengubah state wajib menggema-nya kembali. Penyerang tidak bisa membacanya (same-origin policy), jadi mereka tidak bisa memalsukan request valid.</li>
+      <li><strong>Double-submit cookie</strong>: kirim token CSRF sebagai cookie yang bisa dibaca dan sebagai header/field; server memeriksa keduanya cocok. Stateless dan sederhana.</li>
+    </ul>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 160" role="img" aria-label="CSRF attack">
+          <rect x="20" y="55" width="170" height="55" rx="9" fill="rgba(184,64,46,.06)" stroke="#b8402e" stroke-width="1.3"/>
+          <text x="105" y="80" text-anchor="middle" class="svg-t" font-size="13" font-weight="700">evil.com</text>
+          <text x="105" y="98" text-anchor="middle" class="svg-t" font-size="10.5" fill="#8d8475">attacker page</text>
+          <rect x="300" y="55" width="170" height="55" rx="9" fill="rgba(255,255,255,.5)" stroke="#211e1a" stroke-width="1.3"/>
+          <text x="385" y="80" text-anchor="middle" class="svg-t" font-size="13" font-weight="700">your browser</text>
+          <text x="385" y="98" text-anchor="middle" class="svg-t" font-size="10.5" fill="#8d8475">holds bank cookie</text>
+          <rect x="580" y="55" width="160" height="55" rx="9" fill="rgba(63,111,78,.07)" stroke="#3f6f4e" stroke-width="1.3"/>
+          <text x="660" y="80" text-anchor="middle" class="svg-t" font-size="13" font-weight="700">bank.com</text>
+          <text x="660" y="98" text-anchor="middle" class="svg-t" font-size="10.5" fill="#8d8475">trusts the cookie</text>
+          <path d="M190 82 H298" stroke="#b8402e" stroke-width="1.7" marker-end="url(#cs1)"/>
+          <text x="244" y="74" text-anchor="middle" class="svg-m" font-size="10" fill="#8f2f20">hidden POST</text>
+          <path d="M470 82 H578" stroke="#b8402e" stroke-width="1.7" marker-end="url(#cs2)"/>
+          <text x="524" y="74" text-anchor="middle" class="svg-m" font-size="10" fill="#8f2f20">+ cookie (auto!)</text>
+          <text x="385" y="135" text-anchor="middle" class="svg-m" font-size="10.5" fill="#1f6b5e">SameSite / CSRF token blocks the forged request</text>
+          <defs>
+            <marker id="cs1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#b8402e"/></marker>
+            <marker id="cs2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#b8402e"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <figcaption>FIG 7, The cookie rides along on a cross-site request; SameSite + a CSRF token break the chain.</figcaption>
+    </figure>
+
+    <h4>Session fixation</h4>
+    <p>Di sini penyerang <em>menanam</em> session ID yang sudah ia ketahui, mis. dengan memberi korban tautan berisi sid tetap, atau men-set satu, lalu menunggu korban login <em>dengan ID yang sama itu</em>. Jika server mempertahankan session ID pra-login setelah autentikasi, penyerang kini berbagi sesi terautentikasi. Perbaikannya sederhana dan mutlak: <strong>regenerasi session ID di setiap perubahan hak istimewa</strong>, terutama tepat setelah login, supaya nilai yang diketahui penyerang jadi tak berguna.</p>
+
+    <h4>Kode: double-submit CSRF + regenerasi sesi</h4>
+    <div class="codepair">
+      <div class="code">
+        <div class="bar"><span class="lang go">Go</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-go">// Double-submit: compare the CSRF cookie against the header.
+func CheckCSRF(next http.HandlerFunc) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        if r.Method == "GET" || r.Method == "HEAD" {
+            next(w, r); return
+        }
+        c, err := r.Cookie("csrf")
+        hdr := r.Header.Get("X-CSRF-Token")
+        if err != nil || subtle.ConstantTimeCompare(
+            []byte(c.Value), []byte(hdr)) != 1 {
+            http.Error(w, "forbidden", http.StatusForbidden)
+            return
+        }
+        next(w, r)
+    }
+}
+
+// Regenerate the session ID right after a successful login.
+func RegenerateSession(oldSID string, u User) (string, error) {
+    raw, _ := rdb.Get(ctx, "sess:"+oldSID).Result()
+    rdb.Del(ctx, "sess:"+oldSID)            // kill the pre-login ID
+    newSID := newSessionID()                // brand-new value
+    rdb.Set(ctx, "sess:"+newSID, raw, 15*time.Minute)
+    return newSID, nil
+}</code></pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="lang py">Python</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-python">import hmac
+
+# Double-submit: compare the CSRF cookie against the header.
+def check_csrf(view):
+    @wraps(view)
+    def wrapper(*args, **kwargs):
+        if request.method in ("GET", "HEAD"):
+            return view(*args, **kwargs)
+        cookie = request.cookies.get("csrf", "")
+        header = request.headers.get("X-CSRF-Token", "")
+        if not cookie or not hmac.compare_digest(cookie, header):
+            return jsonify(error="forbidden"), 403
+        return view(*args, **kwargs)
+    return wrapper
+
+# Regenerate the session ID right after a successful login.
+def regenerate_session(old_sid: str) -&gt; str:
+    raw = rdb.get(f"sess:{old_sid}")
+    rdb.delete(f"sess:{old_sid}")            # kill the pre-login ID
+    new_sid = secrets.token_hex(32)          # brand-new value
+    rdb.setex(f"sess:{new_sid}", 15 * 60, raw)
+    return new_sid</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART III -->
+  <div class="part">Part III / Types of Authentication</div>
+
+  <!-- 07 -->
+  <section id="s07">
+    <h2>07 Autentikasi Ber-State</h2>
+    <div class="underh"></div>
+    <p>Tipe utama pertama. Klien (browser) mengirim username/email dan kata sandi ke server. Server memeriksa validitas dan kebenarannya; jika pengguna memenuhi syarat, ia membuat <strong>session ID</strong>, menggabungkannya dengan data pengguna, dan menyimpan bundelnya di <strong>Redis</strong> (DB juga bisa, tapi kebanyakan platform memilih Redis karena aksesnya cepat). Session ID dikirim balik ke klien di dalam <strong>cookie HttpOnly</strong>: jadi JavaScript tidak bisa membaca session ID. Berkat perilaku auto-attach cookie, setiap request berikutnya membawa cookie itu. Server membaca session ID, memeriksa keberadaan, kedaluwarsa, dan data penggunanya di Redis, mengidentifikasi dan mengotorisasi pengguna, lalu meloloskan request. Session ID bisa berupa string acak kriptografis apa pun, bahkan JWT, tergantung implementasi.</p>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 230" role="img" aria-label="Stateful authentication flow">
+          <rect x="20" y="80" width="150" height="70" rx="10" fill="rgba(255,255,255,.5)" stroke="#b8402e" stroke-width="1.4"/>
+          <text x="95" y="110" text-anchor="middle" class="svg-t" font-size="15" font-weight="700" fill="#211e1a">Client</text>
+          <text x="95" y="130" text-anchor="middle" class="svg-t" font-size="11.5" fill="#8d8475">browser</text>
+
+          <rect x="300" y="80" width="160" height="70" rx="10" fill="rgba(255,255,255,.5)" stroke="#211e1a" stroke-width="1.4"/>
+          <text x="380" y="110" text-anchor="middle" class="svg-t" font-size="15" font-weight="700" fill="#211e1a">Server</text>
+          <text x="380" y="130" text-anchor="middle" class="svg-t" font-size="11.5" fill="#8d8475">business logic</text>
+
+          <rect x="590" y="80" width="150" height="70" rx="10" fill="rgba(63,111,78,.08)" stroke="#3f6f4e" stroke-width="1.4"/>
+          <text x="665" y="108" text-anchor="middle" class="svg-t" font-size="15" font-weight="700" fill="#211e1a">Redis</text>
+          <text x="665" y="128" text-anchor="middle" class="svg-t" font-size="11.5" fill="#8d8475">sid -&gt; userData</text>
+
+          <path d="M172 100 H298" stroke="#b8402e" stroke-width="1.8" marker-end="url(#b1)"/>
+          <text x="235" y="92" text-anchor="middle" class="svg-m" font-size="10.5" fill="#8f2f20">user+pass</text>
+          <path d="M462 100 H588" stroke="#3f6f4e" stroke-width="1.8" marker-end="url(#b2)"/>
+          <text x="525" y="92" text-anchor="middle" class="svg-m" font-size="10.5" fill="#1f6b5e">store bundle</text>
+          <path d="M298 135 H174" stroke="#b8402e" stroke-width="1.8" marker-end="url(#b3)"/>
+          <text x="235" y="170" text-anchor="middle" class="svg-m" font-size="10.5" fill="#8f2f20">Set-Cookie sid (HttpOnly)</text>
+          <path d="M588 135 H464" stroke="#3f6f4e" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#b4)"/>
+          <text x="525" y="170" text-anchor="middle" class="svg-m" font-size="10.5" fill="#1f6b5e">lookup on each req</text>
+          <defs>
+            <marker id="b1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#b8402e"/></marker>
+            <marker id="b2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#3f6f4e"/></marker>
+            <marker id="b3" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#b8402e"/></marker>
+            <marker id="b4" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#3f6f4e"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <figcaption>FIG 8, Stateful: the proof lives in the store; the cookie only points to it.</figcaption>
+    </figure>
+
+    <h4>Kode: middleware yang memvalidasi sesi</h4>
+    <div class="codepair">
+      <div class="code">
+        <div class="bar"><span class="lang go">Go</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-go">// RequireSession reads the sid cookie and looks it up in Redis.
+func RequireSession(next http.HandlerFunc) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        c, err := r.Cookie("sid")
+        if err != nil {
+            http.Error(w, "authentication failed", http.StatusUnauthorized)
+            return
+        }
+        raw, err := rdb.Get(ctx, "sess:"+c.Value).Result()
+        if err != nil { // missing or expired
+            http.Error(w, "authentication failed", http.StatusUnauthorized)
+            return
+        }
+        var u User
+        json.Unmarshal([]byte(raw), &amp;u)
+        // attach the user to the request context for later handlers
+        ctxWithUser := context.WithValue(r.Context(), "user", u)
+        next(w, r.WithContext(ctxWithUser))
+    }
+}</code></pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="lang py">Python</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-python">from functools import wraps
+from flask import request, g, jsonify
+
+def require_session(view):
+    @wraps(view)
+    def wrapper(*args, **kwargs):
+        sid = request.cookies.get("sid")
+        if not sid:
+            return jsonify(error="authentication failed"), 401
+        raw = rdb.get(f"sess:{sid}")     # None if missing/expired
+        if raw is None:
+            return jsonify(error="authentication failed"), 401
+        g.user = json.loads(raw)          # attach for later handlers
+        return view(*args, **kwargs)
+    return wrapper
+
+@app.get("/notes")
+@require_session
+def notes():
+    return jsonify(owner=g.user["id"])</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 -->
+  <section id="s08">
+    <h2>08 Autentikasi Stateless</h2>
+    <div class="underh"></div>
+    <p>Klien mengirim email/username dan kata sandi pada request login. Server memeriksa keasliannya; jika benar, ia membuat <strong>JWT bertanda tangan</strong> memakai <strong>secret key</strong> miliknya sendiri (disimpan aman sehingga bisa menandatangani dan memverifikasi). Token menyematkan info pengguna, user ID, role, dll., dan dikembalikan ke klien. Pada semua request berikutnya, klien mengidentifikasi diri dengan mengirim JWT, sesuai konvensi di header Authorization. Server mengekstrak token, memverifikasinya dengan secret, memulihkan user ID, dan setelah sukses menyelesaikan request; kalau tidak, ia mengembalikan <strong>401 Unauthorized</strong> atau <strong>403 Forbidden</strong>.</p>
+    <p>Ia disebut <em>stateless</em> justru karena, tidak seperti auth ber-state, <strong>tidak ada pencarian store persisten</strong>. Semua yang dibutuhkan server tentang pengguna hidup di dalam token bertanda tangan yang mandiri; secret key sendirilah yang membuktikan keaslian token.</p>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 200" role="img" aria-label="Stateless authentication flow">
+          <rect x="40" y="70" width="160" height="70" rx="10" fill="rgba(255,255,255,.5)" stroke="#b8402e" stroke-width="1.4"/>
+          <text x="120" y="100" text-anchor="middle" class="svg-t" font-size="15" font-weight="700" fill="#211e1a">Client</text>
+          <text x="120" y="120" text-anchor="middle" class="svg-t" font-size="11.5" fill="#8d8475">browser / mobile</text>
+
+          <rect x="560" y="70" width="160" height="70" rx="10" fill="rgba(255,255,255,.5)" stroke="#211e1a" stroke-width="1.4"/>
+          <text x="640" y="100" text-anchor="middle" class="svg-t" font-size="15" font-weight="700" fill="#211e1a">Server</text>
+          <text x="640" y="120" text-anchor="middle" class="svg-t" font-size="11.5" fill="#8d8475">holds SECRET key</text>
+
+          <path d="M202 92 H558" stroke="#b8402e" stroke-width="1.8" marker-end="url(#c1)"/>
+          <text x="380" y="84" text-anchor="middle" class="svg-m" font-size="11" fill="#8f2f20">1 / login -&gt; server signs JWT with secret</text>
+          <path d="M558 122 H204" stroke="#3f6f4e" stroke-width="1.8" marker-end="url(#c2)"/>
+          <text x="380" y="116" text-anchor="middle" class="svg-m" font-size="11" fill="#1f6b5e">2 / JWT returned</text>
+          <path d="M202 152 H558" stroke="#8d8475" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#c3)"/>
+          <text x="380" y="172" text-anchor="middle" class="svg-m" font-size="11" fill="#8d8475">3 / every request: Authorization: Bearer &lt;JWT&gt;, verified with secret, no DB</text>
+          <defs>
+            <marker id="c1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#b8402e"/></marker>
+            <marker id="c2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#3f6f4e"/></marker>
+            <marker id="c3" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#8d8475"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <figcaption>FIG 9, Stateless: the proof travels inside the token; the server stores nothing.</figcaption>
+    </figure>
+
+    <h4>Kode: middleware Bearer-token</h4>
+    <div class="codepair">
+      <div class="code">
+        <div class="bar"><span class="lang go">Go</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-go">import "strings"
+
+func RequireJWT(next http.HandlerFunc) http.HandlerFunc {
+    return func(w http.ResponseWriter, r *http.Request) {
+        h := r.Header.Get("Authorization")
+        if !strings.HasPrefix(h, "Bearer ") {
+            http.Error(w, "authentication failed", http.StatusUnauthorized)
+            return
+        }
+        claims, err := Verify(strings.TrimPrefix(h, "Bearer "))
+        if err != nil {
+            http.Error(w, "authentication failed", http.StatusUnauthorized)
+            return
+        }
+        // no store lookup, identity comes from the verified token
+        u := User{ID: claims["sub"].(string), Role: claims["role"].(string)}
+        next(w, r.WithContext(context.WithValue(r.Context(), "user", u)))
+    }
+}</code></pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="lang py">Python</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-python">def require_jwt(view):
+    @wraps(view)
+    def wrapper(*args, **kwargs):
+        h = request.headers.get("Authorization", "")
+        if not h.startswith("Bearer "):
+            return jsonify(error="authentication failed"), 401
+        try:
+            claims = verify(h.removeprefix("Bearer "))
+        except jwt.PyJWTError:
+            return jsonify(error="authentication failed"), 401
+        # no store lookup, identity comes from the verified token
+        g.user = {"id": claims["sub"], "role": claims["role"]}
+        return view(*args, **kwargs)
+    return wrapper</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 09 -->
+  <section id="s09">
+    <h2>09 Ber-State vs Stateless: Memilih</h2>
+    <div class="underh"></div>
+    <p>Kekurangan yang satu sebagian besar kelebihan yang lain. Pilih berdasarkan dari mana request datang.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Dimensi</th><th>Ber-State (sesi)</th><th>Stateless (JWT)</th></tr></thead>
+        <tbody>
+          <tr><td>Kendali atas sesi</td><td class="yes">Terpusat, pandangan real-time sesi aktif</td><td class="no">Tanpa pandangan global</td></tr>
+          <tr><td>Cabut / logout pengguna</td><td class="yes">Mudah, tinggal buang sesinya</td><td class="no">Rumit, valid sampai kedaluwarsa</td></tr>
+          <tr><td>Ketergantungan penyimpanan</td><td class="no">Butuh session store</td><td class="yes">Tidak ada</td></tr>
+          <tr><td>Skalabilitas lintas region</td><td class="no">Latensi sinkronisasi, kompleksitas operasi lebih tinggi</td><td class="yes">Ideal untuk sistem terdistribusi</td></tr>
+          <tr><td>Ramah mobile / API</td><td class="no">Cookie kurang cocok</td><td class="yes">Sangat baik</td></tr>
+          <tr><td>Postur keamanan</td><td class="yes">Umumnya dianggap lebih aman</td><td class="no">Pencurian token = penyamaran</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Dalam praktik, kebanyakan aplikasi sebaiknya condong <strong>ber-state</strong>: sifat amannya, kemudahan mencabut token dan logout pengguna, serta visibilitas real-time ke sesi aktif sangat berharga. Harganya adalah batas skalabilitas dan kompleksitas operasional lebih tinggi di sistem terdistribusi besar multi-region. Stateless menang saat Anda butuh skalabilitas dan tidak punya ketergantungan session store: API, arsitektur terdistribusi, klien mobile. Satu kelemahan utamanya adalah pencabutan yang sulit.</p>
+    <div class="note teal">
+      <span class="lbl">The hybrid split</span>
+      <p>Anda bisa membagi per klien. Pakai auth <strong>ber-state</strong> untuk aplikasi web browser utama (tempat Anda ingin kendali dan pencabutan), dan JWT <strong>stateless</strong> untuk aplikasi mobile dan integrasi server-ke-server pihak ketiga (tempat Anda ingin skalabilitas dan kesederhanaan). Ini mengalahkan kekurangan keduanya.</p>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section id="s10">
+    <h2>10 Autentikasi API Key</h2>
+    <div class="underh"></div>
+    <p>API key melayani kumpulan kasus pemakaian yang sama sekali berbeda dari auth ber-state/stateless. Alurnya sederhana: di UI sebuah platform Anda klik <em>"generate an API key"</em>, menerima string acak kriptografis yang aman secara kriptografis, dan sejak itu memakai string itu untuk akses <strong>programatik</strong> ke server di balik UI, tanpa pernah menyentuh UI.</p>
+    <p>Contoh kanonisnya OpenAI. Kebanyakan orang memakai ChatGPT lewat UI-nya: ketik di kotak, dapat respons yang ditampilkan rapi. Tapi di balik UI itu ada banyak server. OpenAI juga menawarkan <strong>API key</strong> untuk orang yang tidak mau UI, yang ingin kemampuan model di dalam <em>produk atau server mereka sendiri</em>, secara programatik. Untuk memberi akses ke <em>server</em> Anda (bukan UI, bukan platform Anda) kepada kumpulan pengguna berbeda dengan cara yang <strong>terbatas, berbasis izin, berbasis kedaluwarsa</strong>, Anda menyerahkan API key. Mereka menempelkannya (di header, atau apa pun yang diharapkan server), mengirimkannya kembali, dan bisa melakukan operasi yang diizinkan platform aslinya, tapi lewat kode.</p>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 200" role="img" aria-label="Machine to machine with API key">
+          <rect x="30" y="60" width="180" height="90" rx="10" fill="rgba(255,255,255,.5)" stroke="#b8402e" stroke-width="1.4"/>
+          <text x="120" y="92" text-anchor="middle" class="svg-t" font-size="14" font-weight="700" fill="#211e1a">Your Server</text>
+          <text x="120" y="112" text-anchor="middle" class="svg-t" font-size="11" fill="#8d8475">no UI / no human</text>
+          <text x="120" y="130" text-anchor="middle" class="svg-m" font-size="10.5" fill="#8f2f20">holds API_KEY in env</text>
+
+          <rect x="540" y="60" width="190" height="90" rx="10" fill="rgba(63,111,78,.08)" stroke="#3f6f4e" stroke-width="1.4"/>
+          <text x="635" y="92" text-anchor="middle" class="svg-t" font-size="14" font-weight="700" fill="#211e1a">Provider Server</text>
+          <text x="635" y="112" text-anchor="middle" class="svg-t" font-size="11" fill="#8d8475">e.g. OpenAI</text>
+          <text x="635" y="130" text-anchor="middle" class="svg-m" font-size="10.5" fill="#1f6b5e">maps key -&gt; plan/quota</text>
+
+          <path d="M212 95 H538" stroke="#b8402e" stroke-width="1.8" marker-end="url(#d1)"/>
+          <text x="375" y="86" text-anchor="middle" class="svg-m" font-size="11" fill="#8f2f20">request + Authorization: Bearer API_KEY</text>
+          <path d="M538 125 H214" stroke="#3f6f4e" stroke-width="1.8" marker-end="url(#d2)"/>
+          <text x="375" y="145" text-anchor="middle" class="svg-m" font-size="11" fill="#1f6b5e">response (identified, authorized, metered)</text>
+          <defs>
+            <marker id="d1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#b8402e"/></marker>
+            <marker id="d2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#3f6f4e"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <figcaption>FIG 10, Machine-to-machine: no login form, no human trigger, just a key on every call.</figcaption>
+    </figure>
+
+    <p>Kenapa tim membangun API key:</p>
+    <ul>
+      <li><strong>Mudah dibuat</strong>: klik tombol di UI, dapat key, pakai.</li>
+      <li><strong>Ideal untuk komunikasi machine-to-machine (M2M).</strong> Alur biasa kita klien-ke-server: manusia memakai UI (mouse, keyboard), UI mengirim request programatik, server menjalankan logika bisnis dan merespons, UI menampilkannya untuk manusia. M2M menghapus manusia: server saya ingin memakai kemampuan ChatGPT, mis. pengguna minta aplikasi saya "rangkum paragraf ini", dan server saya memanggil provider di belakang layar. Tidak ada UI dan tidak ada interaksi manusia; semuanya dilakukan dalam kode.</li>
+    </ul>
+    <p>Auth ber-state/stateless mengasumsikan pemicu manusia: form login untuk diisi, token untuk disimpan. M2M tidak butuh semua itu, Anda memberi mesin sebuah secret key, ia menyimpannya di environment variable atau store aman, dan mengirimnya di tiap request untuk mengidentifikasi diri. Itulah persis guna API key: interaksi programatik machine-to-machine.</p>
+
+    <h4>Kode: memverifikasi API key</h4>
+    <div class="codepair">
+      <div class="code">
+        <div class="bar"><span class="lang go">Go</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-go">import (
+    "crypto/sha256"
+    "crypto/subtle"
+    "encoding/hex"
+)
+
+// Store only the HASH of issued keys (like passwords).
+// On each call, hash the presented key and constant-time compare.
+func hashKey(k string) string {
+    sum := sha256.Sum256([]byte(k))
+    return hex.EncodeToString(sum[:])
+}
+
+func RequireAPIKey(lookup func(hash string) (*Client, bool)) func(http.HandlerFunc) http.HandlerFunc {
+    return func(next http.HandlerFunc) http.HandlerFunc {
+        return func(w http.ResponseWriter, r *http.Request) {
+            key := r.Header.Get("X-API-Key")
+            client, ok := lookup(hashKey(key))
+            // subtle.ConstantTimeCompare avoids timing leaks
+            if !ok || subtle.ConstantTimeCompare([]byte(key), []byte(key)) != 1 {
+                http.Error(w, "authentication failed", http.StatusUnauthorized)
+                return
+            }
+            _ = client // check scopes, quota, expiry here
+            next(w, r)
+        }
+    }
+}</code></pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="lang py">Python</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-python">import hashlib, hmac
+
+# Store only the HASH of issued keys (like passwords).
+def hash_key(k: str) -&gt; str:
+    return hashlib.sha256(k.encode()).hexdigest()
+
+def require_api_key(view):
+    @wraps(view)
+    def wrapper(*args, **kwargs):
+        key = request.headers.get("X-API-Key", "")
+        client = lookup_client(hash_key(key))   # your DB lookup
+        if client is None:
+            return jsonify(error="authentication failed"), 401
+        # check scopes, quota, expiry on `client` here
+        # hmac.compare_digest is constant-time
+        if not hmac.compare_digest(hash_key(key), client["key_hash"]):
+            return jsonify(error="authentication failed"), 401
+        g.client = client
+        return view(*args, **kwargs)
+    return wrapper</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- PART IV -->
+  <div class="part">Part IV / OAuth & OpenID Connect</div>
+
+  <!-- 11 -->
+  <section id="s11">
+    <h2>11 Masalah Delegasi</h2>
+    <div class="underh"></div>
+    <p>Sampai di sini pengaturannya sederhana: buat akun dengan username/password per platform, autentikasi, terima token. Tapi semakin banyak platform yang Anda pakai, semakin banyak kredensial yang Anda buat dan harus ingat. Dua masalah muncul:</p>
+    <ul>
+      <li><strong>Risiko keamanan.</strong> Memakai ulang kata sandi sangat umum di era awal (bayangkan 12345 atau password), jadi satu breach mengompromikan banyak akun.</li>
+      <li><strong>Kelelahan.</strong> Mengelola jumlah akun yang sangat banyak membuat pengguna kewalahan.</li>
+    </ul>
+    <p>Lalu muncul kelas masalah baru: <strong>satu situs web butuh akses ke resource situs web lain</strong>. Aplikasi travel/pesan tiket perlu memindai Gmail Anda untuk tiket pesawat. Aplikasi sosial ingin mengimpor kontak Anda dari Google atau jaringan lain. Satu platform menginginkan resource platform lain, secara programatik. Inilah <strong>masalah delegasi</strong>.</p>
+    <div class="note">
+      <span class="lbl">The disastrous first solution</span>
+      <p>Pengguna tinggal <strong>berbagi kata sandi</strong>. Ini bencana: kata sandi memberi akses <em>penuh</em> ke semua yang ada di akun, tanpa cara membatasi izin, dan tidak mungkin mencabut akses tanpa mengganti kata sandi <em>di mana-mana</em> (karena kata sandi yang sama dipakai ulang lintas situs, dan Anda baru saja memberikannya ke pihak ketiga yang kini bisa melakukan apa saja).</p>
+    </div>
+    <p>Pada <strong>2007</strong>, insinyur dari perusahaan seperti Google dan Twitter berupaya menstandarkan akses yang didelegasikan <em>tanpa berbagi kata sandi</em>. Hasilnya <strong>OAuth</strong>: <em>Open Authorization</em>, bukan sekadar protokol tapi gagasan revolusioner. Tekniknya: <strong>berbagi token, bukan kata sandi</strong>. Kata sandi memberi akses total; token memberi akses <strong>spesifik dan ter-scope</strong> ke bagian tertentu dari akun Anda.</p>
+    <div class="note teal">
+      <span class="lbl">Tokens vs passwords</span>
+      <p>Jika Anda berbagi kata sandi Google dengan saya, saya bisa melihat Photos, riwayat Maps, Kontak Anda, menambah/menghapus event kalender, semua. Tapi jika Anda berbagi <em>token</em> yang ter-scope hanya untuk "membaca kontak", saya bisa membaca kontak Anda dan tidak lebih. Scoping itulah intinya.</p>
+    </div>
+  </section>
+
+  <!-- 12 -->
+  <section id="s12">
+    <h2>12 OAuth 1.0: Empat Peran</h2>
+    <div class="underh"></div>
+    <p>OAuth memperkenalkan empat komponen. Ambil contoh: Facebook (aplikasinya) ingin kontak Google Anda.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Peran</th><th>Siapa</th><th>Dalam contoh</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Resource owner</strong></td><td>Pengguna pemilik data</td><td>Anda</td></tr>
+          <tr><td><strong>Client</strong></td><td>Aplikasi yang meminta akses</td><td>Facebook</td></tr>
+          <tr><td><strong>Resource server</strong></td><td>Server yang memegang data</td><td>Google (akun Anda)</td></tr>
+          <tr><td><strong>Authorization server</strong></td><td>Server yang menerbitkan token setelah mengautentikasi pengguna</td><td>Server auth Google</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Alur OAuth 1.0</h3>
+    <ol>
+      <li><strong>Client</strong> (Facebook) mengarahkan pengguna ke <strong>authorization server</strong>.</li>
+      <li>Pengguna <strong>mengautentikasi dan memberi izin</strong>: "ya, saya izinkan scope ini".</li>
+      <li>Authorization server mengirim <strong>token</strong> ke client.</li>
+      <li>Client memakai token untuk mengakses <strong>resource</strong> (kontak Anda) di resource server.</li>
+    </ol>
+    <p>Begitulah client mendapat akses ter-scope ke resource platform lain, secara programatik, tanpa Anda pernah berbagi kata sandi, menghapus dengan indah masalah berbagi kata sandi.</p>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 250" role="img" aria-label="OAuth 1.0 flow">
+          <rect x="30" y="30" width="150" height="60" rx="10" fill="rgba(255,255,255,.5)" stroke="#b8402e" stroke-width="1.4"/>
+          <text x="105" y="58" text-anchor="middle" class="svg-t" font-size="13" font-weight="700">Client</text>
+          <text x="105" y="76" text-anchor="middle" class="svg-t" font-size="11" fill="#8d8475">Facebook</text>
+
+          <rect x="300" y="30" width="160" height="60" rx="10" fill="rgba(176,125,43,.08)" stroke="#b07d2b" stroke-width="1.4"/>
+          <text x="380" y="55" text-anchor="middle" class="svg-t" font-size="13" font-weight="700">Authorization</text>
+          <text x="380" y="73" text-anchor="middle" class="svg-t" font-size="11" fill="#8d8475">server (Google)</text>
+
+          <rect x="580" y="30" width="150" height="60" rx="10" fill="rgba(63,111,78,.08)" stroke="#3f6f4e" stroke-width="1.4"/>
+          <text x="655" y="55" text-anchor="middle" class="svg-t" font-size="13" font-weight="700">Resource</text>
+          <text x="655" y="73" text-anchor="middle" class="svg-t" font-size="11" fill="#8d8475">server (Google)</text>
+
+          <rect x="300" y="180" width="160" height="50" rx="10" fill="rgba(255,255,255,.5)" stroke="#211e1a" stroke-width="1.4"/>
+          <text x="380" y="210" text-anchor="middle" class="svg-t" font-size="13" font-weight="700">You (owner)</text>
+
+          <path d="M180 60 H298" stroke="#b8402e" stroke-width="1.7" marker-end="url(#e1)"/>
+          <text x="239" y="52" text-anchor="middle" class="svg-m" font-size="10" fill="#8f2f20">1 redirect</text>
+          <path d="M380 92 V178" stroke="#b07d2b" stroke-width="1.7" marker-end="url(#e2)"/>
+          <text x="430" y="140" text-anchor="middle" class="svg-m" font-size="10" fill="#8a6210">2 authenticate + grant</text>
+          <path d="M300 75 H182" stroke="#b07d2b" stroke-width="1.7" marker-end="url(#e3)"/>
+          <text x="240" y="92" text-anchor="middle" class="svg-m" font-size="10" fill="#8a6210">3 token -&gt; client</text>
+          <path d="M180 90 C 250 150, 520 150, 578 90" stroke="#3f6f4e" stroke-width="1.7" fill="none" marker-end="url(#e4)"/>
+          <text x="380" y="160" text-anchor="middle" class="svg-m" font-size="10" fill="#1f6b5e">4 use token -&gt; fetch scoped resource</text>
+          <defs>
+            <marker id="e1" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#b8402e"/></marker>
+            <marker id="e2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#b07d2b"/></marker>
+            <marker id="e3" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#b07d2b"/></marker>
+            <marker id="e4" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#3f6f4e"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <figcaption>FIG 11, OAuth 1.0: redirect -&gt; grant -&gt; token -&gt; scoped resource access.</figcaption>
+    </figure>
+  </section>
+
+  <!-- 13 -->
+  <section id="s13">
+    <h2>13 OAuth 2.0</h2>
+    <div class="underh"></div>
+    <p>OAuth 1.0 revolusioner tapi punya keterbatasan: <strong>rumit bagi developer</strong> untuk diimplementasikan, dan mengandalkan <strong>tanda tangan kriptografis</strong> yang rawan error. <strong>OAuth 2.0</strong> (sekitar <strong>2010</strong>) mengatasi keduanya:</p>
+    <ul>
+      <li><strong>Bearer token.</strong> Jauh lebih sederhana daripada menandatangani tiap request. Secara teori lebih rentan, tapi jauh lebih mudah diimplementasikan; "bearer" berarti siapa pun yang memegang token bisa memakainya.</li>
+      <li><strong>Alur per jenis aplikasi.</strong> Developer memilih alur berdasarkan jenis aplikasinya.</li>
+    </ul>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Alur</th><th>Untuk</th><th>Catatan</th></tr></thead>
+        <tbody>
+          <tr><td>Authorization Code</td><td>Aplikasi sisi server</td><td>Alur standar, paling aman</td></tr>
+          <tr><td>Implicit</td><td>Aplikasi berbasis browser</td><td class="no">Kini tidak disarankan, risikonya keamanan</td></tr>
+          <tr><td>Client Credentials</td><td>Machine-to-machine</td><td>Server&lt;-&gt;server, tanpa pengguna/browser</td></tr>
+          <tr><td>Device Code</td><td>Perangkat input terbatas</td><td>Mis. Smart TV (tanpa keyboard/mouse)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>Selami: alur Authorization Code dengan PKCE</h3>
+    <p>Alur Authorization Code adalah yang wajib benar-benar dipahami, karena itulah yang dipakai "Sign in with ...". Ia berjalan dalam dua kaki di atas HTTP sungguhan.</p>
+
+    <h4>Kaki 1: request authorize (front channel, di browser)</h4>
+    <p>Client mengirim pengguna ke authorization server dengan parameter query:</p>
+    <div class="code">
+      <div class="bar"><span class="lang">HTTP / redirect</span><span class="dots"><i></i><i></i><i></i></span></div>
+      <pre><code class="language-http">GET /authorize?
+    response_type=code
+    &amp;client_id=note_app
+    &amp;redirect_uri=https://notes.app/callback
+    &amp;scope=openid%20email%20keep.read
+    &amp;state=xyz123                       # anti-CSRF / anti-mixup nonce
+    &amp;code_challenge=E9Melh...           # = BASE64URL(SHA256(verifier))
+    &amp;code_challenge_method=S256</code></pre>
+    </div>
+    <p>Setelah pengguna login dan menyetujui, server mengarahkan kembali: https://notes.app/callback?code=AUTH_CODE&amp;state=xyz123. Client <strong>wajib memverifikasi state cocok</strong> dengan yang ia kirim, itulah yang menghentikan CSRF/kekacauan pada redirect.</p>
+
+    <h4>Kaki 2: pertukaran token (back channel, server-ke-server)</h4>
+    <div class="code">
+      <div class="bar"><span class="lang">HTTP / POST /token</span><span class="dots"><i></i><i></i><i></i></span></div>
+      <pre><code class="language-http">POST /token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=authorization_code
+&amp;code=AUTH_CODE
+&amp;redirect_uri=https://notes.app/callback
+&amp;client_id=note_app
+&amp;code_verifier=dBjftJeZ4CVP...         # the original random secret
+
+-&gt; 200 OK
+{ "access_token": "...",               # call the resource server
+  "refresh_token": "...",
+  "id_token": "eyJ...",                # the OIDC identity JWT (sec 14)
+  "token_type": "Bearer",
+  "expires_in": 600 }</code></pre>
+    </div>
+
+    <h4>Kenapa PKCE?</h4>
+    <p><strong>PKCE</strong> (Proof Key for Code Exchange) melindungi <strong>public client</strong>: single-page app dan aplikasi mobile yang <em>tidak bisa menyimpan rahasia</em>. Client membuat code<em>verifier acak, hanya mengirim hash-nya (code</em>challenge) di kaki 1, dan mengungkap verifier mentahnya di kaki 2. Jika penyerang mencegat authorization code (mis. aplikasi jahat menangkap redirect mobile), code itu tak berguna tanpa verifier, yang tidak pernah meninggalkan client yang sah. PKCE-lah alasan <strong>alur Implicit kini tidak disarankan</strong>: Authorization Code + PKCE memberi aplikasi browser/mobile keamanan yang sama dengan client sisi server yang konfidensial.</p>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 170" role="img" aria-label="PKCE flow">
+          <rect x="20" y="60" width="180" height="55" rx="9" fill="rgba(255,255,255,.5)" stroke="#b8402e" stroke-width="1.3"/>
+          <text x="110" y="84" text-anchor="middle" class="svg-t" font-size="13" font-weight="700">Public client</text>
+          <text x="110" y="101" text-anchor="middle" class="svg-t" font-size="10.5" fill="#8d8475">SPA / mobile</text>
+          <rect x="560" y="60" width="180" height="55" rx="9" fill="rgba(176,125,43,.08)" stroke="#b07d2b" stroke-width="1.3"/>
+          <text x="650" y="84" text-anchor="middle" class="svg-t" font-size="13" font-weight="700">Auth server</text>
+          <path d="M200 78 H558" stroke="#b8402e" stroke-width="1.6" marker-end="url(#p1)"/>
+          <text x="380" y="70" text-anchor="middle" class="svg-m" font-size="10" fill="#8f2f20">1 /authorize + code_challenge = SHA256(verifier)</text>
+          <path d="M558 96 H202" stroke="#b07d2b" stroke-width="1.6" marker-end="url(#p2)"/>
+          <text x="380" y="110" text-anchor="middle" class="svg-m" font-size="10" fill="#8a6210">2 redirect ?code (useless alone)</text>
+          <path d="M200 130 H558" stroke="#3f6f4e" stroke-width="1.6" marker-end="url(#p3)"/>
+          <text x="380" y="150" text-anchor="middle" class="svg-m" font-size="10" fill="#1f6b5e">3 /token: code + code_verifier -&gt; tokens</text>
+          <defs>
+            <marker id="p1" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#b8402e"/></marker>
+            <marker id="p2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#b07d2b"/></marker>
+            <marker id="p3" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#3f6f4e"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <figcaption>FIG 12, PKCE: the intercepted code can't be redeemed without the verifier, which never left the client.</figcaption>
+    </figure>
+
+    <h4>Kode: nilai PKCE + pertukaran token</h4>
+    <div class="codepair">
+      <div class="code">
+        <div class="bar"><span class="lang go">Go</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-go">// Build the PKCE pair before redirecting the user.
+func newPKCE() (verifier, challenge string) {
+    b := make([]byte, 32)
+    rand.Read(b)
+    verifier = base64.RawURLEncoding.EncodeToString(b)
+    sum := sha256.Sum256([]byte(verifier))
+    challenge = base64.RawURLEncoding.EncodeToString(sum[:])
+    return
+}
+
+// Leg 2: exchange the code (send code_verifier, not the secret).
+func exchange(code, verifier string) (*TokenResp, error) {
+    form := url.Values{
+        "grant_type":    {"authorization_code"},
+        "code":          {code},
+        "redirect_uri":  {"https://notes.app/callback"},
+        "client_id":     {"note_app"},
+        "code_verifier": {verifier},
+    }
+    resp, err := http.PostForm("https://auth.example/token", form)
+    if err != nil { return nil, err }
+    defer resp.Body.Close()
+    var t TokenResp
+    json.NewDecoder(resp.Body).Decode(&amp;t)
+    return &amp;t, nil
+}</code></pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="lang py">Python</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-python">import base64, hashlib, secrets, requests
+
+# Build the PKCE pair before redirecting the user.
+def new_pkce():
+    verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b"=").decode()
+    digest = hashlib.sha256(verifier.encode()).digest()
+    challenge = base64.urlsafe_b64encode(digest).rstrip(b"=").decode()
+    return verifier, challenge
+
+# Leg 2: exchange the code (send code_verifier, not the secret).
+def exchange(code: str, verifier: str) -&gt; dict:
+    resp = requests.post("https://auth.example/token", data={
+        "grant_type":    "authorization_code",
+        "code":          code,
+        "redirect_uri":  "https://notes.app/callback",
+        "client_id":     "note_app",
+        "code_verifier": verifier,
+    })
+    resp.raise_for_status()
+    return resp.json()   # access_token, refresh_token, id_token, ...</code></pre>
+      </div>
+    </div>
+
+    <div class="note gold">
+      <span class="lbl">The gap OAuth left open</span>
+      <p>OAuth sangat baik untuk <strong>otorisasi</strong> (mendelegasikan <em>apa</em> yang boleh dilakukan client) tapi ia <strong>tidak</strong> memecahkan <strong>autentikasi</strong> (membuktikan <em>siapa</em> penggunanya). Ingat: autentikasi = identitas (siapa Anda, nama Anda, ID Anda); otorisasi = izin (apa yang bisa Anda lakukan). OAuth memecahkan yang terakhir lewat delegasi, bukan yang pertama. Celah itulah yang diisi OpenID Connect.</p>
+    </div>
+  </section>
+
+  <!-- 14 -->
+  <section id="s14">
+    <h2>14 OpenID Connect (OIDC)</h2>
+    <div class="underh"></div>
+    <p>Sekitar <strong>2014</strong>, <strong>OpenID Connect (OIDC)</strong> dibangun <em>di atas</em> mekanisme keamanan OAuth 2.0 untuk mengisi celah autentikasi. Tambahan intinya adalah <strong>ID token</strong>: biasanya <strong>JWT</strong> (persis inilah kenapa JWT pantas dipahami lebih awal; ia muncul kembali di mana-mana).</p>
+    <p>ID token membawa info identitas: user ID, kapan ia login (field iat), <strong>otoritas penerbit</strong> (platform mana yang menerbitkan token), dan sering nama serta email pengguna, apa pun yang dibutuhkan relying party. Berkat OIDC, praktis setiap platform kini menawarkan <strong>"Sign in with Google / Facebook / Discord."</strong> Saat Anda memakainya, OIDC bekerja di balik layar untuk mengambil identitas Anda (email, foto profil, nama) dari Google, dan client menyimpannya atau sekadar memakainya untuk mengautentikasi Anda, tanpa membangun sistem auth sendiri. OIDC menambah lapisan <strong>identifikasi</strong> di atas OAuth 2.0.</p>
+
+    <h3>Alur OIDC</h3>
+    <p>Anggap Anda mengunjungi aplikasi pencatat dan mengklik "Sign in with Google".</p>
+    <ol>
+      <li><strong>Client</strong> (aplikasi catatan) mengarahkan Anda ke <strong>authorization server</strong>.</li>
+      <li>Anda login <em>di authorization server Google</em> (bukan milik client) dan memberi izin yang diminta (baca email / nama / foto profil, dll.).</li>
+      <li>Authorization server mengembalikan <strong>authorization code</strong> dan <strong>ID token</strong> ke client.</li>
+      <li>Client <strong>menukar authorization code</strong> dengan resource server untuk mendapatkan <strong>access token</strong> (dan ID token jika belum dapat).</li>
+      <li><strong>ID token</strong> (sebuah JWT) membawa identitas pengguna (ID, nama, nilai); <strong>access token</strong> memungkinkan aplikasi catatan melakukan operasi di resource server <em>atas nama Anda</em>, mis. membaca semua catatan Anda dari Google Keep, tapi hanya scope yang Anda beri.</li>
+    </ol>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 270" role="img" aria-label="OpenID Connect flow">
+          <rect x="30" y="30" width="160" height="56" rx="10" fill="rgba(255,255,255,.5)" stroke="#b8402e" stroke-width="1.4"/>
+          <text x="110" y="54" text-anchor="middle" class="svg-t" font-size="13" font-weight="700">Client</text>
+          <text x="110" y="72" text-anchor="middle" class="svg-t" font-size="11" fill="#8d8475">note app</text>
+
+          <rect x="300" y="30" width="170" height="56" rx="10" fill="rgba(176,125,43,.08)" stroke="#b07d2b" stroke-width="1.4"/>
+          <text x="385" y="54" text-anchor="middle" class="svg-t" font-size="13" font-weight="700">Auth server</text>
+          <text x="385" y="72" text-anchor="middle" class="svg-t" font-size="11" fill="#8d8475">Google</text>
+
+          <rect x="580" y="30" width="150" height="56" rx="10" fill="rgba(63,111,78,.08)" stroke="#3f6f4e" stroke-width="1.4"/>
+          <text x="655" y="54" text-anchor="middle" class="svg-t" font-size="13" font-weight="700">Resource</text>
+          <text x="655" y="72" text-anchor="middle" class="svg-t" font-size="11" fill="#8d8475">Google Keep</text>
+
+          <path d="M190 50 H298" stroke="#b8402e" stroke-width="1.7" marker-end="url(#f1)"/>
+          <text x="244" y="42" text-anchor="middle" class="svg-m" font-size="9.5" fill="#8f2f20">1 redirect</text>
+          <path d="M300 70 H192" stroke="#b07d2b" stroke-width="1.7" marker-end="url(#f2)"/>
+          <text x="246" y="100" text-anchor="middle" class="svg-m" font-size="9.5" fill="#8a6210">2 login+grant -&gt; code + ID token</text>
+          <path d="M110 140 V90" stroke="#b8402e" stroke-width="0" />
+          <path d="M190 160 H298 M298 160 H300" stroke="#b8402e" stroke-width="1.7" marker-end="url(#f3)"/>
+          <text x="244" y="152" text-anchor="middle" class="svg-m" font-size="9.5" fill="#8f2f20">3 exchange code</text>
+          <path d="M470 160 H470" />
+          <path d="M300 180 H192" stroke="#b07d2b" stroke-width="1.7" marker-end="url(#f4)"/>
+          <text x="246" y="200" text-anchor="middle" class="svg-m" font-size="9.5" fill="#8a6210">4 access token + ID token (JWT)</text>
+          <path d="M190 235 C 350 235, 470 235, 578 180 L 600 168" stroke="#3f6f4e" stroke-width="1.7" fill="none" marker-end="url(#f5)"/>
+          <text x="380" y="252" text-anchor="middle" class="svg-m" font-size="9.5" fill="#1f6b5e">5 use access token -&gt; read notes on your behalf (scoped)</text>
+          <defs>
+            <marker id="f1" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#b8402e"/></marker>
+            <marker id="f2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#b07d2b"/></marker>
+            <marker id="f3" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#b8402e"/></marker>
+            <marker id="f4" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#b07d2b"/></marker>
+            <marker id="f5" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#3f6f4e"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <figcaption>FIG 13, OIDC: an ID token answers "who" on top of OAuth's access token answering "what".</figcaption>
+    </figure>
+
+    <p>Bersama-sama, OAuth 2.0 dan OpenID Connect bertindak seperti <strong>satpam / pembuat kunci era digital</strong>: mereka memastikan tidak ada, baik pengguna maupun platform, yang mendapat akses lebih dari yang dibutuhkan atau diminta. Mereka mengubah internet dari <strong>kekacauan berbagi kata sandi</strong> menjadi sistem yang aman dan saling terhubung, sebab itu kita kini bisa menyambungkan satu platform ke platform lain, berbagi resource dan izin dengan aman, dan menawarkan login satu klik.</p>
+  </section>
+
+  <!-- 15 -->
+  <section id="s15">
+    <h2>15 Memilih Jenis Auth</h2>
+    <div class="underh"></div>
+    <p>Aturan praktis untuk empat tipe utama yang harus diketahui setiap engineer backend:</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Tipe</th><th>Mekanisme</th><th>Pakai untuk</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Ber-State</strong></td><td>Session ID / JWT + store persisten</td><td>Alur auth aplikasi web, sebagian besar model SaaS, tempat data sesi khusus pengguna tinggal di server</td></tr>
+          <tr><td><strong>Stateless</strong></td><td>Token bertanda tangan mandiri</td><td>API dan sistem terdistribusi yang berskala, tempat token membawa info pengguna</td></tr>
+          <tr><td><strong>OAuth / OIDC</strong></td><td>Token yang didelegasikan + ID token</td><td>Integrasi pihak ketiga dan "login via Google / Facebook / Discord"</td></tr>
+          <tr><td><strong>API key</strong></td><td>String secret yang dibagikan di awal</td><td>Server-to-server / machine-to-machine, atau akses klien tujuan tunggal ke API</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Dalam kerja backend sehari-hari membangun API, yang paling sering Anda raih adalah auth <strong>ber-state</strong> dan <strong>stateless</strong>.</p>
+  </section>
+
+  <!-- PART V -->
+  <div class="part">Part V / Authorization & Hardening</div>
+
+  <!-- 16 -->
+  <section id="s16">
+    <h2>16 Otorisasi &amp; RBAC</h2>
+    <div class="underh"></div>
+    <p>Otorisasi tidak seluas autentikasi, tapi gagasan tingkat tingginya penting. Setelah pengguna terautentikasi (mis. ke platform pencatat), mereka bisa membuat, menghapus, dan memperbarui catatan. Sekarang anggap fitur hapus Anda tidak menghapus permanen, ia memindahkan catatan ke keranjang sampah, dan setelah 30 hari mereka pindah ke <em>zona mati</em> (hilang bagi pengguna, tapi tidak dihapus dari DB). Sebagai pembuat, Anda ingin <strong>admin UI</strong> terpisah dengan kemampuan khusus yang tidak dimiliki pengguna biasa, seperti mengelola catatan zona mati.</p>
+    <div class="note">
+      <span class="lbl">Why a "god-mode string" fails</span>
+      <p>Perbaikan naif adalah mengirim string acak rahasia dengan tiap panggilan API admin supaya server memberi akses yang ditinggikan. Dua masalah: (1) jika ada yang <strong>mencegat</strong> string itu, mereka bisa menghapus DB atau mengacaukan data pengguna lain, risiko keamanan besar; (2) untuk memberi akses yang sama ke teman/pemelihara tepercaya, Anda harus berbagi string atau menciptakan string lain dan mengkhususkan semuanya di sisi server. Sistemnya cepat jadi rumit, sulit dikelola, dan makin rawan cacat.</p>
+    </div>
+    <p>Kebutuhan umum, <strong>memberi izin spesifik ke pengguna spesifik</strong>: persis itulah yang dipecahkan otorisasi. Tidak semua pengguna punya akses yang sama; sebagian lebih banyak, sebagian lebih sedikit, sebagian kemampuan yang sama sekali berbeda. Dalam aplikasi multi-tenant, admin org mungkin menetapkan read atau read/write ke anggota yang berbeda. Model paling terkenalnya <strong>RBAC, Role-Based Access Control</strong>.</p>
+
+    <h3>Cara kerja RBAC</h3>
+    <p>Definisikan <strong>role</strong> (user, admin, moderator, atau role kustom Anda sendiri), dan beri tiap role satu set <strong>izin</strong> atas <strong>resource</strong>. Anda bisa segranular apa pun yang Anda suka.</p>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 200" role="img" aria-label="RBAC matrix">
+          <text x="150" y="40" class="svg-m" font-size="11" fill="#8d8475" text-anchor="middle">ROLE</text>
+          <text x="370" y="40" class="svg-m" font-size="11" fill="#8d8475" text-anchor="middle">notes (read/write/delete)</text>
+          <text x="620" y="40" class="svg-m" font-size="11" fill="#8d8475" text-anchor="middle">dead-zone notes</text>
+          <line x1="30" y1="50" x2="730" y2="50" stroke="#c7bca6"/>
+          <!-- user -->
+          <text x="150" y="85" text-anchor="middle" class="svg-t" font-size="15" font-weight="700" fill="#211e1a">user</text>
+          <text x="370" y="85" text-anchor="middle" class="svg-t" font-size="13" fill="#3f6f4e">read / write / delete</text>
+          <text x="620" y="85" text-anchor="middle" class="svg-t" font-size="13" fill="#b8402e">forbidden</text>
+          <line x1="30" y1="100" x2="730" y2="100" stroke="#e4dac6"/>
+          <!-- moderator -->
+          <text x="150" y="135" text-anchor="middle" class="svg-t" font-size="15" font-weight="700" fill="#211e1a">moderator</text>
+          <text x="370" y="135" text-anchor="middle" class="svg-t" font-size="13" fill="#3f6f4e">read / write</text>
+          <text x="620" y="135" text-anchor="middle" class="svg-t" font-size="13" fill="#b8402e">forbidden</text>
+          <line x1="30" y1="150" x2="730" y2="150" stroke="#e4dac6"/>
+          <!-- admin -->
+          <text x="150" y="185" text-anchor="middle" class="svg-t" font-size="15" font-weight="700" fill="#211e1a">admin</text>
+          <text x="370" y="185" text-anchor="middle" class="svg-t" font-size="13" fill="#3f6f4e">read / write / delete</text>
+          <text x="620" y="185" text-anchor="middle" class="svg-t" font-size="13" fill="#3f6f4e">full access</text>
+        </svg>
+      </div>
+      <figcaption>FIG 14, RBAC: roles map to permissions per resource. Granularity is up to you.</figcaption>
+    </figure>
+
+    <p>Alur runtime-nya: pengguna mendaftar dan server menetapkan role (user, admin, ...). Pada tiap request berikutnya pengguna mengirim identifikasinya (session ID untuk ber-state, atau JWT untuk stateless). Di awal siklus request server menyimpulkan role, dari klaim token atau lewat pencarian DB, dan menempelkannya supaya middleware/logika berikutnya bisa memutuskan akses. Jika role-nya admin, endpoint zona mati diizinkan; jika role-nya user, server mengembalikan <strong>403 Forbidden</strong>: artinya Anda tidak punya cukup izin untuk resource ini.</p>
+
+    <h4>Kode: middleware RBAC</h4>
+    <div class="codepair">
+      <div class="code">
+        <div class="bar"><span class="lang go">Go</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-go">// RequireRole runs AFTER an auth middleware that set "user".
+func RequireRole(roles ...string) func(http.HandlerFunc) http.HandlerFunc {
+    allowed := map[string]bool{}
+    for _, r := range roles {
+        allowed[r] = true
+    }
+    return func(next http.HandlerFunc) http.HandlerFunc {
+        return func(w http.ResponseWriter, r *http.Request) {
+            u, _ := r.Context().Value("user").(User)
+            if !allowed[u.Role] {
+                http.Error(w, "forbidden", http.StatusForbidden) // 403
+                return
+            }
+            next(w, r)
+        }
+    }
+}
+
+// usage: only admins reach the dead-zone handler
+// mux.Handle("/admin/deadzone",
+//     RequireJWT(RequireRole("admin")(deadZoneHandler)))</code></pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="lang py">Python</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-python"># require_role runs AFTER an auth decorator that set g.user
+def require_role(*roles):
+    allowed = set(roles)
+    def deco(view):
+        @wraps(view)
+        def wrapper(*args, **kwargs):
+            if g.user["role"] not in allowed:
+                return jsonify(error="forbidden"), 403   # 403
+            return view(*args, **kwargs)
+        return wrapper
+    return deco
+
+# usage: only admins reach the dead-zone handler
+@app.get("/admin/deadzone")
+@require_jwt
+@require_role("admin")
+def dead_zone():
+    return jsonify(notes=[...])</code></pre>
+      </div>
+    </div>
+
+    <h3>Selami: hirarki role, ABAC, dan seterusnya</h3>
+
+    <h4>Di mana RBAC polos mulai renggang: ledakan role</h4>
+    <p>RBAC bersih sampai kebutuhan menjadi kondisional. Saat Anda butuh "editor, tapi hanya untuk dokumen di departemen mereka sendiri, dan hanya saat jam kerja", itu tidak bisa diekspresikan dengan nama role saja, jadi tim menciptakan editor<em>dept</em>finance, editor<em>dept</em>legal, dan seterusnya. Inilah <strong>ledakan role</strong>: jumlah role menggembung karena role hanya bisa meng-encode <em>siapa</em>, bukan <em>resource mana</em> atau <em>dalam kondisi apa</em>.</p>
+
+    <h4>Hirarki role / pewarisan</h4>
+    <p>Katup pelepas pertama adalah membuat role <strong>mewarisi</strong>: admin mencakup semua yang bisa moderator, yang mencakup semua yang bisa user. Anda mendefinisikan izin sekali di role terendah dan membiarkan role lebih tinggi mengakumulasikannya, alih-alih mendaftar ulang. Ini menjinakkan duplikasi tapi tidak menambah kondisi.</p>
+
+    <h4>ABAC: Attribute-Based Access Control</h4>
+    <p>ABAC memutuskan akses dengan mengevaluasi <strong>atribut</strong> terhadap <strong>kebijakan</strong>, lintas empat dimensi: <strong>subjek</strong> (role, departemen, izin tingkat tinggi), <strong>resource</strong> (pemilik, klasifikasi, departemen), <strong>aksi</strong> (read/write/delete), dan <strong>lingkungan</strong> (waktu, IP, perangkat). Satu kebijakan, "pengguna boleh <em>mengedit</em> dokumen jika ia pemiliknya <em>atau</em> berbagi departemen, dan dokumennya tidak diarsipkan", menggantikan lusinan role buatan. ABAC jauh lebih ekspresif; komprominya adalah kebijakan lebih sulit diaudit ("siapa yang bisa menyentuh ini?" tidak terjawab dengan memindai daftar role).</p>
+
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Model</th><th>Memutuskan berdasarkan</th><th>Kekuatan / kelemahan</th></tr></thead>
+        <tbody>
+          <tr><td><strong>RBAC</strong></td><td>Role yang Anda pegang</td><td>Sederhana, mudah diaudit / ledakan role saat kondisional</td></tr>
+          <tr><td><strong>ABAC</strong></td><td>Atribut + kebijakan (subjek/resource/aksi/env)</td><td>Sangat ekspresif / lebih sulit diaudit &amp; dinalar</td></tr>
+          <tr><td><strong>ReBAC</strong></td><td>Relasi (owner-of, member-of, parent-of)</td><td>Hebat untuk grafik berbagi (gaya Google Drive) / butuh store relasi, mis. Google Zanzibar</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Banyak sistem nyata adalah hibrida: RBAC untuk role kasar, kebijakan ABAC untuk sisi kondisional, dan ReBAC saat akses mengikuti grafik berbagi.</p>
+
+    <h4>Kode: evaluator kebijakan ABAC kecil</h4>
+    <div class="codepair">
+      <div class="code">
+        <div class="bar"><span class="lang go">Go</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-go">type Subject struct{ ID, Dept, Role string }
+type Resource struct{ OwnerID, Dept string; Archived bool }
+
+// Policy: can `s` perform `action` on `r`, given the environment?
+func CanEdit(s Subject, r Resource, hour int) bool {
+    if r.Archived {
+        return false
+    }
+    sameDept := s.Dept == r.Dept
+    owns := s.ID == r.OwnerID
+    businessHours := hour &gt;= 9 &amp;&amp; hour &lt; 18
+    // owner OR same-department editor, only in business hours
+    return (owns || (sameDept &amp;&amp; s.Role == "editor")) &amp;&amp; businessHours
+}
+
+// usage inside a handler, after auth has populated the subject:
+// if !CanEdit(subj, doc, time.Now().Hour()) {
+//     http.Error(w, "forbidden", http.StatusForbidden)
+// }</code></pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="lang py">Python</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-python">from dataclasses import dataclass
+from datetime import datetime
+
+@dataclass
+class Subject: id: str; dept: str; role: str
+@dataclass
+class Resource: owner_id: str; dept: str; archived: bool
+
+# Policy: can `s` perform the action on `r`, given the environment?
+def can_edit(s: Subject, r: Resource, hour: int) -&gt; bool:
+    if r.archived:
+        return False
+    owns = s.id == r.owner_id
+    same_dept = s.dept == r.dept
+    business_hours = 9 &lt;= hour &lt; 18
+    # owner OR same-department editor, only in business hours
+    return (owns or (same_dept and s.role == "editor")) and business_hours
+
+# usage inside a view, after auth populated the subject:
+# if not can_edit(subj, doc, datetime.now().hour):
+#     return jsonify(error="forbidden"), 403</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 17 -->
+  <section id="s17">
+    <h2>17 Pesan Error &amp; Serangan Timing</h2>
+    <div class="underh"></div>
+    <h3>Pesan error generik</h3>
+    <p>Saat auth, Anda tergoda mengirim pesan membantu: <em>"user not found," "incorrect password," "account locked due to too many failed attempts."</em> Ini membantu pengguna yang sah, tapi memberi penyerang petunjuk. <em>"User not found"</em> memberi tahu penyerang username itu tidak ada, jadi mereka pindah ke yang berikutnya. <em>"Incorrect password"</em> mengonfirmasi username-nya <em>valid</em>, jadi mereka memusatkan serangan brute-force/kamus hanya pada kata sandi, memperluas permukaan serangan.</p>
+    <div class="note">
+      <span class="lbl">Rule</span>
+      <p>Dalam alur autentikasi, <strong>selalu kirim satu pesan generik</strong>: mis. autentikasi gagal, untuk setiap kasus kegagalan, supaya penyerang tidak bisa tahu langkah mana yang gagal atau merencanakan langkah berikutnya. Pesan ramah pengguna boleh di tempat lain (validasi, API lain), tapi tidak di sini.</p>
+    </div>
+
+    <h3>Serangan timing</h3>
+    <p>Bahkan dengan pesan generik, <em>waktu</em> yang diambil sebuah respons bisa membocorkan informasi. Login khas melakukan tiga langkah berurutan:</p>
+
+    <figure>
+      <div class="fig-wrap">
+        <svg viewBox="0 0 760 210" role="img" aria-label="Timing attack steps">
+          <rect x="30" y="80" width="190" height="60" rx="10" fill="rgba(184,64,46,.06)" stroke="#b8402e" stroke-width="1.4"/>
+          <text x="125" y="106" text-anchor="middle" class="svg-t" font-size="14" font-weight="700">1 / find user</text>
+          <text x="125" y="126" text-anchor="middle" class="svg-t" font-size="11" fill="#8d8475">does email exist?</text>
+
+          <rect x="285" y="80" width="190" height="60" rx="10" fill="rgba(176,125,43,.07)" stroke="#b07d2b" stroke-width="1.4"/>
+          <text x="380" y="106" text-anchor="middle" class="svg-t" font-size="14" font-weight="700">2 / check locked</text>
+          <text x="380" y="126" text-anchor="middle" class="svg-t" font-size="11" fill="#8d8475">too many attempts?</text>
+
+          <rect x="540" y="80" width="190" height="60" rx="10" fill="rgba(63,111,78,.07)" stroke="#3f6f4e" stroke-width="1.4"/>
+          <text x="635" y="106" text-anchor="middle" class="svg-t" font-size="14" font-weight="700">3 / compare hash</text>
+          <text x="635" y="126" text-anchor="middle" class="svg-t" font-size="11" fill="#8d8475">slow on purpose</text>
+
+          <path d="M220 110 H283" stroke="#8d8475" stroke-width="1.8" marker-end="url(#g1)"/>
+          <path d="M475 110 H538" stroke="#8d8475" stroke-width="1.8" marker-end="url(#g2)"/>
+          <text x="125" y="170" text-anchor="middle" class="svg-m" font-size="10.5" fill="#b8402e">fail here -&gt; fast reply</text>
+          <text x="635" y="170" text-anchor="middle" class="svg-m" font-size="10.5" fill="#1f6b5e">fail here -&gt; slower (hashing)</text>
+          <defs>
+            <marker id="g1" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#8d8475"/></marker>
+            <marker id="g2" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 Z" fill="#8d8475"/></marker>
+          </defs>
+        </svg>
+      </div>
+      <figcaption>FIG 15, If an invalid username short-circuits at step 1, the faster reply reveals it.</figcaption>
+    </figure>
+
+    <p>Kata sandi disimpan sebagai <strong>hash</strong> (tak pernah teks polos): saat pendaftaran kata sandi di-hash menjadi string aman kriptografis; saat login server men-hash kata sandi yang diberikan dengan cara yang sama dan membandingkannya dengan hash tersimpan. Jebakannya: jika username tidak valid, sistem berhenti di <strong>langkah 1</strong> dan membalas <em>cepat</em>. Jika username valid tapi kata sandi salah, ia mencapai <strong>langkah 3</strong> dan <em>lebih lambat</em>, karena hashing memakan waktu lebih lama daripada pemeriksaan awal. Dari jeda itu, katakanlah 200 ms, penyerang bisa menyimpulkan apakah username ada dan di langkah mana auth gagal, lalu menyusun strategi.</p>
+    <div class="note teal">
+      <span class="lbl">Two defenses</span>
+      <p><strong>1. Perbandingan waktu konstan.</strong> Pakai fungsi perbandingan waktu-konstan yang aman secara kriptografis untuk hash, yang waktu eksekusinya tidak berubah dengan kemiripan input. <strong>2. Samakan/simulasikan jeda.</strong> Bahkan saat username tidak ada, jangan membalas seketika, simulasikan jeda (Node: setTimeout; Go: time.Sleep) supaya penyerang tidak bisa membedakan kegagalan username dari kegagalan kata sandi.</p>
+    </div>
+
+    <h4>Kode: pesan generik + waktu yang disamakan</h4>
+    <div class="codepair">
+      <div class="code">
+        <div class="bar"><span class="lang go">Go</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-go">// dummyHash: a fixed, precomputed bcrypt hash, used to equalize timing.
+var dummyHash = "$2a$12$abcdefghijklmnopqrstuv0000000000000000000000000000000000"
+
+func Authenticate(w http.ResponseWriter, email, pw string) {
+    start := time.Now()
+    const floor = 250 * time.Millisecond // equalize every path
+
+    defer func() { // pad so all outcomes take ~the same time
+        if d := time.Since(start); d &lt; floor {
+            time.Sleep(floor - d)
+        }
+    }()
+
+    user, found := lookupByEmail(email)
+    if !found {
+        // still run a dummy hash so step-3 cost is paid anyway
+        bcrypt.CompareHashAndPassword([]byte(dummyHash), []byte(pw))
+        http.Error(w, "authentication failed", http.StatusUnauthorized)
+        return
+    }
+    // CompareHashAndPassword is constant-time internally
+    if bcrypt.CompareHashAndPassword([]byte(user.Hash), []byte(pw)) != nil {
+        http.Error(w, "authentication failed", http.StatusUnauthorized)
+        return
+    }
+    // success: issue session / JWT ...
+}</code></pre>
+      </div>
+      <div class="code">
+        <div class="bar"><span class="lang py">Python</span><span class="dots"><i></i><i></i><i></i></span></div>
+        <pre><code class="language-python">import time
+
+DUMMY_HASH = bcrypt.hashpw(b"x", bcrypt.gensalt())
+FLOOR = 0.25  # seconds, equalize every path
+
+def authenticate(email: str, pw: str):
+    start = time.perf_counter()
+    try:
+        user = lookup_by_email(email)
+        if user is None:
+            # run a dummy hash so timing matches the valid path
+            bcrypt.checkpw(pw.encode(), DUMMY_HASH)
+            return None, "authentication failed"
+        if not bcrypt.checkpw(pw.encode(), user["hash"]):  # constant-time
+            return None, "authentication failed"
+        return user, None  # success: issue session / JWT
+    finally:
+        # pad so all outcomes take ~the same wall-clock time
+        elapsed = time.perf_counter() - start
+        if elapsed &lt; FLOOR:
+            time.sleep(FLOOR - elapsed)</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- 18 -->
+  <section id="s18">
+    <h2>18 Crib-Sheet Debug</h2>
+    <div class="underh"></div>
+    <p>Seluruh manual, dipadatkan menjadi yang Anda raih saat tertekan.</p>
+    <div class="tbl">
+      <table>
+        <thead><tr><th>Konsep</th><th>Satu baris</th></tr></thead>
+        <tbody>
+          <tr><td>Autentikasi</td><td>Siapa Anda?, menetapkan identitas dalam konteks.</td></tr>
+          <tr><td>Otorisasi</td><td>Apa yang bisa Anda lakukan?, izin dalam konteks itu.</td></tr>
+          <tr><td>Faktor</td><td>Sesuatu yang Anda tahu / miliki / adalah (gabungkan untuk MFA).</td></tr>
+          <tr><td>Hashing</td><td>Satu arah, panjang tetap, deterministik. Simpan hash-nya, jangan pernah kata sandinya.</td></tr>
+          <tr><td>Sesi</td><td>Memori sisi server; cookie hanya memegang session ID.</td></tr>
+          <tr><td>JWT</td><td>header.payload.signature; mandiri, stateless, ditandatangani dengan secret.</td></tr>
+          <tr><td>Cookie</td><td>Penyimpanan browser yang di-set server; terkirim otomatis per request; pakai HttpOnly + Secure + SameSite.</td></tr>
+          <tr><td>Ber-State</td><td>Pencarian store tiap request; mudah dicabut; lebih sulit berskala.</td></tr>
+          <tr><td>Stateless</td><td>Tanpa store; berskala hebat; pencabutan adalah titik lemah.</td></tr>
+          <tr><td>API key</td><td>Secret yang dibagikan di awal untuk machine-to-machine; simpan hash-nya.</td></tr>
+          <tr><td>OAuth 2.0</td><td>Otorisasi ter-delegasi dan ter-scope via bearer token.</td></tr>
+          <tr><td>OIDC</td><td>Menambah ID token (JWT) di atas OAuth untuk autentikasi.</td></tr>
+          <tr><td>RBAC</td><td>Role -&gt; izin -&gt; resource. 403 Forbidden saat kurang.</td></tr>
+          <tr><td>Higiene error</td><td>Satu pesan "autentikasi gagal" generik untuk semua kegagalan.</td></tr>
+          <tr><td>Timing</td><td>Perbandingan waktu konstan + samakan waktu respons.</td></tr>
+          <tr><td>Tips produksi</td><td>Bikin sendiri untuk belajar; pakai auth provider untuk rilis.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+
+      <footer class="bfp-footer">Belajar Prinsip-Prinsip Backend / Chapter 04 / Auth. Code targets Go 1.22+ and Python 3.11+.</footer>
+</main>
+</div>
+<script>
+  // syntax highlighting
+  hljs.highlightAll();
+
+
+
+
+</script>
+<!-- CHAPTER NAVIGATION -->
+<nav class="chapter-nav" id="chapterNav">
+  <a href="../../3.Serialization-and-Deserialization-or-backend-engineers/html_notes/notes.html" class="nav-chapter-link"><span class="nav-arrow"><svg class="ico-arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="13.5" y1="8" x2="3.5" y2="8"/><polyline points="7.5,4 3.5,8 7.5,12"/></svg></span><span class="nav-label"><span class="nav-small">Chapter 3</span>Serialization & Deserialization</span></a>
+  <a href="../../index.html" class="nav-indicator"><span class="nav-dot"></span> Chapter 4 <span class="nav-sep">/</span> 24</a>
+  <a href="../../5. Validations and transformations for backend engineers/html_notes/notes.html" class="nav-chapter-link nav-next"><span class="nav-label"><span class="nav-small">Chapter 5</span>Validations & Transformations</span><span class="nav-arrow"><svg class="ico-arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2.5" y1="8" x2="12.5" y2="8"/><polyline points="8.5,4 12.5,8 8.5,12"/></svg></span></a>
+</nav>
+  <script src="../../assets/copy-button.js"></script>
+  <script src="../../assets/enhancements.js"></script>
+<script src="../../assets/shell.js"></script>
+</body>
+
+</html>

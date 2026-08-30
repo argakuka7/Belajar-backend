@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scaling & Performance (Part 1) / Chapter 18 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Chapter 18 of Belajar Prinsip-Prinsip Backend: Scaling & Performance (Part 1). First-principles notes, diagrams and runnable Go and Python examples.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23b8402e'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='19'%20font-weight='700'%20fill='%23f3ede2'%20text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+  --bg: #f3ede2;
+  --bg-sidebar: #ece3d4;
+  --bg-code: #e6dcca;
+  --bg-card: #ece3d4;
+  --text: #211e1a;
+  --text-muted: #5b5347;
+  --text-light: #8d8475;
+  --accent: #b8402e;
+  --accent-dark: #8f2f20;
+  --border: #d8cfbe;
+  --border-light: #c7bca6;
+  --highlight: #f0e5c9;
+  --code-green: #a9c98a;
+  --code-blue: #7fb0c9;
+  --code-orange: #e0896a;
+  --code-purple: #c58fb0;
+  --code-red: #e0896a;
+  --diagram-bg: #ece3d4;
+  --diagram-stroke: #5b5347;
+  --diagram-fill: #e6dcca;
+  --diagram-accent: #b8402e;
+  --diagram-blue: #37607f;
+  --diagram-green: #3f6f4e;
+}
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    font-size: 17px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family:"Spline Sans", system-ui, sans-serif;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  font-size: 17px}
+
+  .chapter-label {
+    font-family:"Spline Sans", system-ui, sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  .chapter-title {
+    font-family:"Fraunces", Georgia, serif;
+    font-size: 2.8rem;
+    font-weight: 900;
+    line-height: 1.12;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+
+  .chapter-intro {
+    font-size: 1.05rem;
+    color: var(--text-muted);
+    line-height: 1.8;
+    margin-bottom: 2.5rem;
+  }
+
+  hr.section-rule {
+    border: none;
+    height: 1px;
+    background: var(--border);
+    margin: 3rem 0;
+  }
+
+  /* -- Section Headings -- */
+  .section-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .section-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width:2rem;
+    height: 2rem;
+    background: var(--accent);
+    color: #fff;
+    font-family:"Spline Sans", system-ui, sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .section-heading h2 {
+    font-family:"Fraunces", Georgia, serif;
+    font-size: 1.65rem;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  h3 {
+    font-family:"Fraunces", Georgia, serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 2.2rem 0 0.8rem;
+    line-height: 1.3;
+  }
+
+  h4 {
+    font-family:"Spline Sans", system-ui, sans-serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 1.8rem 0 0.6rem;
+    color: var(--text);
+  }
+
+  p {
+    margin-bottom: 1rem;
+  }
+
+  strong {
+    font-weight: 600;
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: var(--border);
+    text-underline-offset: 2px;
+    transition: text-decoration-color 0.2s;
+  }
+
+  a:hover {
+    text-decoration-color: var(--accent);
+  }
+
+  /* -- Code -- */
+  code {
+    font-family:"JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.82rem;
+    background: var(--bg-code);
+    padding: 0.15em 0.4em;
+    border-radius: 3px;
+    color: var(--accent-dark);
+  }
+
+  pre {
+    background: #232019;
+    color: #e9e2d3;
+    padding: 1.4rem 1.6rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 1.2rem 0 1.6rem;
+    line-height: 1.6;
+    font-size: 0.82rem;
+    position: relative;
+    border: 1px solid #35302a;
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+    font-size: inherit;
+  }
+
+  .code-label {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: var(--accent);
+    color: #fff;
+    font-family:"Spline Sans", system-ui, sans-serif;
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 0.25rem 0.7rem;
+    border-radius: 0 6px 0 4px;
+  }
+
+  .syn-kw { color: #d8b66a; }
+  .syn-fn { color: #7fb0c9; }
+  .syn-str { color: #a9c98a; }
+  .syn-cm { color: #7d7468; font-style: italic; }
+  .syn-num { color: #d8b66a; }
+  .syn-type { color: #c58fb0; }
+  .syn-op { color: #d8cfbe; }
+  .syn-builtin { color: #d8b66a; }
+
+  /* -- Callouts -- */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--bg-card);
+    padding: 1.1rem 1.4rem;
+    margin: 1.5rem 0;
+    border-radius: 0 5px 5px 0;
+    font-size: 0.95rem;
+  }
+
+  .callout-title {
+    font-family:"Spline Sans", system-ui, sans-serif;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+  }
+
+  .callout.info {
+    border-left-color: var(--diagram-blue);
+  }
+  .callout.info .callout-title {
+    color: var(--diagram-blue);
+  }
+
+  .callout.warn {
+    border-left-color: var(--code-orange);
+  }
+  .callout.warn .callout-title {
+    color: var(--code-orange);
+  }
+
+  /* -- Diagrams -- */
+  .diagram-container {
+    background: var(--diagram-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin: 1.5rem 0 2rem;
+    overflow-x: auto;
+  }
+
+  .diagram-caption {
+    font-family:"Spline Sans", system-ui, sans-serif;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--text-light);
+    text-align: center;
+    margin-top: 0.8rem;
+  }
+
+  .diagram-container svg {
+    display: block;
+    margin: 0 auto;
+  }
+
+  /* -- Tables -- */
+  table {
+    width:100%;
+    border-collapse: collapse;
+    margin: 1.2rem 0 1.6rem;
+    font-size: 0.9rem;
+  }
+
+  th {
+    font-family:"Spline Sans", system-ui, sans-serif;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+    text-align: left;
+    padding: 0.7rem 1rem;
+    border-bottom: 2px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--border-light);
+    vertical-align: top;
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  /* -- Comparison cards -- */
+  .compare-grid {
+    display: grid;
+    grid-template-columns:1fr 1fr;
+    gap: 1rem;
+    margin: 1.2rem 0 1.6rem;
+  }
+
+  .compare-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    padding: 1.2rem 1.3rem;
+  }
+
+  .compare-card h5 {
+    font-family:"Spline Sans", system-ui, sans-serif;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+    color: var(--accent);
+  }
+
+  .compare-card ul {
+    list-style: none;
+    font-size: 0.9rem;
+  }
+
+  .compare-card li {
+    padding: 0.2rem 0;
+    padding-left:1rem;
+    position: relative;
+  }
+
+  .compare-card li::before {
+    content: '>';
+    position: absolute;
+    left:0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* -- Reference links -- */
+  .ref-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 5px;
+    padding: 0.8rem 1.2rem;
+    margin: 1.2rem 0;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .ref-box .ref-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  /* -- Keyword underline -- */
+  .keyword {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    font-weight: 600;
+  }
+
+  /* -- Formula -- */
+  .formula {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 5px;
+    padding: 1rem 1.4rem;
+    margin: 1.2rem 0;
+    text-align: center;
+    font-family:"JetBrains Mono", ui-monospace, monospace;
+    font-size: 0.95rem;
+    color: var(--accent-dark);
+    letter-spacing: 0.03em;
+  }
+
+  /* -- Back to top -- */
+  .back-to-top {
+    display: block;
+    text-align: center;
+    padding: 2rem 0;
+    font-family:"Spline Sans", system-ui, sans-serif;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--text-light);
+    text-decoration: none;
+    margin-top: 3rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .back-to-top:hover {
+    color: var(--accent);
+  }
+
+  /* -- Responsive -- */
+  @media (max-width:900px) {
+    .chapter-title { font-size: 2rem; }
+    .compare-grid { grid-template-columns:1fr; }}</style>
+<style>
+.chapter-nav{position:fixed;bottom:0;left:0;right:0;z-index:9998;display:flex;align-items:center;justify-content:space-between;padding:14px clamp(16px,4vw,48px);background:rgba(243,237,226,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1.5px solid #c7bca6;box-shadow:0 -8px 32px -16px rgba(40,30,20,.18);font-family:"JetBrains Mono", ui-monospace, monospace;}
+.nav-chapter-link{display:flex;align-items:center;gap:12px;text-decoration:none;color:#5b5347;padding:10px 18px;border-radius:10px;transition:all .2s ease;max-width:38%;}
+.nav-chapter-link:hover{background:rgba(184,64,46,.08);color:#b8402e;transform:translateY(-1px);}
+.nav-chapter-link.nav-next{text-align:right;flex-direction:row;}
+.nav-arrow{font-size:22px;color:#b8402e;font-weight:700;flex:none;}
+.nav-label{display:flex;flex-direction:column;gap:2px;font-size:13.5px;line-height:1.3;}
+.nav-small{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#8d8475;font-weight:600;}
+.nav-indicator{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#b8402e;font-weight:700;text-decoration:none;padding:8px 16px;border:1.5px solid #c7bca6;border-radius:40px;background:rgba(255,255,255,.5);transition:all .2s;white-space:nowrap;}
+.nav-indicator:hover{background:#b8402e;color:#fff;border-color:#b8402e;}
+.nav-dot{display:inline-block;width:7px;height:7px;background:#b8402e;border-radius:50%;margin-right:4px;vertical-align:middle;}
+.nav-sep{color:#c7bca6;margin:0 2px;}
+.nav-disabled{visibility:hidden;pointer-events:none;}
+@media(max-width:700px){.nav-label{font-size:11.5px;}.nav-chapter-link{padding:8px 10px;max-width:38%;}.chapter-nav{padding:10px 12px;}.nav-small{font-size:9px;letter-spacing:.16em;}}
+@media(max-width:520px){.nav-label{display:none;}.nav-chapter-link{max-width:none;padding:8px 12px;}.nav-arrow{font-size:20px;}.nav-indicator{font-size:11px;padding:7px 13px;letter-spacing:.12em;}}
+body{padding-bottom:80px;}
+</style>
+  <link rel="stylesheet" href="../../assets/copy-button.css">
+  <link rel="stylesheet" href="../../assets/enhancements.css">
+  <link rel="stylesheet" href="../../assets/shell.css">
+  <link rel="stylesheet" href="../../assets/theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="../../assets/theme.js"></script>
+</head>
+<body>
+<button class="bfp-toc-toggle" id="bfpTocToggle" aria-controls="bfpToc" aria-expanded="false"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>Contents</button>
+<div class="bfp-toc-scrim" id="bfpTocScrim"></div>
+<div class="bfp-shell">
+    <aside class="bfp-toc" id="bfpToc">
+      <div class="bfp-brand"><span class="bfp-brand-name">Scaling</span><span class="bfp-brand-slash">/</span><span class="bfp-brand-lens">the backend lens</span></div>
+      <div class="bfp-brand-sub">Chapter 18 / Field Manual</div>
+      <div class="bfp-toc-rule"></div>
+      <nav class="bfp-toc-nav">
+        <div class="bfp-toc-part">Foundations</div>
+        <a class="bfp-toc-link" href="#s1"><span class="bfp-toc-num">01</span><span class="bfp-toc-text">What Is Performance?</span></a>
+        <a class="bfp-toc-link" href="#s2"><span class="bfp-toc-num">02</span><span class="bfp-toc-text">Latency Deep Dive</span></a>
+        <a class="bfp-toc-link" href="#s3"><span class="bfp-toc-num">03</span><span class="bfp-toc-text">Percentiles: P50, P90, P99</span></a>
+        <a class="bfp-toc-link" href="#s4"><span class="bfp-toc-num">04</span><span class="bfp-toc-text">Throughput</span></a>
+        <a class="bfp-toc-link" href="#s5"><span class="bfp-toc-num">05</span><span class="bfp-toc-text">Utilization &amp; Queuing</span></a>
+        <div class="bfp-toc-part">Diagnosis</div>
+        <a class="bfp-toc-link" href="#s6"><span class="bfp-toc-num">06</span><span class="bfp-toc-text">Finding Bottlenecks</span></a>
+        <a class="bfp-toc-link" href="#s7"><span class="bfp-toc-num">07</span><span class="bfp-toc-text">Profiling &amp; Flame Graphs</span></a>
+        <a class="bfp-toc-link" href="#s8"><span class="bfp-toc-num">08</span><span class="bfp-toc-text">Distributed Tracing</span></a>
+        <div class="bfp-toc-part">Database Performance</div>
+        <a class="bfp-toc-link" href="#s9"><span class="bfp-toc-num">09</span><span class="bfp-toc-text">N+1 Query Problem</span></a>
+        <a class="bfp-toc-link" href="#s10"><span class="bfp-toc-num">10</span><span class="bfp-toc-text">Indexes &amp; Query Plans</span></a>
+        <a class="bfp-toc-link" href="#s11"><span class="bfp-toc-num">11</span><span class="bfp-toc-text">Connection Pooling</span></a>
+        <div class="bfp-toc-part">Caching</div>
+        <a class="bfp-toc-link" href="#s12"><span class="bfp-toc-num">12</span><span class="bfp-toc-text">Caching Fundamentals</span></a>
+        <a class="bfp-toc-link" href="#s13"><span class="bfp-toc-num">13</span><span class="bfp-toc-text">Cache Invalidation</span></a>
+        <a class="bfp-toc-link" href="#s14"><span class="bfp-toc-num">14</span><span class="bfp-toc-text">Caching Patterns</span></a>
+        <a class="bfp-toc-link" href="#s15"><span class="bfp-toc-num">15</span><span class="bfp-toc-text">Cache Hit Rate</span></a>
+        <div class="bfp-toc-part">Scaling</div>
+        <a class="bfp-toc-link" href="#s16"><span class="bfp-toc-num">16</span><span class="bfp-toc-text">Vertical Scaling</span></a>
+        <a class="bfp-toc-link" href="#s17"><span class="bfp-toc-num">17</span><span class="bfp-toc-text">Horizontal Scaling</span></a>
+        <a class="bfp-toc-link" href="#s18"><span class="bfp-toc-num">18</span><span class="bfp-toc-text">Load Balancing</span></a>
+      </nav>
+    </aside>
+    <main class="bfp-content">
+
+<div class="chapter-label">A detailed backend reference</div>
+<h1 class="chapter-title">Menguasai Scaling &amp; Performa</h1>
+<p class="chapter-intro">Performance engineering adalah disiplin memahami <em>bagaimana</em> sistem berperilaku di bawah beban, <em>di mana</em> bottleneck bersembunyi, dan <em>bagaimana</em> berpikir jernih saat semuanya tampak berantakan. Bab ini membangun intuisi lapis demi lapis, dari definisi mentah "cepat" lewat pengukuran latensi, tuning database, strategi caching, dan dua mode fundamental scaling. Semuanya berpijak pada engineering backend praktis.</p>
+
+<hr class="section-rule">
+
+
+<!-- SECTION 01 -->
+
+<div id="s1" class="section-heading">
+  <span class="section-num">01</span>
+  <h2>Apa Maksudnya "Cepat"?</h2>
+</div>
+
+<p>Saat pengguna mengklik tombol di web app Anda, rentetan peristiwa menyala: browser mengemas request HTTP, request itu menyeberangi internet ke server Anda, server memprosesnya (mungkin memukul database, memanggil API eksternal, atau mengirim email), dan akhirnya server menyusun respons, biasanya JSON, yang bepergian kembali melewati internet. Browser lalu mem-parse respons dan merender hasilnya di layar.</p>
+
+<p>Total waktu yang berlalu antara klik dan render akhir itulah yang pengguna <em>persepsikan</em> sebagai kecepatan. Saat seseorang bilang "aplikasi Anda lambat", mereka menggambarkan durasi end-to-end ini, bahkan jika mereka tidak pernah mendengar kata latensi.</p>
+
+<div class="diagram-container">
+  <svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" style="max-width:700px;width:100%">
+    <!-- User -->
+    <rect x="20" y="65" width="90" height="65" rx="5" fill="#e9e2d3" stroke="#5b5347" stroke-width="1.5"/>
+    <text x="65" y="95" text-anchor="middle" font-family="'Source Serif 4',serif" font-size="12" font-weight="600" fill="#232019">User</text>
+    <text x="65" y="112" text-anchor="middle" font-family="'Source Serif 4',serif" font-size="10" fill="#5b5347">Browser</text>
+
+    <!-- Arrow 1 -->
+    <line x1="110" y1="82" x2="210" y2="82" stroke="#b8402e" stroke-width="1.5" marker-end="url(#arrowR)"/>
+    <text x="160" y="74" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">HTTP Request</text>
+
+    <!-- Server -->
+    <rect x="210" y="55" width="110" height="85" rx="5" fill="#e9e2d3" stroke="#5b5347" stroke-width="1.5"/>
+    <text x="265" y="85" text-anchor="middle" font-family="'Source Serif 4',serif" font-size="12" font-weight="600" fill="#232019">Server</text>
+    <text x="265" y="102" text-anchor="middle" font-family="'Source Serif 4',serif" font-size="10" fill="#5b5347">Process</text>
+    <text x="265" y="118" text-anchor="middle" font-family="'Source Serif 4',serif" font-size="10" fill="#5b5347">Logic</text>
+
+    <!-- Arrow to DB -->
+    <line x1="320" y1="80" x2="400" y2="80" stroke="#37607f" stroke-width="1.3" marker-end="url(#arrowB)"/>
+    <text x="360" y="72" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">Query</text>
+
+    <!-- DB -->
+    <rect x="400" y="55" width="100" height="50" rx="5" fill="#e9e2d3" stroke="#37607f" stroke-width="1.5"/>
+    <text x="450" y="82" text-anchor="middle" font-family="'Source Serif 4',serif" font-size="12" font-weight="600" fill="#232019">Database</text>
+
+    <!-- External API -->
+    <rect x="400" y="120" width="100" height="45" rx="5" fill="#e9e2d3" stroke="#3f6f4e" stroke-width="1.5"/>
+    <text x="450" y="147" text-anchor="middle" font-family="'Source Serif 4',serif" font-size="11" font-weight="600" fill="#232019">External API</text>
+    <line x1="305" y1="140" x2="400" y2="142" stroke="#3f6f4e" stroke-width="1.3" marker-end="url(#arrowG)"/>
+
+    <!-- Return Arrow -->
+    <line x1="210" y1="115" x2="110" y2="115" stroke="#b8402e" stroke-width="1.5" marker-end="url(#arrowR)"/>
+    <text x="160" y="132" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">JSON Response</text>
+
+    <!-- Latency Bracket -->
+    <line x1="30" y1="160" x2="30" y2="175" stroke="#b8402e" stroke-width="1"/>
+    <line x1="30" y1="175" x2="490" y2="175" stroke="#b8402e" stroke-width="1" stroke-dasharray="4,3"/>
+    <line x1="490" y1="160" x2="490" y2="175" stroke="#b8402e" stroke-width="1"/>
+    <text x="260" y="192" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="10" font-weight="600" fill="#b8402e" letter-spacing="0.1em">TOTAL LATENCY</text>
+
+    <defs>
+      <marker id="arrowR" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#b8402e"/></marker>
+      <marker id="arrowB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#37607f"/></marker>
+      <marker id="arrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#3f6f4e"/></marker>
+    </defs>
+  </svg>
+  <div class="diagram-caption">Fig 1 / Request lifecycle: every millisecond adds up</div>
+</div>
+
+<p>Performa bukan kualitas samar yang subjektif. Ia bisa, dan harus, diekspresikan dalam angka. Tiga metrik fundamentalnya <strong>latensi</strong> (berapa lama satu request), <strong>throughput</strong> (berapa banyak request per satuan waktu), dan <strong>utilisasi</strong> (berapa persen kapasitas yang terpakai). Bersama-sama, mereka membentuk kosakata performance engineering.</p>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 02 -->
+
+<div id="s2" class="section-heading">
+  <span class="section-num">02</span>
+  <h2>Selami Latensi</h2>
+</div>
+
+<p>Latensi adalah waktu yang berlalu dari momen request dikirim sampai momen respons diterima. Ia metrik performa yang paling terlihat pengguna, angka yang pelanggan Anda <em>rasakan</em> di ujung jari.</p>
+
+<h3>Latensi bukan satu angka</h3>
+
+<p>Kesalahan umum memperlakukan latensi sebagai satu nilai tetap seperti "API kami merespons dalam 200ms". Kenyataannya, latensi bervariasi dari request ke request karena banyak faktor dunia nyata:</p>
+
+<p><strong>Cache hit vs. miss</strong>: request yang dilayani CDN atau cache dalam memori seperti Redis bisa kembali dalam 5ms, sementara request yang sama memukul database dingin makan 200ms. <strong>Beban server</strong>: saat server Anda idle, ia langsung mengambil tiap request; saat memproses 50 request serentak, kedatangan baru menunggu di antrean. <strong>Kondisi jaringan</strong>: kehilangan paket, perubahan rute, dan jarak geografis semuanya memperkenalkan variabilitas. <strong>Kompleksitas request</strong>: mengambil profil pengguna lebih cepat daripada membuat laporan analitik bulanan.</p>
+
+<div class="callout warn">
+  <div class="callout-title">Why averages lie</div>
+  <p>Bayangkan 1.000 request: 990 selesai dalam 50ms dan 10 makan 5.000ms. Rata-ratanya ±100ms, yang terdengar sehat. Tapi 10 request outlier itu mewakili pengguna nyata yang menatap loading spinner selama 5 detik. Di 1 juta request/hari, itu <strong>10.000 pengalaman pengguna buruk</strong> per hari, sepenuhnya tak terlihat oleh rata-rata.</p>
+</div>
+
+<p>Karena rata-rata menyerap variasi, ia hampir sia-sia untuk analisis performa. Yang kita butuhkan adalah cara membicarakan <em>distribusi</em> latensi, yang membawa kita ke persentil.</p>
+
+<hr class="section-rule">
+
+
+<!-- SECTION 03 -->
+
+<div id="s3" class="section-heading">
+  <span class="section-num">03</span>
+  <h2>Persentil: P50, P90, P99</h2>
+</div>
+
+<p>Persentil memberi tahu Anda ambang latensi di mana persentase request tertentu berada di bawahnya. Tiga persentil yang akan Anda temui terus-menerus:</p>
+
+<table>
+  <thead>
+    <tr><th>Persentil</th><th>Makna</th><th>Contoh</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>P50</strong> (median)</td>
+      <td>50% request lebih cepat dari nilai ini</td>
+      <td>P50 = 80ms -&gt; separuh pengguna Anda melihat &lt;=80ms</td>
+    </tr>
+    <tr>
+      <td><strong>P90</strong></td>
+      <td>90% lebih cepat; <strong>10% pengguna</strong> mengalami ini atau lebih buruk</td>
+      <td>P90 = 400ms -&gt; 1 dari 10 pengguna menunggu 400ms+</td>
+    </tr>
+    <tr>
+      <td><strong>P99</strong></td>
+      <td>99% lebih cepat; <strong>1% pengguna</strong> mengalami ini atau lebih buruk</td>
+      <td>P99 = 2 detik -&gt; 1 dari 100 pengguna menunggu 2 detik+</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="diagram-container">
+  <svg viewBox="0 0 660 260" xmlns="http://www.w3.org/2000/svg" style="max-width:660px;width:100%">
+    <!-- Axes -->
+    <line x1="60" y1="210" x2="620" y2="210" stroke="#5b5347" stroke-width="1.5"/>
+    <line x1="60" y1="210" x2="60" y2="30" stroke="#5b5347" stroke-width="1.5"/>
+    <text x="340" y="250" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="11" fill="#5b5347" letter-spacing="0.05em">Latency -&gt;</text>
+    <text x="22" y="120" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="11" fill="#5b5347" transform="rotate(-90,22,120)">Requests</text>
+
+    <!-- Distribution curve -->
+    <path d="M80,208 C120,205 140,170 180,80 C200,40 230,38 260,80 C290,130 320,170 360,190 C400,200 450,206 520,208 C560,209 600,209 620,210"
+          fill="none" stroke="#b8402e" stroke-width="2.5"/>
+    <path d="M80,208 C120,205 140,170 180,80 C200,40 230,38 260,80 C290,130 320,170 360,190 C400,200 450,206 520,208 C560,209 600,209 620,210 L620,210 L80,210 Z"
+          fill="#b8402e" fill-opacity="0.08"/>
+
+    <!-- P50 line -->
+    <line x1="220" y1="210" x2="220" y2="50" stroke="#37607f" stroke-width="1.2" stroke-dasharray="5,3"/>
+    <text x="220" y="28" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="10" font-weight="700" fill="#37607f">P50</text>
+
+    <!-- P90 line -->
+    <line x1="370" y1="210" x2="370" y2="50" stroke="#3f6f4e" stroke-width="1.2" stroke-dasharray="5,3"/>
+    <text x="370" y="28" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="10" font-weight="700" fill="#3f6f4e">P90</text>
+
+    <!-- P99 line -->
+    <line x1="520" y1="210" x2="520" y2="50" stroke="#b8402e" stroke-width="1.2" stroke-dasharray="5,3"/>
+    <text x="520" y="28" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="10" font-weight="700" fill="#b8402e">P99</text>
+
+    <!-- Annotations -->
+    <text x="220" y="228" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#37607f">80ms</text>
+    <text x="370" y="228" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#3f6f4e">400ms</text>
+    <text x="520" y="228" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#b8402e">2000ms</text>
+  </svg>
+  <div class="diagram-caption">Fig 2 / Latency distribution with percentile markers</div>
+</div>
+
+<h3>Kenapa P99 dan P95 paling penting</h3>
+
+<p>Engineer backend fokus pada latensi ekor (P95/P99) karena dua alasan. Pertama, request yang mendarat di ekor biasanya yang paling <em>kompleks</em>, mereka melibatkan logika bisnis terberat, join terbanyak, atau panggilan antar-layanan terbanyak. Kedua, request ini sering mewakili pengguna Anda yang paling <em>bernilai</em>: seseorang yang membeli, membuat laporan, atau menyelesaikan alur checkout, persis alur kerja tempat hang 5 detik kehilangan pendapatan dan kepercayaan.</p>
+
+<h3>Mengukur persentil di Go</h3>
+
+<p>Library standar Go tidak mengirim kalkulator persentil, tapi Anda bisa menghitungnya dari irisan tersortir atau memakai library. Ini implementasi sederhana dari nol:</p>
+
+<pre><code><span class="code-label">Go</span>
+<span class="syn-kw">package</span> main
+
+<span class="syn-kw">import</span> (
+    <span class="syn-str">"fmt"</span>
+    <span class="syn-str">"math"</span>
+    <span class="syn-str">"sort"</span>
+    <span class="syn-str">"time"</span>
+)
+
+<span class="syn-cm">// Percentile returns the p-th percentile from a slice of durations.</span>
+<span class="syn-cm">// p must be between 0 and 100.</span>
+<span class="syn-kw">func</span> <span class="syn-fn">Percentile</span>(latencies []<span class="syn-type">time.Duration</span>, p <span class="syn-type">float64</span>) <span class="syn-type">time.Duration</span> {
+    <span class="syn-kw">if</span> len(latencies) == <span class="syn-num">0</span> {
+        <span class="syn-kw">return</span> <span class="syn-num">0</span>
+    }
+    sorted := <span class="syn-builtin">make</span>([]<span class="syn-type">time.Duration</span>, len(latencies))
+    <span class="syn-builtin">copy</span>(sorted, latencies)
+    sort.<span class="syn-fn">Slice</span>(sorted, <span class="syn-kw">func</span>(i, j <span class="syn-type">int</span>) <span class="syn-type">bool</span> {
+        <span class="syn-kw">return</span> sorted[i] < sorted[j]
+    })
+
+    rank := (p / <span class="syn-num">100.0</span>) * <span class="syn-type">float64</span>(len(sorted)<span class="syn-num">-1</span>)
+    idx  := <span class="syn-type">int</span>(math.<span class="syn-fn">Ceil</span>(rank))
+    <span class="syn-kw">return</span> sorted[idx]
+}
+
+<span class="syn-kw">func</span> <span class="syn-fn">main</span>() {
+    <span class="syn-cm">// Simulated latency samples</span>
+    samples := []<span class="syn-type">time.Duration</span>{
+        <span class="syn-num">12</span> * time.Millisecond, <span class="syn-num">15</span> * time.Millisecond,
+        <span class="syn-num">22</span> * time.Millisecond, <span class="syn-num">48</span> * time.Millisecond,
+        <span class="syn-num">95</span> * time.Millisecond, <span class="syn-num">110</span> * time.Millisecond,
+        <span class="syn-num">340</span> * time.Millisecond, <span class="syn-num">890</span> * time.Millisecond,
+        <span class="syn-num">1200</span> * time.Millisecond, <span class="syn-num">4800</span> * time.Millisecond,
+    }
+
+    fmt.<span class="syn-fn">Printf</span>(<span class="syn-str">"P50:  %v\n"</span>, <span class="syn-fn">Percentile</span>(samples, <span class="syn-num">50</span>))
+    fmt.<span class="syn-fn">Printf</span>(<span class="syn-str">"P90:  %v\n"</span>, <span class="syn-fn">Percentile</span>(samples, <span class="syn-num">90</span>))
+    fmt.<span class="syn-fn">Printf</span>(<span class="syn-str">"P99:  %v\n"</span>, <span class="syn-fn">Percentile</span>(samples, <span class="syn-num">99</span>))
+}</code></pre>
+
+<h3>Mengukur persentil di Python</h3>
+
+<pre><code><span class="code-label">Python</span>
+<span class="syn-kw">import</span> numpy <span class="syn-kw">as</span> np
+
+<span class="syn-cm"># Simulated latency samples (in milliseconds)</span>
+samples = [<span class="syn-num">12</span>, <span class="syn-num">15</span>, <span class="syn-num">22</span>, <span class="syn-num">48</span>, <span class="syn-num">95</span>, <span class="syn-num">110</span>, <span class="syn-num">340</span>, <span class="syn-num">890</span>, <span class="syn-num">1200</span>, <span class="syn-num">4800</span>]
+
+<span class="syn-builtin">print</span>(<span class="syn-str">f"P50:  </span>{np.<span class="syn-fn">percentile</span>(samples, <span class="syn-num">50</span>):.0f}<span class="syn-str">ms"</span>)
+<span class="syn-builtin">print</span>(<span class="syn-str">f"P90:  </span>{np.<span class="syn-fn">percentile</span>(samples, <span class="syn-num">90</span>):.0f}<span class="syn-str">ms"</span>)
+<span class="syn-builtin">print</span>(<span class="syn-str">f"P99:  </span>{np.<span class="syn-fn">percentile</span>(samples, <span class="syn-num">99</span>):.0f}<span class="syn-str">ms"</span>)
+<span class="syn-builtin">print</span>(<span class="syn-str">f"P99.9:</span>{np.<span class="syn-fn">percentile</span>(samples, <span class="syn-num">99.9</span>):.0f}<span class="syn-str">ms"</span>)</code></pre>
+
+<div class="ref-box">
+  <span><strong>Reference:</strong> <a href="https://prometheus.io/docs/practices/histograms/" target="_blank">Prometheus, Histograms &amp; Summaries</a>, the industry standard for collecting percentile data in production.</span>
+</div>
+
+<hr class="section-rule">
+
+
+<!-- SECTION 04 -->
+
+<div id="s4" class="section-heading">
+  <span class="section-num">04</span>
+  <h2>Throughput</h2>
+</div>
+
+<p>Sementara latensi menggambarkan durasi satu request, throughput mengukur berapa banyak request yang bisa ditangani sistem Anda dalam jendela waktu tertentu, biasanya diekspresikan sebagai <strong>request per detik (RPS)</strong> atau <strong>request per menit (RPM)</strong>.</p>
+
+<p>Kedua metrik saling terkait dalam tapi tidak dengan cara linier sederhana. Sistem Anda mungkin menunjukkan latensi sangat baik di 10 RPS, katakanlah 50ms per request. Tapi di 5.000 RPS, latensi bisa melonjak ke 2 detik. Memahami throughput bersamaan latensi membuat Anda bisa menjawab pertanyaan operasional kritis: Bisakah kita bertahan lonjakan lalu lintas Black Friday? Berapa banyak pengguna serentak yang bisa kita dukung sebelum butuh resource lagi? Apa yang terjadi jika kita di-feature podcast populer besok?</p>
+
+<div class="formula">
+  Throughput = Requests Handled / Time Period
+</div>
+
+<h3>Kurva latensi: throughput</h3>
+
+<p>Saat throughput naik, latensi naik perlahan dulu tapi kemudian <em>dramatis</em>, ia mengikuti kurva, bukan garis. Di throughput rendah, server kebanyakan idle dan tiap request dilayani seketika. Saat throughput memanjat menuju kapasitas, request mulai mengantre dan bersaing untuk CPU, memori, dan I/O. Mendekati saturasi, latensi meledak eksponensial.</p>
+
+<div class="diagram-container">
+  <svg viewBox="0 0 560 280" xmlns="http://www.w3.org/2000/svg" style="max-width:560px;width:100%">
+    <!-- Axes -->
+    <line x1="60" y1="230" x2="520" y2="230" stroke="#5b5347" stroke-width="1.5"/>
+    <line x1="60" y1="230" x2="60" y2="30" stroke="#5b5347" stroke-width="1.5"/>
+    <text x="290" y="268" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="11" fill="#5b5347">Throughput (RPS) -&gt;</text>
+    <text x="22" y="130" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="11" fill="#5b5347" transform="rotate(-90,22,130)">Latency -&gt;</text>
+
+    <!-- Linear expectation (dashed) -->
+    <line x1="60" y1="220" x2="500" y2="60" stroke="#37607f" stroke-width="1.2" stroke-dasharray="6,4"/>
+    <text x="430" y="55" font-family="'Libre Franklin',sans-serif" font-size="9" fill="#37607f">Expected (linear)</text>
+
+    <!-- Actual curve (exponential) -->
+    <path d="M60,220 C120,218 200,215 280,210 C340,205 380,195 420,160 C450,125 470,80 490,40"
+          fill="none" stroke="#b8402e" stroke-width="2.5"/>
+    <text x="500" y="38" font-family="'Libre Franklin',sans-serif" font-size="9" font-weight="700" fill="#b8402e">Actual</text>
+
+    <!-- Safe zone annotation -->
+    <rect x="65" y="195" width="260" height="30" fill="#3f6f4e" fill-opacity="0.1" rx="3"/>
+    <text x="195" y="215" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="9" fill="#3f6f4e">Safe operating zone (60-80%)</text>
+
+    <!-- Danger zone -->
+    <rect x="380" y="35" width="120" height="190" fill="#b8402e" fill-opacity="0.06" rx="3"/>
+    <text x="440" y="230" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="9" fill="#b8402e">Danger zone</text>
+  </svg>
+  <div class="diagram-caption">Fig 3 / Latency grows exponentially as throughput approaches capacity</div>
+</div>
+
+<p>Hubungan ini diatur <strong>teori antrean</strong>: khususnya model antrean M/M/1 dari riset operasi. Saat utililisasi <em>rho</em> mendekati 1,0, waktu tunggu rata-rata cenderung menuju tak hingga:</p>
+
+<div class="formula">
+  W = S / (1 - rho) &nbsp;&nbsp;where S = service time, rho = utilization
+</div>
+
+<div class="ref-box">
+  <span><strong>Reference:</strong> <a href="https://developer.mozilla.org/en-US/docs/Web/Performance" target="_blank">MDN, Web Performance</a>, Mozilla's comprehensive guide to front-to-back performance measurement.</span>
+</div>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 05 -->
+
+<div id="s5" class="section-heading">
+  <span class="section-num">05</span>
+  <h2>Utilisasi &amp; Antrean</h2>
+</div>
+
+<p>Utilisasi adalah persentase kapasitas total sistem Anda yang aktif terpakai. Di 0% sistem idle; di 100% setiap resource tersaturasi dan tidak ada yang baru bisa diproses.</p>
+
+<h3>Analogi toko es krim</h3>
+
+<p>Bayangkan toko es krim dengan satu pekerja. Minggu malam yang sepi, Anda masuk, memesan, dan dilayani seketika, utililisasi rendah, latensi rendah. Selasa siang, ada antrean panjang. Pekerja menyiapkan tiap cone di <em>kecepatan yang persis sama</em>, tapi waktu tunggu Anda meroket karena Anda harus menunggu semua orang di depan Anda. Throughput pekerja tidak berubah. Latensi yang Anda rasakan yang berubah.</p>
+
+<p>Sistem backend berperilaku identik: saat utililisasi CPU dan memori rendah, request dilayani seketika. Saat lebih banyak request tiba, tiap request menunggu request di depannya selesai, membentuk antrean. Semakin tinggi utililisasi, semakin panjang antrean, dan semakin lama tiap request menunggu.</p>
+
+<h3>Analogi jalan tol</h3>
+
+<p>Anggap jalan tol di tingkat kapasitas berbeda. Di <strong>50%</strong>, lalu lintas mengalir mulus dan mobil menjaga kecepatan. Di <strong>80%</strong>, pindah jalur butuh lebih hati-hati dan kecepatan mulai turun. Di <strong>90%</strong>, sistem jadi kacau, kadang mengalir, kadang macet. Setiap injakan rem menciptakan efek riak. Di <strong>100%</strong>, kemacetan total: tidak ada yang bergerak.</p>
+
+<h3>Hubungan eksponensial</h3>
+
+<p>Hubungan antara utililisasi dan latensi <em>tidak</em> linier. Kita secara intuitif mengharapkan menggandakan utililisasi menggandakan latensi, tapi kenyataannya jauh lebih buruk. Latensi tetap relatif datar sampai ±70% utililisasi, lalu melengkung tajam ke atas, dan mendekati 100% hampir vertikal, mendekati tak hingga.</p>
+
+<div class="callout">
+  <div class="callout-title">Key Takeaway</div>
+  <p>Anda <strong>tidak akan pernah</strong> bisa menjalankan sistem di 100% utililisasi dan mengharapkannya berkinerja. Sistem produksi biasanya menarget <strong>utilisasi 60-80%</strong>, menyisakan 20-40% sebagai ruang kepala untuk ledakan lalu lintas. Lalu lintas <em>bursty</em> secara alami, ia tiba dalam gelombang, bukan tingkat tetap, dan penyangga Anda yang menyerap lonjakan itu.</p>
+</div>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 06 -->
+
+<div id="s6" class="section-heading">
+  <span class="section-num">06</span>
+  <h2>Menemukan Bottleneck</h2>
+</div>
+
+<p>Saat sistem Anda lambat, <em>sesuatu yang spesifik</em> yang menyebabkan kelambatan. Sesuatu itu disebut bottleneck. Disiplin paling kritis dalam performance engineering adalah mengidentifikasi bottleneck sebenarnya sebelum menerapkan perbaikan, bukan menebak.</p>
+
+<h3>Jebakan melompat ke solusi</h3>
+
+<p>Saat engineer menjumpai API lambat, instingnya meraih obat standar buku: tambah caching Redis, upgrade Postgres, lempar lebih banyak server ke sana. Kadang Anda beruntung. Tapi lebih sering, Anda menghabiskan berhari-hari atau berminggu-minggu mengimplementasikan solusi untuk masalah yang sebenarnya tidak Anda miliki, sementara bottleneck sebenarnya duduk tak tersentuh.</p>
+
+<h3>Contoh dunia nyata</h3>
+
+<p>Anggap endpoint <code>GET /products/:id</code> yang terasa lambat. Reaksi lutut: database pasti masalahnya. Anda menghabiskan seminggu membangun lapisan caching Redis. Anda deploy. API masih lambat.</p>
+
+<p>Sekarang Anda menambah pengukuran waktu di seluruh kode dan menemukan: query database makan 10ms, pencarian Redis baru makan 5ms, tapi <em>panggilan logging sinkron</em> ke layanan Elasticsearch jarak jauh makan 500ms, memblokir request sambil menunggu respons jaringan. Database tidak pernah jadi masalahnya.</p>
+
+<div class="callout warn">
+  <div class="callout-title">The golden rule</div>
+  <p><strong>Jangan pernah menebak. Selalu ukur.</strong> Bottleneck tersembunyi umum meliputi: logging sinkron ke layanan jarak jauh, serialisasi JSON/XML payload besar, panggilan API eksternal dalam loop, payload respons besar yang menyebabkan transmisi jaringan lambat, dan middleware yang berjalan di setiap request.</p>
+</div>
+
+<h3>Middleware timing di Go</h3>
+
+<p>Ini middleware praktis yang mencatat timing per-request, supaya Anda bisa mulai mengidentifikasi endpoint lambat:</p>
+
+<pre><code><span class="code-label">Go</span>
+<span class="syn-kw">package</span> middleware
+
+<span class="syn-kw">import</span> (
+    <span class="syn-str">"log"</span>
+    <span class="syn-str">"net/http"</span>
+    <span class="syn-str">"time"</span>
+)
+
+<span class="syn-cm">// TimingMiddleware logs the duration of every HTTP request.</span>
+<span class="syn-kw">func</span> <span class="syn-fn">TimingMiddleware</span>(next <span class="syn-type">http.Handler</span>) <span class="syn-type">http.Handler</span> {
+    <span class="syn-kw">return</span> http.<span class="syn-fn">HandlerFunc</span>(<span class="syn-kw">func</span>(w <span class="syn-type">http.ResponseWriter</span>, r *<span class="syn-type">http.Request</span>) {
+        start := time.<span class="syn-fn">Now</span>()
+
+        <span class="syn-cm">// Wrap the ResponseWriter to capture the status code</span>
+        rw := &statusWriter{ResponseWriter: w, status: <span class="syn-num">200</span>}
+        next.<span class="syn-fn">ServeHTTP</span>(rw, r)
+
+        duration := time.<span class="syn-fn">Since</span>(start)
+        log.<span class="syn-fn">Printf</span>(
+            <span class="syn-str">"method=%s path=%s status=%d duration=%v"</span>,
+            r.Method, r.URL.Path, rw.status, duration,
+        )
+    })
+}
+
+<span class="syn-kw">type</span> statusWriter <span class="syn-kw">struct</span> {
+    <span class="syn-type">http.ResponseWriter</span>
+    status <span class="syn-type">int</span>
+}
+
+<span class="syn-kw">func</span> (w *statusWriter) <span class="syn-fn">WriteHeader</span>(code <span class="syn-type">int</span>) {
+    w.status = code
+    w.ResponseWriter.<span class="syn-fn">WriteHeader</span>(code)
+}</code></pre>
+
+<h3>Decorator timing di Python (FastAPI)</h3>
+
+<pre><code><span class="code-label">Python</span>
+<span class="syn-kw">import</span> time
+<span class="syn-kw">import</span> logging
+<span class="syn-kw">from</span> fastapi <span class="syn-kw">import</span> Request
+<span class="syn-kw">from</span> starlette.middleware.base <span class="syn-kw">import</span> BaseHTTPMiddleware
+
+logger = logging.<span class="syn-fn">getLogger</span>(<span class="syn-str">"perf"</span>)
+
+<span class="syn-kw">class</span> <span class="syn-type">TimingMiddleware</span>(BaseHTTPMiddleware):
+    <span class="syn-kw">async def</span> <span class="syn-fn">dispatch</span>(self, request: Request, call_next):
+        start = time.<span class="syn-fn">perf_counter</span>()
+        response = <span class="syn-kw">await</span> <span class="syn-fn">call_next</span>(request)
+        duration_ms = (time.<span class="syn-fn">perf_counter</span>() - start) * <span class="syn-num">1000</span>
+
+        logger.<span class="syn-fn">info</span>(
+            <span class="syn-str">f"method=</span>{request.method} <span class="syn-str">path=</span>{request.url.path} "
+            <span class="syn-str">f"status=</span>{response.status_code} <span class="syn-str">duration=</span>{duration_ms:.1f}<span class="syn-str">ms"</span>
+        )
+        <span class="syn-kw">return</span> response</code></pre>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 07 -->
+
+<div id="s7" class="section-heading">
+  <span class="section-num">07</span>
+  <h2>Profiling &amp; Flame Graph</h2>
+</div>
+
+<p>Profiling adalah praktik mengukur persis di mana aplikasi Anda menghabiskan waktunya. Profiler menempel ke aplikasi yang berjalan, mengambil sampel call stack pada interval teratur, dan mencatat fungsi mana yang mengeksekusi, berapa lama berjalan, dan berapa banyak CPU atau memori yang mereka konsumsi.</p>
+
+<h3>Cara kerja profiler</h3>
+
+<p>CPU profiler (seperti <code>pprof</code> bawaan Go atau <code>cProfile</code> Python) secara berkala menginterupsi program dan menangkap snapshot call stack saat ini. Setelah ribuan sampel, gambaran statistik muncul menunjukkan fungsi mana yang mendominasi waktu eksekusi.</p>
+
+<h3>Flame graph</h3>
+
+<p>Keluaran profiler mentah bisa mencantumkan ribuan fungsi, masing-masing menyumbang sebagian waktu total. Flame graph membuat data ini visual: tiap fungsi adalah bar horizontal, bar lebih lebar menunjukkan lebih banyak waktu, dan fungsi yang dipanggil fungsi lain ditumpuk vertikal. Satu lirikan ke flame graph memberi tahu Anda di mana hotspot aplikasi Anda.</p>
+
+<div class="diagram-container">
+  <svg viewBox="0 0 600 180" xmlns="http://www.w3.org/2000/svg" style="max-width:600px;width:100%">
+    <!-- Level 0 - root -->
+    <rect x="10" y="140" width="580" height="28" rx="3" fill="#b8402e" fill-opacity="0.2" stroke="#b8402e" stroke-width="1"/>
+    <text x="300" y="158" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" fill="#5b5347">main.handleRequest(), 100%</text>
+
+    <!-- Level 1 -->
+    <rect x="10" y="108" width="90" height="28" rx="3" fill="#37607f" fill-opacity="0.25" stroke="#37607f" stroke-width="1"/>
+    <text x="55" y="126" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7fb0c9">parseJSON</text>
+    <text x="55" y="136" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" fill="#5b5347">8%</text>
+
+    <rect x="100" y="108" width="60" height="28" rx="3" fill="#3f6f4e" fill-opacity="0.25" stroke="#3f6f4e" stroke-width="1"/>
+    <text x="130" y="126" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#a9c98a">auth</text>
+    <text x="130" y="136" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" fill="#5b5347">5%</text>
+
+    <rect x="160" y="108" width="140" height="28" rx="3" fill="#b8402e" fill-opacity="0.2" stroke="#b8402e" stroke-width="1"/>
+    <text x="230" y="126" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#8f2f20">db.QueryProducts</text>
+    <text x="230" y="136" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" fill="#5b5347">12%</text>
+
+    <rect x="300" y="108" width="260" height="28" rx="3" fill="#b8402e" fill-opacity="0.4" stroke="#b8402e" stroke-width="1.5"/>
+    <text x="430" y="126" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" font-weight="600" fill="#8f2f20">logging.SendRemote </text>
+    <text x="430" y="136" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" fill="#b8402e" font-weight="600">70% &lt;- BOTTLENECK</text>
+
+    <!-- Level 2 inside logging -->
+    <rect x="300" y="76" width="180" height="28" rx="3" fill="#e0896a" fill-opacity="0.2" stroke="#e0896a" stroke-width="1"/>
+    <text x="390" y="94" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#e0896a">net.http.Post</text>
+    <text x="390" y="104" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" fill="#5b5347">55%</text>
+
+    <rect x="480" y="76" width="80" height="28" rx="3" fill="#c58fb0" fill-opacity="0.2" stroke="#c58fb0" stroke-width="1"/>
+    <text x="520" y="94" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#c58fb0">serialize</text>
+    <text x="520" y="104" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" fill="#5b5347">15%</text>
+
+    <!-- Level 3 -->
+    <rect x="300" y="44" width="120" height="28" rx="3" fill="#e0896a" fill-opacity="0.15" stroke="#e0896a" stroke-width="1"/>
+    <text x="360" y="62" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#e0896a">tcp.Dial</text>
+    <text x="360" y="72" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7" fill="#5b5347">40%</text>
+  </svg>
+  <div class="diagram-caption">Fig 4 / Flame graph: wider bars = more time; the logging call dominates</div>
+</div>
+
+<h3>CPU profiling di Go dengan pprof</h3>
+
+<pre><code><span class="code-label">Go</span>
+<span class="syn-kw">import</span> (
+    <span class="syn-str">"net/http"</span>
+    _ <span class="syn-str">"net/http/pprof"</span>  <span class="syn-cm">// side-effect import: registers /debug/pprof/</span>
+)
+
+<span class="syn-kw">func</span> <span class="syn-fn">main</span>() {
+    <span class="syn-cm">// Your normal app setup...</span>
+    <span class="syn-cm">// pprof endpoints are now accessible at /debug/pprof/</span>
+    <span class="syn-cm">// Collect a 30-second CPU profile:</span>
+    <span class="syn-cm">//   go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30</span>
+    <span class="syn-cm">//   (pprof) web   &lt;- opens flame graph in browser</span>
+    http.<span class="syn-fn">ListenAndServe</span>(<span class="syn-str">":6060"</span>, <span class="syn-kw">nil</span>)
+}</code></pre>
+
+<h3>CPU profiling di Python</h3>
+
+<pre><code><span class="code-label">Python</span>
+<span class="syn-kw">import</span> cProfile
+<span class="syn-kw">import</span> pstats
+
+<span class="syn-cm"># Profile a function and print the top 20 slowest calls</span>
+<span class="syn-kw">with</span> cProfile.<span class="syn-fn">Profile</span>() <span class="syn-kw">as</span> pr:
+    <span class="syn-fn">handle_request</span>()  <span class="syn-cm"># your function under test</span>
+
+stats = pstats.<span class="syn-fn">Stats</span>(pr)
+stats.<span class="syn-fn">sort_stats</span>(<span class="syn-str">"cumulative"</span>)
+stats.<span class="syn-fn">print_stats</span>(<span class="syn-num">20</span>)
+
+<span class="syn-cm"># For flame graphs, use py-spy (external tool):</span>
+<span class="syn-cm">#   pip install py-spy</span>
+<span class="syn-cm">#   py-spy record -o profile.svg -- python app.py</span></code></pre>
+
+<h3>Bottleneck CPU-bound vs I/O-bound</h3>
+
+<p>Profiler unggul menemukan bottleneck <strong>CPU-bound</strong>, fungsi yang mengonsumsi siklus komputasi berlebihan (pemrosesan gambar, inferensi machine learning, matematika berat). Tapi, kebanyakan aplikasi backend <strong>I/O-bound</strong>: waktunya dihabiskan menunggu respons database, panggilan API eksternal, pembacaan file, atau acknowledgment message queue. CPU profiler kurang efektif di sini karena CPU tidak bekerja, ia <em>menunggu</em>. Untuk kerja I/O-bound, Anda butuh distributed tracing.</p>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 08 -->
+
+<div id="s8" class="section-heading">
+  <span class="section-num">08</span>
+  <h2>Distributed Tracing</h2>
+</div>
+
+<p>Distributed tracing mengikuti satu request saat mengalir melewati seluruh sistem Anda, lintas layanan, database, cache, dan API eksternal, mencatat timestamp di setiap batas. Keluarannya <em>trace</em>: pohon "span", masing-masing mewakili operasi ber-timing.</p>
+
+<p>Tempat profiler menunjukkan <em>apa yang dilakukan CPU</em>, trace menunjukkan <em>di mana jam berdetak</em>. Misalnya, trace <code>GET /products/5</code> mungkin mengungkap: 2ms di logika API Anda, 800ms di query database, dan 50ms di serialisasi. Kini Anda tahu persis ke mana fokus.</p>
+
+<div class="diagram-container">
+  <svg viewBox="0 0 620 210" xmlns="http://www.w3.org/2000/svg" style="max-width:620px;width:100%">
+    <!-- Timeline header -->
+    <text x="130" y="20" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">0ms</text>
+    <text x="230" y="20" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">200ms</text>
+    <text x="350" y="20" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">400ms</text>
+    <text x="470" y="20" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">600ms</text>
+    <text x="570" y="20" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">800ms</text>
+
+    <!-- Grid lines -->
+    <line x1="130" y1="28" x2="130" y2="190" stroke="#d8cfbe" stroke-width="0.5" stroke-dasharray="3,3"/>
+    <line x1="250" y1="28" x2="250" y2="190" stroke="#d8cfbe" stroke-width="0.5" stroke-dasharray="3,3"/>
+    <line x1="370" y1="28" x2="370" y2="190" stroke="#d8cfbe" stroke-width="0.5" stroke-dasharray="3,3"/>
+    <line x1="490" y1="28" x2="490" y2="190" stroke="#d8cfbe" stroke-width="0.5" stroke-dasharray="3,3"/>
+
+    <!-- Span: Total request -->
+    <text x="10" y="52" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">Request</text>
+    <rect x="130" y="38" width="480" height="22" rx="3" fill="#b8402e" fill-opacity="0.15" stroke="#b8402e" stroke-width="1"/>
+    <text x="370" y="53" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#8f2f20">852ms total</text>
+
+    <!-- Span: Auth -->
+    <text x="10" y="87" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">Auth</text>
+    <rect x="130" y="73" width="24" height="22" rx="3" fill="#3f6f4e" fill-opacity="0.3" stroke="#3f6f4e" stroke-width="1"/>
+    <text x="162" y="88" font-family="'JetBrains Mono',monospace" font-size="8" fill="#a9c98a">5ms</text>
+
+    <!-- Span: DB Query -->
+    <text x="10" y="122" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">DB Query</text>
+    <rect x="154" y="108" width="406" height="22" rx="3" fill="#b8402e" fill-opacity="0.35" stroke="#b8402e" stroke-width="1.5"/>
+    <text x="357" y="123" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" font-weight="600" fill="#8f2f20">800ms &lt;- BOTTLENECK</text>
+
+    <!-- Span: Serialize -->
+    <text x="10" y="157" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">Serialize</text>
+    <rect x="560" y="143" width="50" height="22" rx="3" fill="#37607f" fill-opacity="0.25" stroke="#37607f" stroke-width="1"/>
+    <text x="585" y="158" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#7fb0c9">42ms</text>
+
+    <!-- Span: Response -->
+    <text x="10" y="190" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">Response</text>
+    <rect x="560" y="178" width="20" height="16" rx="3" fill="#3f6f4e" fill-opacity="0.25" stroke="#3f6f4e" stroke-width="1"/>
+    <text x="585" y="190" font-family="'JetBrains Mono',monospace" font-size="8" fill="#a9c98a">5ms</text>
+  </svg>
+  <div class="diagram-caption">Fig 5 / Distributed trace: the DB query dominates this request's timeline</div>
+</div>
+
+<p>Tool tracing populer meliputi <strong>Jaeger</strong>, <strong>Zipkin</strong>, dan <strong>OpenTelemetry</strong> (standar yang muncul yang menyatukan tracing, metrik, dan logging). OpenTelemetry menyediakan SDK untuk Go, Python, Java, dan kebanyakan bahasa utama.</p>
+
+<div class="ref-box">
+  <span><strong>Reference:</strong> <a href="https://opentelemetry.io/docs/" target="_blank">OpenTelemetry Documentation</a>, the vendor-neutral standard for distributed tracing, metrics, and logs.</span>
+</div>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 09 -->
+
+<div id="s9" class="section-heading">
+  <span class="section-num">09</span>
+  <h2>Masalah Query N+1</h2>
+</div>
+
+<p>Masalah query N+1 salah satu anti-pola performa paling terkenal di engineering backend. Ia terjadi saat Anda membuat 1 query untuk mengambil daftar N item, lalu N query tambahan untuk mengambil data terkait untuk tiap item, total N+1 round trip database.</p>
+
+<h3>Cara ia terjadi</h3>
+
+<p>Bayangkan aplikasi blog. Untuk merender beranda, Anda butuh 20 post blog dengan nama penulis tiap post. Pendekatan naif: query semua 20 post, lalu loop dan buat query terpisah untuk penulis tiap post. Itu 21 query database. Untuk 1.000 post, 1.001 query. Bahkan di 5ms per query, 1.001 query makan lebih dari 5 detik.</p>
+
+<div class="diagram-container">
+  <svg viewBox="0 0 580 200" xmlns="http://www.w3.org/2000/svg" style="max-width:580px;width:100%">
+    <!-- Bad: N+1 -->
+    <text x="20" y="22" font-family="'Libre Franklin',sans-serif" font-size="10" font-weight="700" fill="#b8402e" letter-spacing="0.08em">N+1 PATTERN (BAD)</text>
+    <rect x="20" y="32" width="240" height="24" rx="3" fill="#b8402e" fill-opacity="0.1" stroke="#b8402e" stroke-width="1"/>
+    <text x="140" y="48" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#8f2f20">SELECT * FROM posts (1 query)</text>
+
+    <rect x="20" y="62" width="240" height="16" rx="2" fill="#b8402e" fill-opacity="0.08" stroke="#b8402e" stroke-width="0.8"/>
+    <text x="140" y="74" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#8f2f20">SELECT author WHERE id=1</text>
+    <rect x="20" y="80" width="240" height="16" rx="2" fill="#b8402e" fill-opacity="0.08" stroke="#b8402e" stroke-width="0.8"/>
+    <text x="140" y="92" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#8f2f20">SELECT author WHERE id=2</text>
+    <rect x="20" y="98" width="240" height="16" rx="2" fill="#b8402e" fill-opacity="0.08" stroke="#b8402e" stroke-width="0.8"/>
+    <text x="140" y="110" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#8f2f20">... (x 20 more)</text>
+
+    <text x="140" y="138" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" font-weight="600" fill="#b8402e">21 queries = 105ms</text>
+
+    <!-- Good: Bulk -->
+    <text x="320" y="22" font-family="'Libre Franklin',sans-serif" font-size="10" font-weight="700" fill="#3f6f4e" letter-spacing="0.08em">BULK FETCH (GOOD)</text>
+    <rect x="320" y="32" width="240" height="24" rx="3" fill="#3f6f4e" fill-opacity="0.1" stroke="#3f6f4e" stroke-width="1"/>
+    <text x="440" y="48" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#a9c98a">SELECT * FROM posts (1 query)</text>
+
+    <rect x="320" y="62" width="240" height="24" rx="3" fill="#3f6f4e" fill-opacity="0.1" stroke="#3f6f4e" stroke-width="1"/>
+    <text x="440" y="78" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#a9c98a">SELECT * FROM users WHERE id IN (...)</text>
+
+    <text x="440" y="110" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="10" font-weight="600" fill="#3f6f4e">2 queries = 10ms</text>
+
+    <!-- Speedup -->
+    <text x="300" y="185" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="11" font-weight="700" fill="#5b5347">10x faster by eliminating the loop</text>
+  </svg>
+  <div class="diagram-caption">Fig 6 / N+1 queries vs. bulk fetch: same data, vastly different performance</div>
+</div>
+
+<h3>Perbaikannya: batch fetching</h3>
+
+<p>Alih-alih query dalam loop, kumpulkan semua ID yang Anda butuhkan dan ambil dalam satu query memakai <code>WHERE id IN (...)</code>. Hasilnya: selalu 2 query berapa pun jumlah item, satu untuk daftarnya, satu untuk data terkait.</p>
+
+<h4>Go: menyelesaikan N+1 dengan batch query</h4>
+
+<pre><code><span class="code-label">Go</span>
+<span class="syn-kw">func</span> <span class="syn-fn">GetPostsWithAuthors</span>(ctx <span class="syn-type">context.Context</span>, db *<span class="syn-type">sql.DB</span>) ([]<span class="syn-type">PostWithAuthor</span>, <span class="syn-type">error</span>) {
+    <span class="syn-cm">// Query 1: fetch all posts</span>
+    posts, err := <span class="syn-fn">queryPosts</span>(ctx, db)
+    <span class="syn-kw">if</span> err != <span class="syn-kw">nil</span> {
+        <span class="syn-kw">return</span> <span class="syn-kw">nil</span>, err
+    }
+
+    <span class="syn-cm">// Collect unique author IDs</span>
+    authorIDSet := <span class="syn-builtin">make</span>(<span class="syn-kw">map</span>[<span class="syn-type">int64</span>]<span class="syn-kw">struct</span>{})
+    <span class="syn-kw">for</span> _, p := <span class="syn-kw">range</span> posts {
+        authorIDSet[p.AuthorID] = <span class="syn-kw">struct</span>{}{}
+    }
+    authorIDs := <span class="syn-builtin">make</span>([]<span class="syn-type">int64</span>, <span class="syn-num">0</span>, <span class="syn-builtin">len</span>(authorIDSet))
+    <span class="syn-kw">for</span> id := <span class="syn-kw">range</span> authorIDSet {
+        authorIDs = <span class="syn-builtin">append</span>(authorIDs, id)
+    }
+
+    <span class="syn-cm">// Query 2: fetch ALL authors in one batch</span>
+    authors, err := <span class="syn-fn">queryAuthorsByIDs</span>(ctx, db, authorIDs)
+    <span class="syn-kw">if</span> err != <span class="syn-kw">nil</span> {
+        <span class="syn-kw">return</span> <span class="syn-kw">nil</span>, err
+    }
+
+    <span class="syn-cm">// Build lookup map and merge</span>
+    authorMap := <span class="syn-builtin">make</span>(<span class="syn-kw">map</span>[<span class="syn-type">int64</span>]<span class="syn-type">Author</span>)
+    <span class="syn-kw">for</span> _, a := <span class="syn-kw">range</span> authors {
+        authorMap[a.ID] = a
+    }
+
+    result := <span class="syn-builtin">make</span>([]<span class="syn-type">PostWithAuthor</span>, len(posts))
+    <span class="syn-kw">for</span> i, p := <span class="syn-kw">range</span> posts {
+        result[i] = <span class="syn-type">PostWithAuthor</span>{Post: p, Author: authorMap[p.AuthorID]}
+    }
+    <span class="syn-kw">return</span> result, <span class="syn-kw">nil</span>
+}</code></pre>
+
+<h4>Python (Django): select<em>related &amp; prefetch</em>related</h4>
+
+<pre><code><span class="code-label">Python</span>
+<span class="syn-cm"># BAD, N+1 queries (Django ORM)</span>
+posts = Post.objects.<span class="syn-fn">all</span>()
+<span class="syn-kw">for</span> post <span class="syn-kw">in</span> posts:
+    <span class="syn-builtin">print</span>(post.author.name)  <span class="syn-cm"># Each access fires a separate query!</span>
+
+<span class="syn-cm"># GOOD, 1 query with JOIN (ForeignKey)</span>
+posts = Post.objects.<span class="syn-fn">select_related</span>(<span class="syn-str">"author"</span>).<span class="syn-fn">all</span>()
+
+<span class="syn-cm"># GOOD, 2 queries (ManyToMany or reverse FK)</span>
+posts = Post.objects.<span class="syn-fn">prefetch_related</span>(<span class="syn-str">"tags"</span>).<span class="syn-fn">all</span>()
+</code></pre>
+
+<p>Setiap ORM modern menyediakan primitif bulk-fetch: Django punya <code>select<em>related</code> / <code>prefetch</em>related</code>, Ruby on Rails punya <code>includes</code>, Prisma dan Drizzle menawarkan <code>leftJoin</code> dan pemuatan relasi. Jika Anda menulis SQL mentah, jawabannya <code>JOIN</code>. Pola yang harus dihindari loop apa pun yang menembakkan query per iterasi.</p>
+
+<div class="callout info">
+  <div class="callout-title">Pro tip</div>
+  <p>Kebanyakan ORM modern punya mode "cetak SQL yang dihasilkan". Aktifkan selama pengembangan untuk menangkap pola N+1 sebelum mencapai produksi. Di Django: <code>settings.LOGGING</code> dengan logger <code>django.db.backends</code>. Di GORM Go: <code>db.Debug()</code>.</p>
+</div>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 10 -->
+
+<div id="s10" class="section-heading">
+  <span class="section-num">10</span>
+  <h2>Index &amp; Query Plan</h2>
+</div>
+
+<p>Sumber paling umum masalah performa database adalah <em>ketiadaan</em> index yang tepat. Index struktur data, biasanya B-tree, yang memelihara salinan tersortir dari nilai di satu atau lebih kolom, beserta penunjuk kembali ke baris penuh. Ia mengubah sequential scan lambat (memeriksa setiap baris) menjadi pencarian cepat.</p>
+
+<h3>Analogi perpustakaan</h3>
+
+<p>Bayangkan perpustakaan dengan sejuta buku tapi tanpa katalog. Menemukan semua buku karya John Green menuntut berjalan ke setiap rak, memeriksa setiap buku, full table scan. Sekarang tambah katalog tersortir berdasarkan nama penulis dengan lokasi rak. Anda mencari "Green, John," menemukan tiga referensi rak, berjalan langsung ke rak tersebut, dan kembali dalam hitungan menit alih-alih hari. Katalog itu index-nya.</p>
+
+<h3>Sequential scan vs. index scan</h3>
+
+<p>Tanpa index, database Anda melakukan sequential scan (juga disebut full table scan), ia membaca setiap baris untuk memeriksa klausa <code>WHERE</code>. Untuk sejuta baris, ini bisa makan beberapa detik. Dengan index B-tree, database melakukan pencarian logaritmik, menemukan baris yang cocok dalam beberapa milidetik apa pun ukuran tabelnya.</p>
+
+<div class="formula">
+  Sequential scan: O(n) -&gt; Index scan: O(log n)
+</div>
+
+<h3>Membuat index</h3>
+
+<pre><code><span class="code-label">SQL</span>
+<span class="syn-cm">-- Basic single-column index</span>
+<span class="syn-kw">CREATE INDEX</span> idx_posts_author_id <span class="syn-kw">ON</span> posts (author_id);
+
+<span class="syn-cm">-- Composite index: order matters!</span>
+<span class="syn-cm">-- This helps queries filtering by user_id, or user_id + created_at</span>
+<span class="syn-cm">-- It does NOT help queries filtering ONLY by created_at</span>
+<span class="syn-kw">CREATE INDEX</span> idx_orders_user_created <span class="syn-kw">ON</span> orders (user_id, created_at);
+
+<span class="syn-cm">-- Covering index: all needed data lives IN the index</span>
+<span class="syn-cm">-- The query never touches the main table at all</span>
+<span class="syn-kw">CREATE INDEX</span> idx_departments_name <span class="syn-kw">ON</span> departments (name) <span class="syn-kw">INCLUDE</span> (id);</code></pre>
+
+<h3>Index Komposit vs. Covering</h3>
+
+<div class="compare-grid">
+  <div class="compare-card">
+    <h5>Composite Index</h5>
+    <ul>
+      <li>Meng-index <strong>beberapa kolom</strong> sekaligus</li>
+      <li>Mengoptimalkan query yang memfilter pada kolom itu</li>
+      <li><strong>Urutan kolom penting</strong>: aturan awalan paling kiri</li>
+      <li>Index pada <code>(A, B)</code> membantu <code>WHERE A=...</code> dan <code>WHERE A=... AND B=...</code> tapi bukan <code>WHERE B=...</code> sendirian</li>
+    </ul>
+  </div>
+  <div class="compare-card">
+    <h5>Covering Index</h5>
+    <ul>
+      <li>Menyertakan semua kolom yang dibutuhkan query</li>
+      <li>Database melayani data <strong>sepenuhnya dari index</strong></li>
+      <li>Menghilangkan "heap lookup" (kembali ke tabel)</li>
+      <li>Memakai klausa <code>INCLUDE</code> di Postgres untuk menambah kolom non-key</li>
+    </ul>
+  </div>
+</div>
+
+<h3>Biaya index</h3>
+
+<p>Index tidak gratis. Setiap index mengonsumsi ruang disk (dan idealnya muat di memori). Lebih kritis, setiap <code>INSERT</code>, <code>UPDATE</code>, atau <code>DELETE</code> harus memperbarui semua index terkait. Jika Anda membuta meng-index setiap kolom, operasi tulis Anda melambat dramatis. Pedomannya: index kolom yang muncul di klausa <code>WHERE</code>, <code>JOIN</code>, dan <code>ORDER BY</code> dari query paling sering Anda, dan biarkan sisanya.</p>
+
+<h3>EXPLAIN ANALYZE: membaca query plan</h3>
+
+<p>Untuk menemukan apakah query Anda memakai index, Postgres menyediakan perintah <code>EXPLAIN ANALYZE</code>. Ia menjalankan query dan menampilkan rencana eksekusi persis, tabel mana yang dipindai, index mana yang dipakai, dan berapa lama tiap langkah.</p>
+
+<pre><code><span class="code-label">SQL</span>
+<span class="syn-kw">EXPLAIN ANALYZE</span>
+<span class="syn-kw">SELECT</span> p.*, u.name <span class="syn-kw">AS</span> author_name
+<span class="syn-kw">FROM</span> posts p
+<span class="syn-kw">JOIN</span> users u <span class="syn-kw">ON</span> u.id = p.author_id
+<span class="syn-kw">WHERE</span> p.published = <span class="syn-kw">true</span>
+<span class="syn-kw">ORDER BY</span> p.created_at <span class="syn-kw">DESC</span>
+<span class="syn-kw">LIMIT</span> <span class="syn-num">20</span>;
+
+<span class="syn-cm">-- Look for "Seq Scan" in the output, that means no index is being used.</span>
+<span class="syn-cm">-- After adding an index, re-run and confirm it shows "Index Scan".</span></code></pre>
+
+<div class="ref-box">
+  <span><strong>Reference:</strong> <a href="https://www.postgresql.org/docs/current/using-explain.html" target="_blank">PostgreSQL, Using EXPLAIN</a>, official documentation on reading query execution plans.</span>
+</div>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 11 -->
+
+<div id="s11" class="section-heading">
+  <span class="section-num">11</span>
+  <h2>Connection Pooling</h2>
+</div>
+
+<p>Membangun koneksi database mahal. Setiap koneksi baru melibatkan three-way handshake TCP, autentikasi, negosiasi enkripsi, setup state sesi, dan alokasi memori di server database (biasanya beberapa MB per koneksi). Jika aplikasi Anda membuka koneksi baru untuk setiap query dan langsung menutupnya, Anda membayar biaya ini di setiap request.</p>
+
+<h3>Dua masalahnya</h3>
+
+<p><strong>Masalah 1: Overhead latensi.</strong> Setiap setup koneksi menambah puluhan milidetik overhead, waktu terbuang sebelum query apa pun berjalan. <strong>Masalah 2: Kehabisan koneksi.</strong> Database punya batas keras koneksi serentak (Postgres default ±100, sering dikonfigurasi 300-500). Selama lonjakan lalu lintas, backend Anda bisa menghabiskan batas koneksi dan men-crash database.</p>
+
+<h3>Connection pooling</h3>
+
+<p>Connection pool memelihara set koneksi yang sudah didirikan dan bisa dipakai ulang. Alih-alih membuat koneksi baru untuk tiap query, aplikasi Anda meminjam koneksi dari pool, memakainya, dan mengembalikannya. Koneksi tetap terbuka untuk dipakai ulang request berikutnya. Ini menghilangkan overhead latensi dan risiko kehabisan koneksi.</p>
+
+<div class="diagram-container">
+  <svg viewBox="0 0 620 220" xmlns="http://www.w3.org/2000/svg" style="max-width:620px;width:100%">
+    <!-- Server instances -->
+    <rect x="20" y="30" width="80" height="50" rx="4" fill="#e9e2d3" stroke="#5b5347" stroke-width="1.2"/>
+    <text x="60" y="58" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">Server 1</text>
+    <rect x="20" y="90" width="80" height="50" rx="4" fill="#e9e2d3" stroke="#5b5347" stroke-width="1.2"/>
+    <text x="60" y="118" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">Server 2</text>
+    <rect x="20" y="150" width="80" height="50" rx="4" fill="#e9e2d3" stroke="#5b5347" stroke-width="1.2"/>
+    <text x="60" y="178" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">Server 3</text>
+
+    <!-- Arrows to pool -->
+    <line x1="100" y1="55" x2="230" y2="110" stroke="#5b5347" stroke-width="1" marker-end="url(#arrowD)"/>
+    <line x1="100" y1="115" x2="230" y2="115" stroke="#5b5347" stroke-width="1" marker-end="url(#arrowD)"/>
+    <line x1="100" y1="175" x2="230" y2="120" stroke="#5b5347" stroke-width="1" marker-end="url(#arrowD)"/>
+
+    <!-- External Pool -->
+    <rect x="230" y="70" width="150" height="90" rx="6" fill="#3f6f4e" fill-opacity="0.1" stroke="#3f6f4e" stroke-width="1.5"/>
+    <text x="305" y="92" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="9" font-weight="700" fill="#a9c98a" letter-spacing="0.08em">EXTERNAL POOL</text>
+    <text x="305" y="107" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">(e.g. PgBouncer)</text>
+
+    <!-- Connection slots -->
+    <rect x="245" y="118" width="18" height="18" rx="3" fill="#3f6f4e" fill-opacity="0.3" stroke="#3f6f4e" stroke-width="0.8"/>
+    <rect x="268" y="118" width="18" height="18" rx="3" fill="#3f6f4e" fill-opacity="0.3" stroke="#3f6f4e" stroke-width="0.8"/>
+    <rect x="291" y="118" width="18" height="18" rx="3" fill="#3f6f4e" fill-opacity="0.3" stroke="#3f6f4e" stroke-width="0.8"/>
+    <rect x="314" y="118" width="18" height="18" rx="3" fill="#3f6f4e" fill-opacity="0.3" stroke="#3f6f4e" stroke-width="0.8"/>
+    <rect x="337" y="118" width="18" height="18" rx="3" fill="#3f6f4e" fill-opacity="0.3" stroke="#3f6f4e" stroke-width="0.8"/>
+    <text x="305" y="150" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#5b5347">max: 250 conns</text>
+
+    <!-- Arrow to DB -->
+    <line x1="380" y1="115" x2="470" y2="115" stroke="#37607f" stroke-width="1.5" marker-end="url(#arrowB2)"/>
+
+    <!-- Database -->
+    <rect x="470" y="80" width="120" height="70" rx="6" fill="#e9e2d3" stroke="#37607f" stroke-width="1.5"/>
+    <text x="530" y="112" text-anchor="middle" font-family="'Source Serif 4',serif" font-size="12" font-weight="600" fill="#232019">PostgreSQL</text>
+    <text x="530" y="132" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">max: 300</text>
+
+    <defs>
+      <marker id="arrowD" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#5b5347"/></marker>
+      <marker id="arrowB2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#37607f"/></marker>
+    </defs>
+  </svg>
+  <div class="diagram-caption">Fig 7 / External connection pool (PgBouncer) sits between servers and database</div>
+</div>
+
+<h3>Pooling internal vs. eksternal</h3>
+
+<div class="compare-grid">
+  <div class="compare-card">
+    <h5>Internal Pool</h5>
+    <ul>
+      <li>Pool hidup <strong>di dalam</strong> tiap instance server</li>
+      <li>Tiap instance memelihara koneksinya sendiri</li>
+      <li>Setup sederhana; kebanyakan driver DB menyertakannya</li>
+      <li><strong>Risiko:</strong> 3 instance x 150 koneksi = 450, yang bisa melebihi batas DB 300</li>
+    </ul>
+  </div>
+  <div class="compare-card">
+    <h5>External Pool</h5>
+    <ul>
+      <li>Proses mandiri (PgBouncer, PgCat)</li>
+      <li><strong>Semua</strong> instance server berbagi satu pool</li>
+      <li>Total koneksi ke DB dikendalikan terpusat</li>
+      <li>Dipilih untuk <strong>sistem produksi yang di-scaling horizontal</strong></li>
+    </ul>
+  </div>
+</div>
+
+<h4>Connection pooling di Go</h4>
+
+<pre><code><span class="code-label">Go</span>
+<span class="syn-kw">import</span> <span class="syn-str">"database/sql"</span>
+
+db, err := sql.<span class="syn-fn">Open</span>(<span class="syn-str">"postgres"</span>, connStr)
+<span class="syn-kw">if</span> err != <span class="syn-kw">nil</span> {
+    log.<span class="syn-fn">Fatal</span>(err)
+}
+
+<span class="syn-cm">// Configure the built-in connection pool</span>
+db.<span class="syn-fn">SetMaxOpenConns</span>(<span class="syn-num">25</span>)                  <span class="syn-cm">// max open connections to the DB</span>
+db.<span class="syn-fn">SetMaxIdleConns</span>(<span class="syn-num">10</span>)                  <span class="syn-cm">// max idle connections kept ready</span>
+db.<span class="syn-fn">SetConnMaxLifetime</span>(<span class="syn-num">5</span> * time.Minute)  <span class="syn-cm">// recycle connections after 5 min</span>
+db.<span class="syn-fn">SetConnMaxIdleTime</span>(<span class="syn-num">1</span> * time.Minute)  <span class="syn-cm">// close idle connections after 1 min</span></code></pre>
+
+<h4>Connection pooling di Python (SQLAlchemy)</h4>
+
+<pre><code><span class="code-label">Python</span>
+<span class="syn-kw">from</span> sqlalchemy <span class="syn-kw">import</span> create_engine
+
+engine = <span class="syn-fn">create_engine</span>(
+    <span class="syn-str">"postgresql://user:pass@host/db"</span>,
+    pool_size=<span class="syn-num">20</span>,          <span class="syn-cm"># number of persistent connections</span>
+    max_overflow=<span class="syn-num">10</span>,       <span class="syn-cm"># extra connections allowed during spikes</span>
+    pool_timeout=<span class="syn-num">30</span>,       <span class="syn-cm"># seconds to wait for a free connection</span>
+    pool_recycle=<span class="syn-num">1800</span>,     <span class="syn-cm"># recycle connections every 30 minutes</span>
+    pool_pre_ping=<span class="syn-kw">True</span>,    <span class="syn-cm"># test connection health before use</span>
+)</code></pre>
+
+<div class="ref-box">
+  <span><strong>Reference:</strong> <a href="https://www.pgbouncer.org/" target="_blank">PgBouncer</a>, lightweight connection pooler for PostgreSQL, the de facto standard for production Postgres deployments.</span>
+</div>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 12 -->
+
+<div id="s12" class="section-heading">
+  <span class="section-num">12</span>
+  <h2>Fundamental Caching</h2>
+</div>
+
+<p>Caching adalah praktik menyimpan hasil operasi mahal di lapisan penyimpanan lebih cepat supaya request berikutnya untuk data yang sama bisa dilayani tanpa mengulang kerja mahal. Gagasannya indah sederhana: hitung sekali, layani banyak.</p>
+
+<p>Dalam praktik, Anda menaruh cache (biasanya Redis, Memcached, atau Valkey) di depan database. Saat request tiba, Anda cek cache dulu. Pada <strong>cache hit</strong>, Anda mengembalikan data ter-cache seketika, sering di bawah 5ms. Pada <strong>cache miss</strong>, Anda query database, menyimpan hasilnya di cache, lalu mengembalikannya. Satu langkah bisa mengurangi latensi yang dirasakan dari 800ms ke 50ms.</p>
+
+<h3>Caching lokal vs. terdistribusi</h3>
+
+<div class="compare-grid">
+  <div class="compare-card">
+    <h5>Local Cache</h5>
+    <ul>
+      <li>Memori dalam proses (dictionary/map)</li>
+      <li>Akses tercepat mungkin: 1-3ms</li>
+      <li>Privat ke tiap instance server</li>
+      <li><strong>Masalah:</strong> inkonsistensi cache lintas instance</li>
+    </ul>
+  </div>
+  <div class="compare-card">
+    <h5>Distributed Cache</h5>
+    <ul>
+      <li>Layanan eksternal (Redis, Memcached, Valkey)</li>
+      <li>Dibagikan lintas semua instance server</li>
+      <li>Tanpa inkonsistensi antar server</li>
+      <li><strong>Kekurangan:</strong> round trip jaringan menambah ±5-50ms</li>
+    </ul>
+  </div>
+</div>
+
+<h3>Caching bertingkat</h3>
+
+<p>Banyak sistem produksi memakai keduanya: cache lokal kecil untuk data "terpanas" (item paling sering diakses) yang didukung cache terdistribusi lebih besar. Request memeriksa cache lokal dulu (sub-milidetik), lalu jatuh ke cache terdistribusi (beberapa milidetik), dan hanya memukul database saat miss penuh.</p>
+
+<h4>Caching Redis sederhana di Go</h4>
+
+<pre><code><span class="code-label">Go</span>
+<span class="syn-kw">import</span> (
+    <span class="syn-str">"context"</span>
+    <span class="syn-str">"encoding/json"</span>
+    <span class="syn-str">"time"</span>
+    <span class="syn-str">"github.com/redis/go-redis/v9"</span>
+)
+
+<span class="syn-kw">var</span> rdb = redis.<span class="syn-fn">NewClient</span>(&redis.Options{Addr: <span class="syn-str">"localhost:6379"</span>})
+
+<span class="syn-kw">func</span> <span class="syn-fn">GetProduct</span>(ctx <span class="syn-type">context.Context</span>, id <span class="syn-type">string</span>) (*<span class="syn-type">Product</span>, <span class="syn-type">error</span>) {
+    cacheKey := <span class="syn-str">"product:"</span> + id
+
+    <span class="syn-cm">// 1. Try cache first</span>
+    cached, err := rdb.<span class="syn-fn">Get</span>(ctx, cacheKey).<span class="syn-fn">Result</span>()
+    <span class="syn-kw">if</span> err == <span class="syn-kw">nil</span> {
+        <span class="syn-kw">var</span> p <span class="syn-type">Product</span>
+        json.<span class="syn-fn">Unmarshal</span>([]<span class="syn-kw">byte</span>(cached), &p)
+        <span class="syn-kw">return</span> &p, <span class="syn-kw">nil</span>  <span class="syn-cm">// Cache HIT, ~2ms</span>
+    }
+
+    <span class="syn-cm">// 2. Cache miss, query database</span>
+    p, err := <span class="syn-fn">queryProductFromDB</span>(ctx, id)
+    <span class="syn-kw">if</span> err != <span class="syn-kw">nil</span> {
+        <span class="syn-kw">return</span> <span class="syn-kw">nil</span>, err
+    }
+
+    <span class="syn-cm">// 3. Store in cache with TTL</span>
+    data, _ := json.<span class="syn-fn">Marshal</span>(p)
+    rdb.<span class="syn-fn">Set</span>(ctx, cacheKey, data, <span class="syn-num">10</span>*time.Minute)
+
+    <span class="syn-kw">return</span> p, <span class="syn-kw">nil</span>
+}</code></pre>
+
+<h4>Caching Redis sederhana di Python</h4>
+
+<pre><code><span class="code-label">Python</span>
+<span class="syn-kw">import</span> json, redis
+
+r = redis.<span class="syn-fn">Redis</span>(host=<span class="syn-str">"localhost"</span>, port=<span class="syn-num">6379</span>, decode_responses=<span class="syn-kw">True</span>)
+
+<span class="syn-kw">def</span> <span class="syn-fn">get_product</span>(product_id: <span class="syn-type">str</span>) -> <span class="syn-type">dict</span>:
+    cache_key = <span class="syn-str">f"product:</span>{product_id}<span class="syn-str">"</span>
+
+    <span class="syn-cm"># 1. Try cache</span>
+    cached = r.<span class="syn-fn">get</span>(cache_key)
+    <span class="syn-kw">if</span> cached:
+        <span class="syn-kw">return</span> json.<span class="syn-fn">loads</span>(cached)  <span class="syn-cm"># Cache HIT</span>
+
+    <span class="syn-cm"># 2. Cache miss, query database</span>
+    product = <span class="syn-fn">query_product_from_db</span>(product_id)
+
+    <span class="syn-cm"># 3. Store with 10-minute TTL</span>
+    r.<span class="syn-fn">setex</span>(cache_key, <span class="syn-num">600</span>, json.<span class="syn-fn">dumps</span>(product))
+    <span class="syn-kw">return</span> product</code></pre>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 13 -->
+
+<div id="s13" class="section-heading">
+  <span class="section-num">13</span>
+  <h2>Invalidasi Cache</h2>
+</div>
+
+<p>Ada pepatah terkenal di ilmu komputer: <em>"Hanya ada dua masalah sulit dalam pemrograman: menamai hal, invalidasi cache, dan off-by-one error."</em> Invalidasi cache, menjaga data ter-cache sinkron dengan sumber kebenaran, benar-benar salah satu masalah tersulit di sistem terdistribusi.</p>
+
+<h3>Kedaluwarsa berbasis waktu (TTL)</h3>
+
+<p>Pendekatan paling sederhana: set <strong>Time To Live (TTL)</strong> di setiap entri cache. Setelah TTL kedaluwarsa, entri otomatis dihapus. Request berikutnya memicu query database segar. Tantangannya memilih TTL yang tepat, terlalu pendek dan Anda kehilangan sebagian besar manfaat caching; terlalu panjang dan pengguna melihat data basi.</p>
+
+<h3>Invalidasi berbasis peristiwa</h3>
+
+<p>Alih-alih menunggu timer, Anda secara eksplisit menghapus atau memperbarui entri cache kapan pun data yang mendasarinya berubah. Misalnya, saat pengguna memperbarui profilnya, handler pembaruan juga menghapus entri profil ter-cache. Request baca berikutnya akan mengambil data segar dari database dan mengisi ulang cache.</p>
+
+<p>Keuntungannya: data selalu segar. Risikonya: jika Anda lupa meng-invalidate di bahkan satu jalur kode yang memodifikasi data, Anda menyajikan hasil basi. Ini menuntut disiplin dan review kode menyeluruh.</p>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 14 -->
+
+<div id="s14" class="section-heading">
+  <span class="section-num">14</span>
+  <h2>Pola Caching</h2>
+</div>
+
+<p>Pola caching menentukan kapan dan bagaimana data masuk cache. Tiga pola utama mendominasi engineering backend:</p>
+
+<h3>1. Cache-Aside (Lazy Loading)</h3>
+
+<p>Pola paling umum. Kode aplikasi Anda mengelola cache secara eksplisit: cek cache -&gt; saat miss, query DB -&gt; simpan hasil di cache -&gt; kembalikan. Saat tulis, invalidate atau hapus entri cache.</p>
+
+<div class="callout">
+  <div class="callout-title">Cache-Aside Flow</div>
+  <p><strong>Baca:</strong> Cek cache -&gt; hit? Kembalikan. Miss? Query DB -&gt; tulis ke cache -&gt; kembalikan. <strong>Tulis:</strong> Update DB -&gt; hapus entri cache (baca berikutnya mengisi ulang).</p>
+</div>
+
+<h3>2. Write-Through</h3>
+
+<p>Setiap operasi tulis memperbarui <em>keduanya</em> cache dan database secara bersamaan. Baca selalu menemukan data segar di cache, tidak ada cache miss setelah tulis pertama. Komprominya: latensi tulis naik karena Anda menulis ke dua sistem sebelum mengembalikan respons sukses.</p>
+
+<h3>3. Write-Behind (Write-Back)</h3>
+
+<p>Tulis hanya memperbarui cache dan langsung mengembalikan. Pembaruan database terjadi asinkron di latar. Ini memberi latensi tulis tercepat tapi memperkenalkan risiko: jika cache gagal sebelum tulis asinkron selesai, data hilang. Cache dan database mungkin untuk sementara tidak konsisten.</p>
+
+<table>
+  <thead><tr><th>Pola</th><th>Kecepatan Baca</th><th>Kecepatan Tulis</th><th>Konsistensi</th><th>Kompleksitas</th></tr></thead>
+  <tbody>
+    <tr><td>Cache-Aside</td><td>Cepat (setelah miss pertama)</td><td>Normal</td><td>Baik (invalidasi eksplisit)</td><td>Rendah</td></tr>
+    <tr><td>Write-Through</td><td>Selalu cepat</td><td>Lebih lambat (tulis ganda)</td><td>Kuat</td><td>Sedang</td></tr>
+    <tr><td>Write-Behind</td><td>Selalu cepat</td><td>Tercepat</td><td>Eventual (risiko kehilangan)</td><td>Tinggi</td></tr>
+  </tbody>
+</table>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 15 -->
+
+<div id="s15" class="section-heading">
+  <span class="section-num">15</span>
+  <h2>Cache Hit Rate</h2>
+</div>
+
+<p>Cache hit rate mengukur berapa persen request yang berhasil dilayani dari cache alih-alih jatuh ke database. Hit rate 90% berarti 9 dari 10 request dilayani dari cache; hanya 10% menyentuh database. Hit rate 20% berarti lapisan caching Anda nyaris tidak bekerja.</p>
+
+<div class="formula">
+  Cache Hit Rate = Cache Hits / (Cache Hits + Cache Misses) x 100%
+</div>
+
+<h3>Faktor yang memengaruhi hit rate</h3>
+
+<p><strong>Durasi TTL:</strong> TTL lebih panjang menjaga item di cache lebih lama, menaikkan hit rate tapi berisiko basi. <strong>Ukuran cache:</strong> Cache lebih besar memegang lebih banyak entri, secara alami menaikkan probabilitas hit. <strong>Pola akses data:</strong> Jika lalu lintas Anda sangat terkonsentrasi pada set kecil item "panas" (distribusi power-law), caching sangat efektif. Jika lalu lintas tersebar merata di jutaan key unik, hit rate akan lebih rendah. <strong>Kebijakan eviction:</strong> Algoritma seperti LRU (Least Recently Used) dan LFU (Least Frequently Used) menentukan entri mana yang di-evict saat cache penuh, memilih yang tepat tergantung pola akses Anda.</p>
+
+<div class="callout info">
+  <div class="callout-title">Target hit rates</div>
+  <p>Untuk kebanyakan aplikasi web, hit rate <strong>70-95%</strong> dianggap sehat. Di bawah 50% menandakan ketidakcocokan fundamental antara strategi caching Anda dan pola akses aktual, saatnya memeriksa ulang TTL, key cache, dan kebijakan eviction Anda.</p>
+</div>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 16 -->
+
+<div id="s16" class="section-heading">
+  <span class="section-num">16</span>
+  <h2>Vertical Scaling</h2>
+</div>
+
+<p>Vertical scaling (juga disebut "scaling up") berarti mengganti server Anda dengan mesin lebih kuat, lebih banyak core CPU, lebih banyak RAM, penyimpanan lebih cepat, network card lebih baik. Kode Anda tidak berubah. Arsitektur Anda tidak berubah. Anda cukup meng-upgrade perangkat kerasnya.</p>
+
+<h3>Kenapa ia menarik</h3>
+
+<p>Vertical scaling bentuk scaling paling sederhana. Server dengan 2x core CPU menangani sekitar 2x request. Server dengan 2x RAM bisa menampung 2x data ter-cache. Anda menghindari seluruh kategori kompleksitas sistem terdistribusi: tanpa load balancer, tanpa sinkronisasi state, tanpa penanganan partisi jaringan. Secara ekonomi, satu mesin dengan 2x daya sering lebih murah daripada dua mesin setengah ukurannya, dan Anda melewati overhead operasional mengelola armada.</p>
+
+<h3>Batas keras vertical scaling</h3>
+
+<p><strong>Plafon perangkat keras:</strong> Penyedia cloud menawarkan mesin sampai ukuran tertentu. Begitu Anda memaksimalkan instance terbesar yang tersedia (mis. 96 core, 384 GB RAM), Anda sama sekali tidak bisa scaling lebih jauh. <strong>Single point of failure:</strong> Satu mesin berarti satu domain kegagalan. Jika ia crash, seluruh layanan Anda offline. <strong>Tanpa distribusi geografis:</strong> Satu server di satu pusat data berarti pengguna di sisi lain dunia mengalami latensi tinggi, fisika memberlakukan lantai kecepatan cahaya untuk round trip lintas benua (±100ms AS&lt;-&gt;India).</p>
+
+<div class="diagram-container">
+  <svg viewBox="0 0 580 170" xmlns="http://www.w3.org/2000/svg" style="max-width:580px;width:100%">
+    <!-- Small server -->
+    <rect x="30" y="60" width="80" height="80" rx="5" fill="#e9e2d3" stroke="#5b5347" stroke-width="1.2"/>
+    <text x="70" y="90" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">2 cores</text>
+    <text x="70" y="105" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">4 GB</text>
+    <text x="70" y="120" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">50 GB</text>
+    <text x="70" y="155" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="9" fill="#5b5347">$50/mo</text>
+
+    <!-- Arrow -->
+    <text x="175" y="105" text-anchor="middle" font-family="'Source Serif 4',serif" font-size="22" fill="#b8402e">-&gt;</text>
+
+    <!-- Medium server -->
+    <rect x="220" y="45" width="100" height="95" rx="5" fill="#e9e2d3" stroke="#5b5347" stroke-width="1.2"/>
+    <text x="270" y="78" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">8 cores</text>
+    <text x="270" y="93" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">32 GB</text>
+    <text x="270" y="108" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">500 GB SSD</text>
+    <text x="270" y="155" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="9" fill="#5b5347">$320/mo</text>
+
+    <!-- Arrow -->
+    <text x="385" y="105" text-anchor="middle" font-family="'Source Serif 4',serif" font-size="22" fill="#b8402e">-&gt;</text>
+
+    <!-- Big server -->
+    <rect x="420" y="25" width="130" height="115" rx="5" fill="#e9e2d3" stroke="#b8402e" stroke-width="1.5"/>
+    <text x="485" y="60" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">32 cores</text>
+    <text x="485" y="75" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">96 GB RAM</text>
+    <text x="485" y="90" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">2 TB NVMe</text>
+    <text x="485" y="105" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">10 Gbps NIC</text>
+    <text x="485" y="155" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="9" fill="#5b5347">$2,400/mo</text>
+
+    <!-- Ceiling label -->
+    <line x1="420" y1="18" x2="550" y2="18" stroke="#b8402e" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <text x="485" y="12" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="8" font-weight="700" fill="#b8402e" letter-spacing="0.1em">HARDWARE CEILING</text>
+  </svg>
+  <div class="diagram-caption">Fig 8 / Vertical scaling: bigger machines, same architecture, hard ceiling</div>
+</div>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 17 -->
+
+<div id="s17" class="section-heading">
+  <span class="section-num">17</span>
+  <h2>Horizontal Scaling</h2>
+</div>
+
+<p>Horizontal scaling (juga disebut "scaling out") mengambil pendekatan berlawanan: alih-alih membuat satu mesin lebih besar, Anda menambah lebih banyak mesin berukuran serupa yang bekerja bersama menangani beban.</p>
+
+<h3>Keuntungan</h3>
+
+<p><strong>Tanpa plafon keras:</strong> Butuh kapasitas lebih? Tambah server. Tidak ada batas berapa banyak instance yang bisa Anda jalankan. <strong>Redundansi:</strong> Jika satu server gagal, yang lain terus melayani lalu lintas, kegagalan diserap, bukan katastrofal. <strong>Distribusi geografis:</strong> Anda bisa menaruh server di banyak pusat data di seluruh dunia, merutekan pengguna ke yang terdekat untuk latensi minimal.</p>
+
+<h3>Biaya kompleksitas</h3>
+
+<p>Horizontal scaling memperkenalkan kategori masalah yang sepenuhnya baru, masalah sistem terdistribusi:</p>
+
+<p><strong>Distribusi request:</strong> Bagaimana Anda memutuskan server mana yang menangani tiap request? Anda butuh load balancer, komponen baru di infrastruktur Anda. <strong>Sinkronisasi state:</strong> Jika user A memperbarui profilnya di Server 1, bagaimana Server 2 mengetahuinya? <strong>Partisi jaringan:</strong> Apa yang terjadi saat jaringan yang menghubungkan server Anda gagal? Server bisa membuat keputusan yang bertentangan. <strong>Health checking:</strong> Bagaimana Anda mendeteksi saat server mati, dan bagaimana Anda mengalihkan lalu lintas darinya dan kembali saat ia pulih?</p>
+
+<p>Semua masalah ini punya solusi, load balancer, database bersama, algoritma konsensus, health check, tapi tiap solusi menambah kompleksitas dan butuh rekayasa hati-hati. Sistem terdistribusi tidak menghilangkan masalah; mereka <em>mentransformasi</em> satu set masalah menjadi set yang berbeda, dan Anda harus mengevaluasi set masalah mana yang lebih bisa dikelola untuk situasi Anda.</p>
+
+<div class="compare-grid">
+  <div class="compare-card">
+    <h5>Vertical Scaling</h5>
+    <ul>
+      <li>Sederhana, tanpa perubahan arsitektur</li>
+      <li>Tanpa kompleksitas sistem terdistribusi</li>
+      <li>Efisien secara ekonomi di skala kecil</li>
+      <li>Plafon perangkat keras yang keras</li>
+      <li>Single point of failure</li>
+      <li>Tanpa distribusi geografis</li>
+    </ul>
+  </div>
+  <div class="compare-card">
+    <h5>Horizontal Scaling</h5>
+    <ul>
+      <li>Tanpa plafon kapasitas</li>
+      <li>Redundansi bawaan</li>
+      <li>Distribusi geografis mungkin</li>
+      <li>Butuh load balancing</li>
+      <li>Sinkronisasi state dibutuhkan</li>
+      <li>Kompleks secara operasional</li>
+    </ul>
+  </div>
+</div>
+
+
+<hr class="section-rule">
+
+
+<!-- SECTION 18 -->
+
+<div id="s18" class="section-heading">
+  <span class="section-num">18</span>
+  <h2>Load Balancing</h2>
+</div>
+
+<p>Begitu Anda punya lebih dari satu server, Anda butuh mekanisme mendistribusikan request masuk di antara mereka. Mekanisme itu load balancer. Ia duduk di depan server Anda, menerima semua lalu lintas masuk, dan meneruskan tiap request ke salah satu instance backend yang tersedia berdasarkan algoritma terpilih.</p>
+
+<h3>Algoritma umum</h3>
+
+<p><strong>Round Robin:</strong> Request didistribusikan berurutan, server 1, server 2, server 3, ulang. Sederhana dan merata. <strong>Least Connections:</strong> Tiap request pergi ke server yang saat ini menangani koneksi aktif paling sedikit. Lebih baik untuk request dengan durasi bervariasi. <strong>IP Hash:</strong> Alamat IP klien menentukan server mana yang menerima request, memastikan klien yang sama selalu memukul server yang sama (berguna untuk sesi affinity). <strong>Weighted Round Robin:</strong> Server dengan kapasitas lebih menerima request proporsional lebih banyak.</p>
+
+<div class="diagram-container">
+  <svg viewBox="0 0 600 210" xmlns="http://www.w3.org/2000/svg" style="max-width:600px;width:100%">
+    <!-- Users -->
+    <rect x="20" y="70" width="65" height="70" rx="4" fill="#e9e2d3" stroke="#5b5347" stroke-width="1.2"/>
+    <text x="52" y="100" text-anchor="middle" font-family="'Source Serif 4',serif" font-size="10" fill="#5b5347">Users</text>
+    <text x="52" y="118" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#5b5347">10K RPS</text>
+
+    <!-- Arrow to LB -->
+    <line x1="85" y1="105" x2="160" y2="105" stroke="#5b5347" stroke-width="1.2" marker-end="url(#arrowD2)"/>
+
+    <!-- Load Balancer -->
+    <rect x="160" y="55" width="110" height="100" rx="6" fill="#b8402e" fill-opacity="0.1" stroke="#b8402e" stroke-width="1.5"/>
+    <text x="215" y="85" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="9" font-weight="700" fill="#b8402e" letter-spacing="0.06em">LOAD</text>
+    <text x="215" y="100" text-anchor="middle" font-family="'Libre Franklin',sans-serif" font-size="9" font-weight="700" fill="#b8402e" letter-spacing="0.06em">BALANCER</text>
+    <text x="215" y="120" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#5b5347">Nginx / HAProxy</text>
+    <text x="215" y="140" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#5b5347">ALB / Traefik</text>
+
+    <!-- Arrows to servers -->
+    <line x1="270" y1="80" x2="370" y2="40" stroke="#5b5347" stroke-width="1" marker-end="url(#arrowD2)"/>
+    <line x1="270" y1="105" x2="370" y2="105" stroke="#5b5347" stroke-width="1" marker-end="url(#arrowD2)"/>
+    <line x1="270" y1="130" x2="370" y2="170" stroke="#5b5347" stroke-width="1" marker-end="url(#arrowD2)"/>
+
+    <!-- Servers -->
+    <rect x="370" y="18" width="90" height="42" rx="4" fill="#e9e2d3" stroke="#5b5347" stroke-width="1.2"/>
+    <text x="415" y="38" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">Server 1</text>
+    <text x="415" y="52" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#5b5347">US-East</text>
+
+    <rect x="370" y="84" width="90" height="42" rx="4" fill="#e9e2d3" stroke="#5b5347" stroke-width="1.2"/>
+    <text x="415" y="104" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">Server 2</text>
+    <text x="415" y="118" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#5b5347">EU-West</text>
+
+    <rect x="370" y="150" width="90" height="42" rx="4" fill="#e9e2d3" stroke="#5b5347" stroke-width="1.2"/>
+    <text x="415" y="170" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="9" fill="#5b5347">Server 3</text>
+    <text x="415" y="184" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="#5b5347">AP-South</text>
+
+    <!-- RPS labels -->
+    <text x="520" y="42" font-family="'JetBrains Mono',monospace" font-size="8" fill="#3f6f4e">~3.3K RPS</text>
+    <text x="520" y="108" font-family="'JetBrains Mono',monospace" font-size="8" fill="#3f6f4e">~3.3K RPS</text>
+    <text x="520" y="174" font-family="'JetBrains Mono',monospace" font-size="8" fill="#3f6f4e">~3.3K RPS</text>
+
+    <defs>
+      <marker id="arrowD2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#5b5347"/></marker>
+    </defs>
+  </svg>
+  <div class="diagram-caption">Fig 9 / Load balancer distributes traffic across geographically distributed servers</div>
+</div>
+
+<h3>Load balancer dalam praktik (config Nginx)</h3>
+
+<pre><code><span class="code-label">Nginx</span>
+<span class="syn-kw">upstream</span> backend {
+    <span class="syn-cm"># Least connections algorithm</span>
+    <span class="syn-kw">least_conn</span>;
+
+    <span class="syn-kw">server</span> <span class="syn-str">10.0.1.10:8080</span> <span class="syn-kw">weight</span>=<span class="syn-num">3</span>;   <span class="syn-cm"># stronger machine</span>
+    <span class="syn-kw">server</span> <span class="syn-str">10.0.1.11:8080</span> <span class="syn-kw">weight</span>=<span class="syn-num">2</span>;
+    <span class="syn-kw">server</span> <span class="syn-str">10.0.1.12:8080</span> <span class="syn-kw">weight</span>=<span class="syn-num">2</span>;
+    <span class="syn-kw">server</span> <span class="syn-str">10.0.1.13:8080</span> <span class="syn-kw">backup</span>;     <span class="syn-cm"># only used if others are down</span>
+}
+
+<span class="syn-kw">server</span> {
+    <span class="syn-kw">listen</span> <span class="syn-num">443</span> ssl;
+    <span class="syn-kw">server_name</span> api.example.com;
+
+    <span class="syn-kw">location</span> / {
+        <span class="syn-kw">proxy_pass</span> http://backend;
+        <span class="syn-kw">proxy_set_header</span> Host $host;
+        <span class="syn-kw">proxy_set_header</span> X-Real-IP $remote_addr;
+    }
+}</code></pre>
+
+<h3>Health check</h3>
+
+<p>Load balancer secara berkala mengirim probe health check (request HTTP ke endpoint <code>/health</code>) ke tiap backend. Jika server gagal merespons, load balancer berhenti merutekan lalu lintas ke sana. Saat server pulih, lalu lintas dilanjutkan. Ini mekanisme yang menyediakan manfaat redundansi dari horizontal scaling.</p>
+
+<h4>Endpoint health sederhana di Go</h4>
+
+<pre><code><span class="code-label">Go</span>
+http.<span class="syn-fn">HandleFunc</span>(<span class="syn-str">"/health"</span>, <span class="syn-kw">func</span>(w <span class="syn-type">http.ResponseWriter</span>, r *<span class="syn-type">http.Request</span>) {
+    <span class="syn-cm">// Check database connectivity</span>
+    <span class="syn-kw">if</span> err := db.<span class="syn-fn">PingContext</span>(r.<span class="syn-fn">Context</span>()); err != <span class="syn-kw">nil</span> {
+        w.<span class="syn-fn">WriteHeader</span>(http.StatusServiceUnavailable)
+        json.<span class="syn-fn">NewEncoder</span>(w).<span class="syn-fn">Encode</span>(<span class="syn-kw">map</span>[<span class="syn-type">string</span>]<span class="syn-type">string</span>{
+            <span class="syn-str">"status"</span>: <span class="syn-str">"unhealthy"</span>,
+            <span class="syn-str">"reason"</span>: <span class="syn-str">"database unreachable"</span>,
+        })
+        <span class="syn-kw">return</span>
+    }
+    w.<span class="syn-fn">WriteHeader</span>(http.StatusOK)
+    json.<span class="syn-fn">NewEncoder</span>(w).<span class="syn-fn">Encode</span>(<span class="syn-kw">map</span>[<span class="syn-type">string</span>]<span class="syn-type">string</span>{
+        <span class="syn-str">"status"</span>: <span class="syn-str">"healthy"</span>,
+    })
+})</code></pre>
+
+
+<hr class="section-rule">
+
+
+<!-- FINAL SUMMARY -->
+
+
+<div class="section-heading">
+  <span class="section-num" style="background:#5b5347">Sum</span>
+  <h2>Ringkasan &amp; Prinsip Kunci</h2>
+</div>
+
+<p>Performance engineering bukan tentang menghafal checklist teknik. Ia tentang membangun model mental bagaimana sistem berperilaku di bawah beban dan menerapkan tool yang tepat di waktu yang tepat. Ini prinsip intinya:</p>
+
+<p><strong>1. Ukur, jangan menebak.</strong> Jangan pernah berasumsi di mana bottleneck-nya. Pakai middleware timing, distributed tracing, profiler, dan <code>EXPLAIN ANALYZE</code> untuk mengidentifikasi masalah sebenarnya sebelum berinvestasi pada solusi.</p>
+
+<p><strong>2. Berpikir dalam persentil, bukan rata-rata.</strong> P50 memberi tahu pengalaman khas. P99 memberi tahu pengalaman terburuk, dan ia sering mewakili pengguna Anda yang paling bernilai melakukan operasi paling kompleks.</p>
+
+<p><strong>3. Hormati kurva utililisasi.</strong> Latensi tumbuh eksponensial saat utililisasi mendekati 100%. Sisakan ruang kepala untuk ledakan lalu lintas. Target utililisasi 60-80% di produksi.</p>
+
+<p><strong>4. Perbaiki database dulu.</strong> Hilangkan query N+1, tambah index yang tepat (tapi jangan terlalu banyak), dan pakai connection pooling. Optimasi tingkat rendah ini sering memberi keuntungan terbesar.</p>
+
+<p><strong>5. Cache secara strategis.</strong> Pahami pola akses Anda. Pilih pola caching yang tepat (cache-aside, write-through, write-behind). Pantau cache hit rate Anda. Ingat invalidasi cache benar-benar sulit, hormati itu.</p>
+
+<p><strong>6. Scale secara tepat.</strong> Mulai dengan vertical scaling, lebih sederhana dan lebih murah. Pindah ke horizontal scaling saat mencapai batas perangkat keras, butuh redundansi, atau butuh distribusi geografis. Pahami bahwa horizontal scaling mentransformasi masalah Anda alih-alih menghilangkannya.</p>
+
+<div class="ref-box">
+  <span><strong>Further reading:</strong>
+    <a href="https://developer.mozilla.org/en-US/docs/Web/Performance" target="_blank">MDN Web Performance</a> /
+    <a href="https://www.postgresql.org/docs/current/performance-tips.html" target="_blank">Postgres Performance Tips</a> /
+    <a href="https://opentelemetry.io/docs/" target="_blank">OpenTelemetry Docs</a> /
+    <a href="https://redis.io/docs/latest/" target="_blank">Redis Documentation</a>
+  </span>
+</div>
+
+<a href="#top" class="back-to-top">^ Back to top</a>
+
+
+      <footer class="bfp-footer">Belajar Prinsip-Prinsip Backend / Chapter 18 / Scaling. Code targets Go 1.22+ and Python 3.11+.</footer>
+</main>
+</div>
+<!-- CHAPTER NAVIGATION -->
+<nav class="chapter-nav" id="chapterNav">
+  <a href="../../17.Backend Security - Everything You Need to Know/html_notes/notes.html" class="nav-chapter-link"><span class="nav-arrow"><svg class="ico-arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="13.5" y1="8" x2="3.5" y2="8"/><polyline points="7.5,4 3.5,8 7.5,12"/></svg></span><span class="nav-label"><span class="nav-small">Chapter 17</span>Backend Security</span></a>
+  <a href="../../index.html" class="nav-indicator"><span class="nav-dot"></span> Chapter 18 <span class="nav-sep">/</span> 24</a>
+  <a href="../../19.Backend Scaling and Performance Engineering - Part-2/html_notes/notes.html" class="nav-chapter-link nav-next"><span class="nav-label"><span class="nav-small">Chapter 19</span>Scaling & Performance (Part 2)</span><span class="nav-arrow"><svg class="ico-arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2.5" y1="8" x2="12.5" y2="8"/><polyline points="8.5,4 12.5,8 8.5,12"/></svg></span></a>
+</nav>
+  <script src="../../assets/copy-button.js"></script>
+  <script src="../../assets/enhancements.js"></script>
+<script src="../../assets/shell.js"></script>
+</body>
+
+</html>

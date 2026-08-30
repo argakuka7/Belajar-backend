@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Databases / Chapter 08 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Chapter 08 of Belajar Prinsip-Prinsip Backend: Databases. First-principles notes, diagrams and runnable Go and Python examples.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23b8402e'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='19'%20font-weight='700'%20fill='%23f3ede2'%20text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+:root{
+  --paper: #f3ede2;
+  --paper-2: #ece3d4;
+  --paper-3: #e6dcca;
+  --ink: #211e1a;
+  --ink-soft: #5b5347;
+  --ink-faint: #8d8475;
+  --accent: #b8402e;
+  --accent-2: #8f2f20;
+  --accent-soft: #f4ded6;
+  --accent-line: #e3c4b8;
+  --green: #3f6f4e;
+  --green-soft: #e0e9dd;
+  --green-line: #bcd3b6;
+  --blue: #37607f;
+  --blue-soft: #dee5ee;
+  --gold: #b07d2b;
+  --gold-soft: #f0e5c9;
+  --border: #d8cfbe;
+  --border-2: #c7bca6;
+  --code-bg: #232019;
+  --code-2: #1a1813;
+  --code-text: #e9e2d3;
+  --code-faint: #9c948a;
+  --c-kw: #e0896a;
+  --c-str: #a9c98a;
+  --c-com: #7d7468;
+  --c-num: #d8b66a;
+  --c-fn: #7fb0c9;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Spline Sans", system-ui, sans-serif; font-size: 17px; line-height: 1.7;
+  -webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:0; opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+.kicker{font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.66rem; letter-spacing:.24em; text-transform:uppercase; color:var(--accent); font-weight:600;}
+.page-title{font-family:"Fraunces", Georgia, serif; font-weight:900; font-size:3rem; line-height:1.02; letter-spacing:-.02em; margin:.32em 0 .25em;}
+.lede{font-size: 19px; color:var(--ink-soft); line-height: 1.6; max-width:43em; font-weight:300;}
+.divider{height:1px; background:var(--border); border:0; margin:42px 0;}
+section{scroll-margin-top:24px;}
+.sec-head{display:flex; align-items:center; gap:16px; margin:62px 0 22px;}
+.sec-num{font-family:"JetBrains Mono", ui-monospace, monospace; font-weight:600; font-size:.82rem; color:#fff; background:var(--accent); border-radius:8px; padding:7px 11px; line-height:1; flex-shrink:0; box-shadow:0 2px 0 #8f2f20;}
+.sec-head h2{font-family:"Fraunces", Georgia, serif; font-weight:700; font-size:1.88rem; letter-spacing:-.01em; margin:0; line-height:1.1;}
+h3{font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:1.26rem; margin:38px 0 12px; letter-spacing:-.01em;}
+h4{font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:1.04rem; margin:26px 0 8px;}
+p{margin:0 0 16px;}
+strong{font-weight:600; color:var(--ink);}
+a.ext{color:var(--accent); text-decoration:none; border-bottom:1px solid var(--accent-line);}
+code{font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.82em; background:var(--paper-3); border:1px solid var(--border); border-radius:5px; padding:1px 6px; color:#8f2f20; white-space:nowrap;}
+ul,ol{margin:0 0 18px; padding-left:0; list-style:none;}
+ul li,ol li{position:relative; padding-left:26px; margin:9px 0;}
+ul li::before{content:">"; position:absolute; left:6px; color:var(--accent); font-weight:700; font-size:1.05em;}
+ol{counter-reset:ol;}
+ol li{counter-increment:ol;}
+ol li::before{content:counter(ol); position:absolute; left:0; top:2px; font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.62rem; font-weight:600; color:var(--accent); background:var(--accent-soft); width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center;}
+.code{background:var(--code-bg); border-radius:11px; margin:22px 0; overflow:hidden; box-shadow:0 14px 30px -16px rgba(40,30,20,.55); border:1px solid #35302a;}
+.code-top{display:flex; align-items:center; gap:14px; padding:10px 15px; background:var(--code-2); border-bottom:1px solid #35302a;}
+.dots{display:flex; gap:7px;}
+.dots i{width:11px; height:11px; border-radius:50%; display:block;}
+.dots i:nth-child(1){background:#d05a47;} .dots i:nth-child(2){background:#cf9f4b;} .dots i:nth-child(3){background:#5a9a5f;}
+.tabs{display:flex; gap:4px; margin-left:6px;}
+.tab{font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.72rem; color:var(--code-faint); background:transparent; border:0; padding:4px 12px; border-radius:6px; cursor:pointer; font-weight:500; transition:all .15s;}
+.tab:hover{color:var(--code-text);}
+.tab.active{background:#1a1813; color:#d8b66a;}
+.code-cap{margin-left:auto; font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.66rem; color:var(--code-faint);}
+.code-body{margin:0; padding:17px 19px; overflow-x:auto; font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.79rem; line-height:1.7; color:var(--code-text); white-space:pre; tab-size:2;}
+.code-body.hidden{display:none;}
+.code-body::-webkit-scrollbar{height:8px;}
+.code-body::-webkit-scrollbar-thumb{background:#4a443b; border-radius:4px;}
+.c-kw{color:var(--c-kw);} .c-str{color:var(--c-str);} .c-com{color:var(--c-com); font-style:italic;} .c-num{color:var(--c-num);} .c-fn{color:var(--c-fn);}
+.wire{background:var(--code-bg); color:var(--code-text); font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.79rem; line-height:1.7; border-radius:11px; padding:17px 19px; margin:20px 0; overflow-x:auto; white-space:pre; border:1px solid #35302a;}
+.wire .m{color:#e0896a;} .wire .h{color:#7fb0c9;} .wire .v{color:#a9c98a;} .wire .cm{color:#7d7468; font-style:italic;}
+.diagram{background:var(--paper-3); border:1px solid var(--border); border-radius:13px; padding:26px 26px 22px; margin:26px 0; position:relative;}
+.diagram-label{font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.62rem; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); font-weight:600; margin-bottom:18px; display:flex; align-items:center; gap:8px;}
+.diagram-label::before{content:""; width:22px; height:1px; background:var(--accent); display:inline-block;}
+.diagram svg{display:block; width:100%; height:auto;}
+.dg-note{font-size:.84rem; color:var(--ink-faint); margin-top:14px; font-style:italic; line-height:1.5;}
+.tbl-wrap{margin:22px 0; overflow-x:auto; border:1px solid var(--border); border-radius:11px;}
+table{width:100%; border-collapse:collapse; font-size:.87rem; background:var(--paper-3);}
+thead th{font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.63rem; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); font-weight:600; text-align:left; padding:13px 16px; border-bottom:1.5px solid var(--border-2); white-space:nowrap;}
+tbody td{padding:12px 16px; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.5;}
+tbody tr:last-child td{border-bottom:0;}
+tbody tr:hover{background:var(--paper-2);}
+td code, th code{white-space:nowrap;}
+.callout{border-radius:11px; padding:18px 20px 16px; margin:24px 0; border:1px solid; position:relative;}
+.callout .clabel{font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.62rem; letter-spacing:.16em; text-transform:uppercase; font-weight:600; margin-bottom:9px; display:block;}
+.callout p:last-child{margin-bottom:0;}
+.callout.trap{background:var(--accent-soft); border-color:var(--accent-line);} .callout.trap .clabel{color:var(--accent);}
+.callout.model{background:var(--gold-soft); border-color:#ddc79a;} .callout.model .clabel{color:var(--gold);}
+.callout.tip{background:var(--green-soft); border-color:var(--green-line);} .callout.tip .clabel{color:var(--green);}
+.callout.note{background:var(--blue-soft); border-color:#b9c8da;} .callout.note .clabel{color:var(--blue);}
+.steps{margin:20px 0;}
+.step{display:flex; gap:15px; margin:14px 0; align-items:flex-start;}
+.step .sn{flex-shrink:0; width:27px; height:27px; border-radius:50%; background:var(--accent); color:#fff; font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.78rem; font-weight:600; display:flex; align-items:center; justify-content:center; margin-top:2px;}
+.step.g .sn{background:var(--green);}
+.step .sb{flex:1;}
+.pill{font-family:"JetBrains Mono", ui-monospace, monospace; font-size:.66rem; padding:3px 9px; border-radius:20px; font-weight:600; letter-spacing:.04em;}
+.pill.a{background:var(--green-soft); color:var(--green); border:1px solid var(--green-line);}
+.pill.b{background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent-line);}
+.pill.c{background:var(--blue-soft); color:var(--blue); border:1px solid #b9c8da;}
+.footer{margin-top:80px; padding-top:26px; border-top:1px solid var(--border); font-size:.82rem; color:var(--ink-faint); font-family:"JetBrains Mono", ui-monospace, monospace;}
+.footer a{color:var(--accent); text-decoration:none;}
+@media(max-width:980px){ .page-title{font-size:2.2rem;}}</style>
+<style>
+.chapter-nav{position:fixed;bottom:0;left:0;right:0;z-index:9998;display:flex;align-items:center;justify-content:space-between;padding:14px clamp(16px,4vw,48px);background:rgba(243,237,226,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1.5px solid #c7bca6;box-shadow:0 -8px 32px -16px rgba(40,30,20,.18);font-family:"JetBrains Mono", ui-monospace, monospace;}
+.nav-chapter-link{display:flex;align-items:center;gap:12px;text-decoration:none;color:#5b5347;padding:10px 18px;border-radius:10px;transition:all .2s ease;max-width:38%;}
+.nav-chapter-link:hover{background:rgba(184,64,46,.08);color:#b8402e;transform:translateY(-1px);}
+.nav-chapter-link.nav-next{text-align:right;flex-direction:row;}
+.nav-arrow{font-size:22px;color:#b8402e;font-weight:700;flex:none;}
+.nav-label{display:flex;flex-direction:column;gap:2px;font-size:13.5px;line-height:1.3;}
+.nav-small{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#8d8475;font-weight:600;}
+.nav-indicator{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#b8402e;font-weight:700;text-decoration:none;padding:8px 16px;border:1.5px solid #c7bca6;border-radius:40px;background:rgba(255,255,255,.5);transition:all .2s;white-space:nowrap;}
+.nav-indicator:hover{background:#b8402e;color:#fff;border-color:#b8402e;}
+.nav-dot{display:inline-block;width:7px;height:7px;background:#b8402e;border-radius:50%;margin-right:4px;vertical-align:middle;}
+.nav-sep{color:#c7bca6;margin:0 2px;}
+.nav-disabled{visibility:hidden;pointer-events:none;}
+@media(max-width:700px){.nav-label{font-size:11.5px;}.nav-chapter-link{padding:8px 10px;max-width:38%;}.chapter-nav{padding:10px 12px;}.nav-small{font-size:9px;letter-spacing:.16em;}}
+@media(max-width:520px){.nav-label{display:none;}.nav-chapter-link{max-width:none;padding:8px 12px;}.nav-arrow{font-size:20px;}.nav-indicator{font-size:11px;padding:7px 13px;letter-spacing:.12em;}}
+body{padding-bottom:80px;}
+</style>
+  <link rel="stylesheet" href="../../assets/copy-button.css">
+  <link rel="stylesheet" href="../../assets/enhancements.css">
+  <link rel="stylesheet" href="../../assets/shell.css">
+  <link rel="stylesheet" href="../../assets/theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="../../assets/theme.js"></script>
+</head>
+<body>
+<button class="bfp-toc-toggle" id="bfpTocToggle" aria-controls="bfpToc" aria-expanded="false"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>Contents</button>
+<div class="bfp-toc-scrim" id="bfpTocScrim"></div>
+<div class="bfp-shell">
+    <aside class="bfp-toc" id="bfpToc">
+      <div class="bfp-brand"><span class="bfp-brand-name">Postgres</span><span class="bfp-brand-slash">/</span><span class="bfp-brand-lens">the backend lens</span></div>
+      <div class="bfp-brand-sub">Chapter 08 / Field Manual</div>
+      <div class="bfp-toc-rule"></div>
+      <nav class="bfp-toc-nav">
+        <a class="bfp-toc-link" href="#s1"><span class="bfp-toc-num">01</span><span class="bfp-toc-text">Why Databases Exist</span></a>
+        <a class="bfp-toc-link" href="#s2"><span class="bfp-toc-num">02</span><span class="bfp-toc-text">Disk vs RAM</span></a>
+        <a class="bfp-toc-link" href="#s3"><span class="bfp-toc-num">03</span><span class="bfp-toc-text">DBMS &amp; Why Not Text Files</span></a>
+        <a class="bfp-toc-link" href="#s4"><span class="bfp-toc-num">04</span><span class="bfp-toc-text">Relational vs NoSQL</span></a>
+        <a class="bfp-toc-link" href="#s5"><span class="bfp-toc-num">05</span><span class="bfp-toc-text">Why Postgres</span></a>
+        <a class="bfp-toc-link" href="#s6"><span class="bfp-toc-num">06</span><span class="bfp-toc-text">Data Types</span></a>
+        <a class="bfp-toc-link" href="#s7"><span class="bfp-toc-num">07</span><span class="bfp-toc-text">Migrations</span></a>
+        <a class="bfp-toc-link" href="#s8"><span class="bfp-toc-num">08</span><span class="bfp-toc-text">Modeling Relationships</span></a>
+        <a class="bfp-toc-link" href="#s9"><span class="bfp-toc-num">09</span><span class="bfp-toc-text">Constraints &amp; Integrity</span></a>
+        <a class="bfp-toc-link" href="#s10"><span class="bfp-toc-num">10</span><span class="bfp-toc-text">Querying &amp; Joins</span></a>
+        <a class="bfp-toc-link" href="#s11"><span class="bfp-toc-num">11</span><span class="bfp-toc-text">Indexes</span></a>
+        <a class="bfp-toc-link" href="#s12"><span class="bfp-toc-num">12</span><span class="bfp-toc-text">Triggers</span></a>
+        <a class="bfp-toc-link" href="#s13"><span class="bfp-toc-num">13</span><span class="bfp-toc-text">Transactions &amp; ACID</span></a>
+        <a class="bfp-toc-link" href="#s14"><span class="bfp-toc-num">14</span><span class="bfp-toc-text">Production Essentials</span></a>
+      </nav>
+    </aside>
+    <main class="bfp-content">
+  <div class="kicker">A detailed backend reference</div>
+  <h1 class="page-title">Menguasai Database dengan Postgres</h1>
+  <p class="lede">Bicara ke database adalah hal paling sering dilakukan engineer backend. Bab ini membangun seluruh gambaran dari dasar: kenapa database ada sama sekali, kenapa ia hidup di disk, cara memodelkan hubungan nyata, cara meng-query dengan aman dan cepat, dan dua tuas performa (index dan trigger) yang memisahkan mainan dari produksi. Semuanya berpijak pada satu contoh berjalan: platform manajemen proyek.</p>
+  <hr class="divider">
+
+  <!-- 01 -->
+  <section id="s1">
+    <div class="sec-head"><span class="sec-num">01</span><h2>Kenapa Database Ada</h2></div>
+    <p>Pada intinya database hanyalah cara <strong>menyimpan informasi lintas sesi</strong>. Persistensi berarti menyimpan data supaya ia bertahan bahkan setelah program yang membuatnya berhenti. Bayangkan aplikasi to-do: Anda menambah item, mencentang beberapa, menutup aplikasi, dan saat membukanya lagi, semua persis seperti yang Anda tinggalkan. Tanpa persistensi Anda mulai dari daftar kosong setiap kali dan kehilangan semua progres. Kontinuitas itu, lintas waktu dan lintas mesin, adalah intinya.</p>
+
+    <h3>"Database" kata yang sangat luas</h3>
+    <p>Dalam pengertian paling sederhana, <em>penyimpanan terstruktur apa pun</em> adalah database. Daftar kontak ponsel Anda adalah database. <code>localStorage</code>, <code>sessionStorage</code>, dan cookie browser, semua key-value store yang bisa Anda intip di DevTools -&gt; Application, adalah database. Bahkan file teks polos tempat Anda mencorat-coret catatan adalah database yang sangat dasar. Benang merahnya: sistem persisten yang memungkinkan Anda <strong>membuat, membaca, memperbarui, dan menghapus</strong> data, CRUD.</p>
+
+    <h3>Apa maksud "database" dalam konteks backend</h3>
+    <p>Definisi generik itu bukan yang biasanya dimaksud engineer. Dalam konteks server dan sistem backend, "database" hampir selalu berarti <strong>database berbasis disk</strong>: data disimpan di hard disk (HDD) atau solid-state drive (SSD). <em>Kenapa disk?</em> Itu bagian berikutnya, dan ia gagasan fondasi terpenting di sini.</p>
+
+    <div class="callout model">
+      <span class="clabel">Mental model</span>
+      <p>Database adalah lapisan persistensi yang menawarkan CRUD. Dalam kerja backend khususnya, ia lapisan persistensi <strong>berbasis disk</strong>, dipilih sengaja demi kapasitas di atas kecepatan mentah. Semua hal lain di bab ini mengikuti dari satu kompromi itu.</p>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section id="s2">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Disk vs RAM</h2></div>
+    <p>CPU Anda bisa menjangkau dua jenis memori. <strong>RAM (memori primer)</strong> sangat cepat tapi mahal dan terbatas, kebanyakan mesin punya 8, 16, 32, mungkin 64-128 GB. <strong>Disk (memori sekunder)</strong>: HDD atau SSD, jauh lebih murah dan jauh lebih banyak, biasanya 512 GB sampai beberapa TB, tapi lebih lambat dibaca dan ditulis.</p>
+
+    <div class="diagram">
+      <div class="diagram-label">The core trade-off</div>
+      <svg viewBox="0 0 720 210" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace" font-size="11">
+        <!-- RAM -->
+        <rect x="30" y="24" width="300" height="160" rx="11" fill="#dee5ee" stroke="#b9c8da"/>
+        <text x="180" y="52" text-anchor="middle" fill="#37607f" font-size="14" font-weight="600">RAM / primary</text>
+        <text x="180" y="80" text-anchor="middle" fill="#211e1a" font-size="11">very fast</text>
+        <text x="180" y="102" text-anchor="middle" fill="#211e1a" font-size="11">expensive / scarce</text>
+        <text x="180" y="124" text-anchor="middle" fill="#211e1a" font-size="11">volatile (lost on power-off)</text>
+        <text x="180" y="150" text-anchor="middle" fill="#37607f" font-size="10.5" font-weight="600">used for CACHING (Redis)</text>
+        <text x="180" y="170" text-anchor="middle" fill="#5b5347" font-size="9.5">~8-128 GB</text>
+        <!-- DISK -->
+        <rect x="390" y="24" width="300" height="160" rx="11" fill="#f0e5c9" stroke="#ddc79a"/>
+        <text x="540" y="52" text-anchor="middle" fill="#b07d2b" font-size="14" font-weight="600">DISK / secondary</text>
+        <text x="540" y="80" text-anchor="middle" fill="#211e1a" font-size="11">slower</text>
+        <text x="540" y="102" text-anchor="middle" fill="#211e1a" font-size="11">cheap / abundant</text>
+        <text x="540" y="124" text-anchor="middle" fill="#211e1a" font-size="11">persistent (survives power-off)</text>
+        <text x="540" y="150" text-anchor="middle" fill="#b07d2b" font-size="10.5" font-weight="600">used for DATABASES (Postgres)</text>
+        <text x="540" y="170" text-anchor="middle" fill="#5b5347" font-size="9.5">~512 GB, multiple TB</text>
+      </svg>
+      <p class="dg-note">Cache (Redis, in-memory store) tinggal di RAM karena mengambil dari memori primer sangat cepat. Database tradisional tinggal di disk karena yang paling penting untuk penyimpanan adalah <em>kapasitas</em>, dan kita bisa menukar sedikit kecepatan dengan ruang jauh lebih banyak dengan biaya jauh lebih kecil.</p>
+    </div>
+
+    <p>Jadi polanya: <strong>caching = RAM</strong> (kritis kecepatan, kecil), <strong>database = disk</strong> (kritis kapasitas, besar). Postgres, MySQL, MongoDB, semuanya menyimpan datanya di disk. <em>Bagaimana</em> mereka menata byte di disk adalah area yang dalam dan memukau, tapi sebagai engineer backend level aplikasi, yang esensial hanyalah kompromi ini. (Dan persis itulah kenapa index, di bagian 11, sangat penting: begitulah kita meraih kembali kecepatan dari pencarian disk yang lambat.)</p>
+  </section>
+
+  <!-- 03 -->
+  <section id="s3">
+    <div class="sec-head"><span class="sec-num">03</span><h2>DBMS &amp; Kenapa Bukan Sekadar File Teks</h2></div>
+    <p>Menyimpan data di disk saja tidak cukup, kita butuh cara efisien untuk mengambil, mengubah, dan menghapusnya, di ratusan gigabyte. Itu tugas <strong>DBMS (Database Management System)</strong>: perangkat lunak yang satu-satunya tujuan menyimpan data dan menyediakan operasi CRUD efisien padanya. Pada tingkat tinggi DBMS punya dua tugas, <strong>menyimpan data</strong> dan <strong>melayani operasi</strong> di atasnya, plus seperangkat tanggung jawab:</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Tanggung jawab</th><th>Artinya</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Organisasi data</strong></td><td>Menata data supaya fetch/update/insert efisien.</td></tr>
+          <tr><td><strong>Akses</strong></td><td>Menyediakan method CRUD, create, read, update, delete.</td></tr>
+          <tr><td><strong>Integritas</strong></td><td>Menjaga data akurat dan valid, mis. field <code>payment</code> hanya menerima angka, jangan pernah string nyasar.</td></tr>
+          <tr><td><strong>Keamanan</strong></td><td>Melindungi data dari akses tak sah lewat user dan role.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Kenapa file teks polos berantakan</h3>
+    <p>Sebelum perangkat lunak DBMS ada, orang mencoba menyimpan semuanya di file teks. Ia hancur karena tiga alasan konkret:</p>
+
+    <h4>1. Parsing lambat dan rawan error</h4>
+    <p>Untuk menemukan satu pelanggan Anda menulis kode aplikasi untuk membaca file, memecah setiap baris, dan membandingkan tiap field, operasi lambat, dan lebih lambat lagi di bahasa seperti JavaScript atau Python daripada di Rust. Lebih parah, parsing racikan tangan rapuh: satu kesalahan dan Anda merusak data atau memberi pelanggan record yang salah.</p>
+
+    <h4>2. Tidak ada struktur</h4>
+    <p>File teks tidak punya skema formal. Anda bisa membuang teks apa pun dalam bentuk apa pun, jadi tidak bisa menegakkan "field ini harus selalu angka". Tidak ada cara menjamin konsistensi, semuanya cuma string.</p>
+
+    <h4>3. Tanpa kontrol konkurensi</h4>
+    <p>Ini pembunuhnya. Apa yang terjadi saat dua orang memperbarui nilai yang sama bersamaan?</p>
+
+    <div class="diagram">
+      <div class="diagram-label">The lost-update race / amount starts at 40</div>
+      <svg viewBox="0 0 720 230" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace" font-size="11">
+        <line x1="360" y1="14" x2="360" y2="216" stroke="#d8cfbe" stroke-width="1" stroke-dasharray="3 4"/>
+        <text x="360" y="206" text-anchor="middle" fill="#8d8475" font-size="9">same moment</text>
+        <!-- A -->
+        <text x="20" y="44" fill="#37607f" font-weight="600">User A (+20)</text>
+        <rect x="150" y="28" width="120" height="30" rx="6" fill="#dee5ee" stroke="#b9c8da"/><text x="210" y="48" text-anchor="middle">reads 40</text>
+        <rect x="400" y="28" width="150" height="30" rx="6" fill="#dee5ee" stroke="#b9c8da"/><text x="475" y="48" text-anchor="middle">writes 60</text>
+        <!-- B -->
+        <text x="20" y="104" fill="#b8402e" font-weight="600">User B (-20)</text>
+        <rect x="150" y="88" width="120" height="30" rx="6" fill="#f4ded6" stroke="#e3c4b8"/><text x="210" y="108" text-anchor="middle">reads 40</text>
+        <rect x="400" y="88" width="150" height="30" rx="6" fill="#f4ded6" stroke="#e3c4b8"/><text x="475" y="108" text-anchor="middle">writes 20</text>
+        <!-- result -->
+        <rect x="150" y="150" width="400" height="52" rx="9" fill="#232019"/>
+        <text x="350" y="172" text-anchor="middle" fill="#e9e2d3" font-size="11">final value = 60 OR 20, whoever saved last wins</text>
+        <text x="350" y="190" text-anchor="middle" fill="#e0896a" font-size="11" font-weight="600">one update silently lost / no consistency</text>
+      </svg>
+      <p class="dg-note">Keduanya membaca 40 di waktu yang sama. A menghitung 60, B menghitung 20, dan siapa pun yang menulis terakhir menimpa yang lain, Anda tidak bisa memprediksi yang mana. File teks tidak bisa menjadi wasit ini. DBMS sungguhan memakai transaksi dan penguncian untuk membuat tulisan serentak konsisten.</p>
+    </div>
+
+    <p>Tiga kegagalan ini, parsing lambat, tanpa struktur, tanpa kontrol konkurensi, persis alasan perangkat lunak DBMS ada. Coba tumbuhkan "database" file teks hari ini dan Anda akan menabrak semuanya.</p>
+  </section>
+
+  <!-- 04 -->
+  <section id="s4">
+    <div class="sec-head"><span class="sec-num">04</span><h2>Relasional vs Non-Relasional</h2></div>
+    <p>Pada tingkat tinggi ada dua keluarga besar DBMS.</p>
+
+    <div class="diagram">
+      <div class="diagram-label">Two ways to shape data</div>
+      <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace" font-size="10.5">
+        <!-- relational -->
+        <text x="30" y="26" fill="#3f6f4e" font-size="12" font-weight="600">RELATIONAL / rows in a strict table</text>
+        <g>
+          <rect x="30" y="38" width="300" height="26" fill="#e0e9dd" stroke="#bcd3b6"/><text x="44" y="55" fill="#3f6f4e" font-weight="600">id   name      status</text>
+          <rect x="30" y="64" width="300" height="24" fill="#e6dcca" stroke="#e2dccf"/><text x="44" y="80">1    Alice     active</text>
+          <rect x="30" y="88" width="300" height="24" fill="#e6dcca" stroke="#e2dccf"/><text x="44" y="104">2    Bob       active</text>
+          <rect x="30" y="112" width="300" height="24" fill="#e6dcca" stroke="#e2dccf"/><text x="44" y="128">3    Carol     archived</text>
+        </g>
+        <text x="30" y="160" fill="#5b5347" font-size="9.5">every row has the SAME columns / schema fixed up front</text>
+        <text x="30" y="176" fill="#5b5347" font-size="9.5">queried with SQL / linked by foreign keys</text>
+        <!-- nosql -->
+        <text x="390" y="26" fill="#b07d2b" font-size="12" font-weight="600">NON-RELATIONAL / documents</text>
+        <rect x="390" y="38" width="300" height="46" rx="7" fill="#f0e5c9" stroke="#ddc79a"/>
+        <text x="404" y="56">{ id:1, name:"Alice",</text><text x="404" y="72">  tags:["x"], active:true }</text>
+        <rect x="390" y="90" width="300" height="46" rx="7" fill="#f0e5c9" stroke="#ddc79a"/>
+        <text x="404" y="108">{ id:2, name:"Bob",</text><text x="404" y="124">  address:{ city:"BLR" } }</text>
+        <text x="390" y="160" fill="#5b5347" font-size="9.5">each document can differ / flexible schema</text>
+        <text x="390" y="176" fill="#5b5347" font-size="9.5">"table"-&gt;collection / "row"-&gt;document</text>
+      </svg>
+    </div>
+
+    <h3>Relasional (SQL)</h3>
+    <p>Database relasional mengorganisasi data ke <strong>tabel</strong> berisi baris dan kolom, dengan hubungan antar tabel didefinisikan <strong>foreign key</strong>. Ciri khasnya <strong>skema ketat yang sudah didefinisikan</strong>: sebelum menyisipkan apa pun Anda harus mendeklarasikan tabelnya, kolomnya, dan tipe data tiap kolom. Tidak ada yang terjadi "on the fly". Kekakuan itu membayar keuntungan besar, <strong>integritas data</strong>: kapan pun Anda bisa bertaruh pada bentuk dan tipe data Anda. Anda berinteraksi dengannya memakai <strong>SQL</strong> (Structured Query Language). Contoh: PostgreSQL, MySQL, SQL Server.</p>
+
+    <h3>Non-relasional (NoSQL)</h3>
+    <p>Database NoSQL seperti MongoDB tidak menegakkan skema. Dalam kosakata Mongo, tabel adalah <strong>collection</strong> dan baris adalah <strong>document</strong>, dan dua dokumen di collection yang sama bisa punya bentuk yang sepenuhnya berbeda. Keuntungannya <strong>fleksibilitas</strong>: hebat saat prototipe cepat atau saat Anda benar-benar tidak tahu bentuk datanya di depan. Harganya integritas yang lebih lemah: dengan skema yang tidak ditegakkan di level database, Anda harus menegakkan kebenaran di kode aplikasi, yang menambah kompleksitas dan lebih rawan error (kode aplikasi berubah terus dan bug menyusup).</p>
+
+    <h3>Memilih dengan dua contoh</h3>
+    <ul>
+      <li><strong>CRM (customer relationship management)</strong> -&gt; <strong>relasional</strong>. Kontak, peluang penjualan, dan hubungannya adalah data penting terstruktur yang menuntut integritas kuat dan query kompleks. Postgres pas sekali.</li>
+      <li><strong>CMS (content management system)</strong> -&gt; <strong>non-relasional</strong> (atau JSON di Postgres). Artikel bisa berisi gambar, blok kode, embed YouTube, konten sangat beragam yang tak bisa Anda kunci ke skema tetap. "Ambil semua dan buang saja" cocok untuk document store.</li>
+    </ul>
+  </section>
+
+  <!-- 05 -->
+  <section id="s5">
+    <div class="sec-head"><span class="sec-num">05</span><h2>Kenapa Postgres</h2></div>
+    <p>Di antara semua pilihan, Postgres adalah default masuk akal untuk kebanyakan proyek, karena lima alasan:</p>
+    <ol>
+      <li><strong>Open source &amp; gratis.</strong> Tidak proprietary, perusahaan bisa self-host di server mereka sendiri dan memeriksa source-nya.</li>
+      <li><strong>Patuh standar SQL.</strong> SQL standar berjalan sama seperti di MySQL atau SQL Server, jadi bermigrasi ke mesin lain nanti berarti jauh lebih sedikit kerja ulang.</li>
+      <li><strong>Ekstensibel.</strong> Dokumentasinya ±1400 halaman; ia mencakup hampir setiap kasus yang dihadapi SaaS biasa, dan punya sistem ekstensi kuat untuk mengustomisasinya.</li>
+      <li><strong>Andal &amp; skalabel.</strong> Rekam jejak terbukti di skala besar.</li>
+      <li><strong>Dukungan JSON sangat baik, fitur penentunya.</strong> Alasan utama orang meraih MongoDB adalah "simpan JSON apa pun". Tapi Postgres menawarkan tipe <code>JSON</code>/<code>JSONB</code> dengan kemampuan index dan query yang kuat, jadi Anda bisa menyimpan data dinamis tanpa skema <em>di dalam</em> database relasional. Itu menghapus alasan biasa meninggalkan Postgres demi NoSQL store.</li>
+    </ol>
+    <div class="callout tip">
+      <span class="clabel">The pragmatic call</span>
+      <p>Anda akan menemukan artikel yang mengklaim MySQL punya keunggulan performa, tapi sampai Anda melayani jutaan pengguna dan memburu bottleneck spesifik, perbedaan itu tak penting. Set fitur yang kaya plus JSON kelas satu menjadikan Postgres pilihan pertama yang kuat untuk hampir semua proyek. Itulah yang dipakai sisa bab ini.</p>
+    </div>
+    <div class="callout note">
+      <span class="clabel">SQL vs Postgres / the distinction</span>
+      <p><strong>SQL</strong> adalah <em>bahasa</em> tempat Anda menulis query. <strong>Postgres</strong> adalah <em>sistem database</em>-nya, perangkat lunak yang mengeksekusi query itu. Bab ini berasumsi Anda sudah menguasai dasar SQL (SELECT, CREATE TABLE, ORDER BY, GROUP BY) di tempat lain, dan berfokus pada konsep yang benar-benar penting sehari-hari dalam kerja backend.</p>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section id="s6">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Tipe Data</h2></div>
+    <p>Setiap kolom di tabel relasional punya tipe tetap. Ini yang benar-benar akan Anda pakai, beserta keputusan yang penting.</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Tipe</th><th>Isinya / kapan dipakai</th></tr></thead>
+        <tbody>
+          <tr><td><code>serial</code> / <code>bigserial</code></td><td>Integer yang menaik sendiri (1, 2, 3...) saat Anda menghilangkannya di insert. Pakai <code>bigserial</code> di produksi untuk kapasitas lebih besar. Umum untuk ID integer / primary key.</td></tr>
+          <tr><td><code>smallint</code> / <code>integer</code> / <code>bigint</code></td><td>Integer dengan kapasitas menaik. Pilih berdasarkan angka terbesar yang perlu Anda simpan.</td></tr>
+          <tr><td><code>decimal(10,2)</code> / <code>numeric</code></td><td>Angka presisi eksak, di sini sampai 10 digit total, 2 di belakang koma. <strong>Selalu pakai untuk uang/harga.</strong></td></tr>
+          <tr><td><code>real</code> / <code>double precision</code></td><td>Floating-point. Cepat, tapi nilainya bisa sedikit berbeda antar sistem. Pakai untuk data ilmiah/pengukuran yang selisih kecil tak masalah.</td></tr>
+          <tr><td><code>char(n)</code></td><td>Teks panjang tetap, <strong>dipadding spasi</strong> sampai <code>n</code>. Hindari, warisan.</td></tr>
+          <tr><td><code>varchar(n)</code></td><td>Teks panjang variabel dengan maksimal <code>n</code>. <code>255</code> yang terkenal itu cuma kebiasaan MySQL, tak bermakna di Postgres.</td></tr>
+          <tr><td><code>text</code></td><td>Panjang variabel, tanpa batas. <strong>Preferensi di Postgres</strong> (lihat di bawah).</td></tr>
+          <tr><td><code>boolean</code></td><td><code>true</code> / <code>false</code>.</td></tr>
+          <tr><td><code>date</code> / <code>time</code> / <code>timestamp</code></td><td>Tanggal, waktu, atau keduanya.</td></tr>
+          <tr><td><code>timestamptz</code></td><td>Timestamp <em>dengan zona waktu</em>, menyimpan zona-nya juga. Pilih untuk kolom created/updated.</td></tr>
+          <tr><td><code>interval</code></td><td>Rentang seperti "10 hari" atau "1 minggu".</td></tr>
+          <tr><td><code>uuid</code></td><td>Pengidentifikasi unik universal. Hebat untuk primary key, terutama di sistem terdistribusi. Postgres memilikinya secara natif.</td></tr>
+          <tr><td><code>json</code> / <code>jsonb</code></td><td>Data JSON. <strong>Preferensi <code>jsonb</code></strong> (biner), Postgres men-serialize-nya ke format miliknya sehingga bisa di-index dan di-query cepat. <code>json</code> polos disimpan sebagai teks.</td></tr>
+          <tr><td><code>type[]</code> (larik)</td><td>Larik tipe apa pun, <code>integer[]</code>, <code>text[]</code>, dll.</td></tr>
+          <tr><td>inet / macaddr / point / xml</td><td>Alamat jaringan, alamat MAC, titik geometris, XML. Jarang dibutuhkan sehari-hari.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Decimal vs float: aturan uang</h3>
+    <p>Pertama, urai parameternya: <code>decimal(10,2)</code> berarti <strong>10 digit total, 2 di belakang koma</strong>. Jadi Anda bisa menyimpan <code>12345678.90</code>, hitung, itu 10 digit di seluruh angka, dua di antaranya di kanan koma. Coba simpan angka yang butuh 11 digit dan database menolaknya.</p>
+    <p>Angka floating-point <em>cepat</em> tapi direpresentasikan dengan cara yang bisa sedikit berbeda antar sistem, jadi nilai yang sama bisa tampil <code>89.87</code> di sini dan <code>89.9</code> di sana. Untuk <strong>harga</strong>, tempat angka memberi makan perhitungan dan akurasi kritis, itu tak bisa diterima, <strong>selalu pakai <code>decimal</code>/<code>numeric</code></strong>. Untuk hal seperti ukuran luas (<code>567.8987</code>) yang selisih pembulatan kecil tak berbahaya, pakai <code>float</code> demi kecepatan.</p>
+    <p>Dan lanjutan alaminya: <em>jika decimal selalu akurat, kenapa tidak pakai di mana-mana?</em> Karena keeksakan itu membayar performa, float disimpan dan dihitung lebih cepat, persis kenapa domain ilmiah/pengukuran memilihnya. Aturan praktis: <strong>akurasi penting -&gt; decimal; kecepatan penting dan selisih kecil tak apa -&gt; float.</strong></p>
+
+    <h3>char vs varchar vs text: preferensi text</h3>
+    <p>Ketiganya menyimpan teks; bedanya cara menangani panjang. <code>char(10)</code> selalu <strong>mem-padding ke panjang penuh dengan spasi</strong>: simpan <code>"ab"</code> dan database menambah 8 spasi di belakang sebelum menyimpan, karena field <code>char</code> selalu menempati panjang yang dideklarasikan. <code>varchar(255)</code> hanya menyimpan apa yang Anda beri (menyimpan <code>"ab"</code> memakai panjang 2, <code>"abcd"</code> memakai 4) sampai maksimal 255, lewati dan Anda dapat error level database. <code>text</code> adalah <code>varchar</code> tanpa batas panjang sama sekali (secara teknis plafon sangat tinggi, ±1 GB, yang tak akan pernah Anda dekati).</p>
+
+    <div class="diagram">
+      <div class="diagram-label">Storing "ab" in each string type</div>
+      <svg viewBox="0 0 720 130" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace" font-size="10.5">
+        <text x="20" y="30" fill="#b8402e" font-weight="600">char(10)</text>
+        <rect x="120" y="16" width="200" height="22" fill="#f4ded6" stroke="#e3c4b8"/><text x="130" y="31">ab________</text>
+        <text x="335" y="31" fill="#5b5347" font-size="9">padded to 10 / wastes space / avoid</text>
+        <text x="20" y="66" fill="#37607f" font-weight="600">varchar(255)</text>
+        <rect x="120" y="52" width="44" height="22" fill="#dee5ee" stroke="#b9c8da"/><text x="130" y="67">ab</text>
+        <text x="180" y="67" fill="#5b5347" font-size="9">length 2 / max 255 / the "255" is a meaningless MySQL habit</text>
+        <text x="20" y="102" fill="#3f6f4e" font-weight="600">text</text>
+        <rect x="120" y="88" width="44" height="22" fill="#e0e9dd" stroke="#bcd3b6"/><text x="130" y="103">ab</text>
+        <text x="180" y="103" fill="#5b5347" font-size="9">length 2 / no limit / &lt;- prefer this in Postgres</text>
+      </svg>
+    </div>
+
+    <p>Dokumentasi Postgres sendiri merekomendasikan <code>text</code>, dasarnya <strong>tidak ada perbedaan performa</strong> di antara ketiganya, dan Anda bisa meng-index <code>text</code> dengan baik (kesalahpahaman umum yang dipinjam dari mesin lain seperti MySQL/SQL Server, yang berperilaku berbeda dan membingungkan orang yang pindah). Dua alasan praktis default ke <code>text</code>:</p>
+    <ul>
+      <li><strong>Tanpa sakit kepala migrasi.</strong> Jika Anda men-set <code>varchar(255)</code> dan nanti butuh nilai lebih panjang, Anda harus menjalankan migrasi skema yang menyentuh banyak data, lebih berisiko daripada sekadar menegakkan panjang di kode aplikasi. Sebagai engineer backend kita tetap berinteraksi dengan DB lewat driver dan punya kode aplikasi, jadi tegakkan panjangnya di sana dan jaga migrasi tetap sederhana.</li>
+      <li><strong>Mendokumentasikan diri.</strong> Angka seperti <code>varchar(255)</code> <em>tampak</em> bermakna, jadi rekan baru membuang waktu mencari kenapa mustinya 255 (jawabannya: tidak bermakna, kebiasaan MySQL yang disalin). <code>text</code> terbaca bersih sebagai "field teks", tanpa angka hantu untuk dijelaskan.</li>
+    </ul>
+    <p>Hanya pakai <code>char(n)</code> saat panjangnya benar-benar <em>selalu</em> identik, mis. kode hari dua huruf <code>Mo</code>, <code>Tu</code>, <code>We</code>, tempat padding tidak pernah terjadi dan Anda menghemat ruang versus overhead panjang variabel.</p>
+
+    <h3>json vs jsonb: preferensi jsonb</h3>
+    <p><code>json</code> disimpan sebagai teks polos; <code>jsonb</code> diserialkan ke format biner Postgres. Hampir selalu pilih <strong><code>jsonb</code></strong>: ia di-query dan di-index jauh lebih cepat. (Fitur Postgres, bukan SQL standar.)</p>
+  </section>
+
+  <!-- 07 -->
+  <section id="s7">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Migrasi</h2></div>
+    <p>Di produksi Anda tidak sekadar membuka GUI seperti TablePlus dan mulai menjalankan query, tak ada catatan <em>apa</em> yang berubah, <em>kapan</em>, atau <em>siapa</em> yang melakukannya, dan tak ada cara mengendalikan state database seiring waktu. Gantinya, database memakai <strong>migrasi</strong>: version control untuk skema Anda.</p>
+
+    <h3>Cara kerja alurnya</h3>
+    <p>Anda menyimpan folder file SQL bernama berurutan. Tool baris perintah (<strong>dbmate</strong>, <strong>golang-migrate</strong>, dll.) menapakinya secara berurutan dan menerapkan SQL di dalam masing-masing ke database yang dikonfigurasi.</p>
+    <div class="diagram">
+      <div class="diagram-label">Migration files run in sequence; a tracking table remembers where you are</div>
+      <svg viewBox="0 0 720 170" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace" font-size="10.5">
+        <rect x="20" y="40" width="120" height="60" rx="8" fill="#e0e9dd" stroke="#bcd3b6"/><text x="80" y="66" text-anchor="middle" font-weight="600">001.sql</text><text x="80" y="84" text-anchor="middle" fill="#5b5347" font-size="9">create users</text>
+        <rect x="170" y="40" width="120" height="60" rx="8" fill="#e0e9dd" stroke="#bcd3b6"/><text x="230" y="66" text-anchor="middle" font-weight="600">002.sql</text><text x="230" y="84" text-anchor="middle" fill="#5b5347" font-size="9">seed data</text>
+        <rect x="320" y="40" width="120" height="60" rx="8" fill="#e0e9dd" stroke="#bcd3b6"/><text x="380" y="66" text-anchor="middle" font-weight="600">003.sql</text><text x="380" y="84" text-anchor="middle" fill="#5b5347" font-size="9">indexes + triggers</text>
+        <line x1="140" y1="70" x2="170" y2="70" stroke="#c7bca6" stroke-width="1.5"/>
+        <line x1="290" y1="70" x2="320" y2="70" stroke="#c7bca6" stroke-width="1.5"/>
+        <line x1="440" y1="70" x2="500" y2="70" stroke="#c7bca6" stroke-width="1.5"/>
+        <rect x="500" y="34" width="200" height="72" rx="9" fill="#232019"/>
+        <text x="600" y="60" text-anchor="middle" fill="#e9e2d3" font-size="10">schema_migrations</text>
+        <text x="600" y="80" text-anchor="middle" fill="#d8b66a" font-size="10">version = 003</text>
+        <text x="600" y="96" text-anchor="middle" fill="#7d7468" font-size="9">tool knows what to apply next</text>
+      </svg>
+    </div>
+
+    <p>Tiap file punya dua bagian: <strong>migrasi up</strong> (perubahannya, <code>CREATE TABLE</code>, <code>CREATE INDEX</code>...) dan <strong>migrasi down</strong> (kebalikan persis, <code>DROP TABLE</code>...). Bagian down ada supaya jika perubahan memecah produksi Anda bisa <strong>roll back</strong> ke state sebelumnya dengan bersih. Tool menjaga tabel <code>schema_migrations</code> yang memegang versi saat ini, jadi ia tidak pernah menjalankan ulang file yang sudah diterapkan (yang akan error "table already exists").</p>
+
+    <div class="code">
+      <div class="code-top"><span class="dots"><i></i><i></i><i></i></span>
+        <div class="tabs"><button class="tab active" data-lang="sql">SQL</button></div>
+        <span class="code-cap">a dbmate migration file, up &amp; down halves</span>
+      </div>
+      <pre class="code-body" data-lang="sql">-- migrate:up
+CREATE TABLE users (
+  id    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL UNIQUE
+);
+
+-- migrate:down
+DROP TABLE users;</pre>
+    </div>
+
+    <h3>Kenapa migrasi penting</h3>
+    <ul>
+      <li><strong>Riwayat terlacak.</strong> File-nya hidup di git bersama kode Anda, jadi setiap perubahan skema selama berbulan-bulan atau bertahun-tahun tercatat, bisa direview, dan bisa direproduksi di mesin atau server mana pun.</li>
+      <li><strong>Rollback.</strong> Migrasi down memungkinkan Anda mengembalikan perubahan buruk ke versi yang diketahui baik.</li>
+    </ul>
+
+    <h3>Seeding</h3>
+    <p>Untuk uji lokal/dev Anda ingin data sampel untuk bekerja sebelum deploy. Itu <strong>seeding</strong>: migrasi terpisah yang menyisipkan baris uji (user sampel, proyek, dll.). Praktik terbaik menjaga data seed di file migrasinya sendiri supaya jelas beda dari perubahan skema.</p>
+  </section>
+
+  <!-- 08 -->
+  <section id="s8">
+    <div class="sec-head"><span class="sec-num">08</span><h2>Memodelkan Hubungan</h2></div>
+    <p>Kita memodelkan platform manajemen proyek (bayangkan Jira/Linear). Dari kebutuhan kita tarik <strong>kata benda</strong> -&gt; tabel: <code>users</code>, <code>user<em>profiles</code>, <code>projects</code>, <code>tasks</code>, <code>project</em>members</code>.</p>
+
+    <div class="callout note">
+      <span class="clabel">Naming conventions</span>
+      <p>Nama tabel <strong>jamak</strong> (<code>users</code>, <code>projects</code>) sesuai standar industri, dan kolom <strong>snake<em>case</strong> (<code>full</em>name</code>, <code>password<em>hash</code>). Kenapa snake</em>case? Postgres pada dasarnya <em>tidak sensitif huruf</em>, tulis <code>fullName</code> dan ia membacanya <code>fullname</code> kecuali Anda membungkusnya kutip ganda di mana-mana, yang membuat kode aplikasi jelek. Snake_case huruf kecil menghindari seluruh masalah itu.</p>
+    </div>
+
+    <p>Tiga bentuk hubungan adalah jantung pemodelan data. Begini tiap bentuk diimplementasikan:</p>
+
+    <div class="diagram">
+      <div class="diagram-label">The three relationship shapes</div>
+      <svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace" font-size="10">
+        <!-- one to one -->
+        <text x="20" y="22" fill="#3f6f4e" font-weight="600" font-size="11">ONE-TO-ONE</text>
+        <rect x="20" y="32" width="90" height="34" rx="6" fill="#e0e9dd" stroke="#bcd3b6"/><text x="65" y="53" text-anchor="middle">users</text>
+        <line x1="110" y1="49" x2="170" y2="49" stroke="#3f6f4e" stroke-width="2"/>
+        <rect x="170" y="32" width="110" height="34" rx="6" fill="#e0e9dd" stroke="#bcd3b6"/><text x="225" y="53" text-anchor="middle">user_profiles</text>
+        <text x="20" y="84" fill="#5b5347" font-size="9">profile's user_id is BOTH its primary &amp; foreign key</text>
+        <!-- one to many -->
+        <text x="20" y="120" fill="#37607f" font-weight="600" font-size="11">ONE-TO-MANY</text>
+        <rect x="20" y="130" width="90" height="34" rx="6" fill="#dee5ee" stroke="#b9c8da"/><text x="65" y="151" text-anchor="middle">projects</text>
+        <line x1="110" y1="147" x2="175" y2="135" stroke="#37607f" stroke-width="1.6"/>
+        <line x1="110" y1="147" x2="175" y2="147" stroke="#37607f" stroke-width="1.6"/>
+        <line x1="110" y1="147" x2="175" y2="159" stroke="#37607f" stroke-width="1.6"/>
+        <rect x="175" y="124" width="80" height="20" rx="4" fill="#e6dcca" stroke="#e2dccf"/><text x="215" y="138" text-anchor="middle">task</text>
+        <rect x="175" y="148" width="80" height="20" rx="4" fill="#e6dcca" stroke="#e2dccf"/><text x="215" y="162" text-anchor="middle">task</text>
+        <text x="20" y="186" fill="#5b5347" font-size="9">each task holds a project_id foreign key</text>
+        <!-- many to many -->
+        <text x="400" y="120" fill="#b07d2b" font-weight="600" font-size="11">MANY-TO-MANY</text>
+        <rect x="400" y="130" width="80" height="34" rx="6" fill="#f0e5c9" stroke="#ddc79a"/><text x="440" y="151" text-anchor="middle">users</text>
+        <rect x="500" y="124" width="110" height="46" rx="6" fill="#232019"/><text x="555" y="143" text-anchor="middle" fill="#e9e2d3" font-size="9">project_members</text><text x="555" y="158" text-anchor="middle" fill="#7d7468" font-size="8">linking table</text>
+        <rect x="630" y="130" width="80" height="34" rx="6" fill="#f0e5c9" stroke="#ddc79a"/><text x="670" y="151" text-anchor="middle">projects</text>
+        <line x1="480" y1="147" x2="500" y2="147" stroke="#b07d2b" stroke-width="1.6"/>
+        <line x1="610" y1="147" x2="630" y2="147" stroke="#b07d2b" stroke-width="1.6"/>
+        <text x="400" y="190" fill="#5b5347" font-size="9">linking table with a COMPOSITE primary key (user_id + project_id)</text>
+      </svg>
+    </div>
+
+    <h3>One-to-one: users &lt;-&gt; user_profiles</h3>
+    <p>Kenapa memecah data profil ke tabel sendiri alih-alih menumpuknya ke <code>users</code>? Karena profil tumbuh seiring waktu (bio, telepon, avatar, tautan sosial, situs web...) dan akan memaksa migrasi terus-menerus ke tabel inti <code>users</code>. Mengabstraksikannya ke tabel terpisah yang bisa berevolusi independen menjaga tabel utama ringan. Karena setiap user punya tepat satu profil, Anda bahkan tidak perlu ID terpisah, jadikan <code>user_id</code> profil tersebut <strong>sekaligus primary key dan foreign key-nya</strong>.</p>
+
+    <h3>One-to-many: projects &lt;-&gt; tasks</h3>
+    <p>Satu proyek punya banyak task; setiap task milik satu proyek. Implementasinya taruh <strong>foreign key</strong> <code>project<em>id</code> di tabel <code>tasks</code> (bukan primary key). Banyak baris task bisa berbagi <code>project</em>id</code> yang sama, itulah sisi "banyak".</p>
+
+    <h3>Many-to-many: users &lt;-&gt; projects</h3>
+    <p>Seorang user bisa di banyak proyek, dan sebuah proyek bisa punya banyak user, dan Anda ingin meng-query keduanya dua arah. Saat hubungan yang sama masuk akal dari kedua sisi, ia many-to-many. Anda tidak bisa mengekspresikannya dengan satu foreign key, jadi Anda membuat <strong>tabel penghubung</strong> (<code>project<em>members</code>) yang memegang dua foreign key, <code>user</em>id</code> dan <code>project_id</code>, dan menjadikan pasangannya <strong>composite primary key</strong>. Kombinasi itu secara implisit unik dan not-null, jadi "user 1 ada di proyek 2" bisa ada tepat sekali.</p>
+
+    <div class="code">
+      <div class="code-top"><span class="dots"><i></i><i></i><i></i></span>
+        <div class="tabs"><button class="tab active" data-lang="sql">SQL</button></div>
+        <span class="code-cap">the full schema, enums, then the five tables</span>
+      </div>
+      <pre class="code-body" data-lang="sql">-- custom enum types: a fixed set of allowed values
+CREATE TYPE project_status AS ENUM ('active', 'completed', 'archived');
+CREATE TYPE task_status    AS ENUM ('pending', 'in_progress', 'completed', 'cancelled');
+CREATE TYPE member_role    AS ENUM ('owner', 'admin', 'member');
+
+CREATE TABLE users (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email         TEXT NOT NULL UNIQUE,
+  full_name     TEXT NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- ONE-TO-ONE: user_id is BOTH primary key and foreign key
+CREATE TABLE user_profiles (
+  user_id     UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  avatar_url  TEXT,             -- optional -&gt; no NOT NULL
+  bio         TEXT,
+  phone       TEXT,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE projects (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name        TEXT NOT NULL,
+  description TEXT,
+  status      project_status NOT NULL DEFAULT 'active',
+  owner_id    UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- ONE-TO-MANY: a project has many tasks via project_id
+CREATE TABLE tasks (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id  UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  title       TEXT NOT NULL,
+  description TEXT,
+  priority    INTEGER NOT NULL DEFAULT 1 CHECK (priority BETWEEN 1 AND 5),
+  status      task_status NOT NULL DEFAULT 'pending',
+  due_date    DATE,
+  assigned_to UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- MANY-TO-MANY: linking table with a COMPOSITE primary key
+CREATE TABLE project_members (
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id)    ON DELETE CASCADE,
+  role       member_role NOT NULL DEFAULT 'member',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (project_id, user_id)   -- the pair is unique &amp; not-null
+);</pre>
+    </div>
+    <div class="callout note">
+      <span class="clabel">Version note / gen_random_uuid()</span>
+      <p>Skema ini diverifikasi terhadap <strong>PostgreSQL 16</strong>. <code>gen<em>random</em>uuid()</code> tertanam di inti Postgres sejak <strong>13</strong>. Di versi lama (&lt;=12) Anda harus menyalakan ekstensi kripto lebih dulu: <code>CREATE EXTENSION IF NOT EXISTS pgcrypto;</code>, lalu panggilan yang sama bekerja.</p>
+    </div>
+  </section>
+
+  <!-- 09 -->
+  <section id="s9">
+    <div class="sec-head"><span class="sec-num">09</span><h2>Constraint &amp; Integritas</h2></div>
+    <p>Constraint adalah kondisi yang Anda tempelkan ke kolom supaya database sendiri melindungi data dari korup. Seluruh filosofinya: dorong pemeriksaan integritas <em>turun ke database</em> alih-alih memercayai kode aplikasi saja. Kode aplikasi satu lapis pertahanan; constraint database adalah jaminannya.</p>
+
+    <h3>Primary key</h3>
+    <p>Field unik yang mengidentifikasi satu baris. Ia secara implisit membawa dua constraint, <strong>not null</strong> dan <strong>unique</strong>: plus perilaku referensi foreign key. Sesuai konvensi setiap tabel punya <code>id</code>, sering <code>UUID PRIMARY KEY DEFAULT gen<em>random</em>uuid()</code> supaya Postgres membuat ID acak saat Anda menghilangkannya di insert.</p>
+
+    <h3>Not null: aturan 70%</h3>
+    <p>Secara default setiap kolom Postgres <em>mengizinkan</em> null kecuali Anda bilang lain. <strong>Lebih dari 70% kolom Anda harus <code>NOT NULL</code></strong>, karena null diam-diam menyusup, terutama lewat skrip otomatis yang punya bug, dan meninggalkan Anda dengan tabel berantakan yang tidak konsisten. Tambah <code>NOT NULL</code> kecuali sebuah field benar-benar opsional (seperti bio atau telepon pengguna).</p>
+
+    <h3>Unique</h3>
+    <p>Tidak boleh ada dua baris berbagi nilai itu, mis. <code>email TEXT NOT NULL UNIQUE</code> berarti menyisipkan email duplikat melempar error level database.</p>
+
+    <h3>Constraint foreign key</h3>
+    <p><code>REFERENCES users(id)</code> menjamin apa pun yang Anda taruh di <code>assigned<em>to</code> atau <code>owner</em>id</code> harus ID pengguna nyata yang ada. Loloskan UUID acak (bahkan yang tampak valid) tanpa user yang cocok dan insert-nya gagal. Anda tidak bisa mereferensikan yang tak ada.</p>
+
+    <h3>Constraint check</h3>
+    <p>Aturan kustom yang harus dipenuhi baris, transaksi hanya diloloskan saat kondisi berlaku. <code>CHECK (priority BETWEEN 1 AND 5)</code> memblokir siapa pun menyisipkan <code>priority = 55</code>.</p>
+
+    <h3>Enum: integritas + dokumentasi</h3>
+    <p>Enum adalah tipe kustom yang dibatasi ke set nilai tetap (mis. <code>project_status</code> dalam {active, completed, archived}). Dua kemenangan:</p>
+    <ul>
+      <li><strong>Integritas data</strong>: sisipkan string lain ke kolom <code>project_status</code> dan Anda dapat error level database; Anda tidak harus mengandalkan validasi kode aplikasi saja.</li>
+      <li><strong>Mendokumentasikan diri</strong>: boleh dibilang kemenangan yang lebih besar. Rekan masa depan yang membaca migrasi langsung melihat nilai yang diizinkan. Jika kolomnya <code>text</code> polos, mereka harus grep seluruh kode aplikasi untuk menemukan string mana yang benar-benar valid.</li>
+    </ul>
+
+    <h3>Integritas referensial: perilaku ON DELETE</h3>
+    <p>Saat Anda menghapus baris yang ditunjuk tabel lain, apa yang terjadi pada referensi itu? Anda mendeklarasikannya per foreign key:</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Klausa</th><th>Saat menghapus baris yang direferensikan...</th><th>Dipakai di sini untuk</th></tr></thead>
+        <tbody>
+          <tr><td><code>ON DELETE RESTRICT</code></td><td>Blokir penghapusan jika masih ada baris anak yang mereferensikannya.</td><td><code>projects.owner_id</code>, tidak bisa menghapus user yang masih memiliki proyek.</td></tr>
+          <tr><td><code>ON DELETE CASCADE</code></td><td>Hapus anak-anaknya juga.</td><td><code>tasks.project_id</code>, menghapus proyek menghapus task-nya.</td></tr>
+          <tr><td><code>ON DELETE SET NULL</code></td><td>Set referensi anak ke null (kolom harus mengizinkan null).</td><td><code>tasks.assigned_to</code>, menghapus user melepaskan penugasan task-nya.</td></tr>
+          <tr><td><code>ON DELETE SET DEFAULT</code></td><td>Set referensi anak ke default yang dideklarasikan.</td><td>-</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout model">
+      <span class="clabel">The integrity mindset</span>
+      <p>Setiap constraint, primary key, not null, unique, foreign key, check, enum, ON DELETE, ada supaya <em>database</em> yang menjamin kebenaran, bukan sekadar kode aplikasi yang penuh harapan. Semakin banyak yang Anda encode di level ini, semakin sulit bug masa depan merusak data Anda.</p>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section id="s10">
+    <div class="sec-head"><span class="sec-num">10</span><h2>Query &amp; Join</h2></div>
+
+    <h3>Bangun query dari FROM, bukan SELECT</h3>
+    <p>Kebiasaan yang layak diadopsi: saat menulis query SQL, <strong>mulai dengan klausa <code>FROM</code></strong>, bukan <code>SELECT</code>. Putuskan <em>dari mana</em> data Anda berasal lebih dulu, tabel mana, di-join bagaimana, dan baru setelah itu putuskan <em>apa</em> yang mau ditarik. Itu menjaga Anda tetap berorientasi: Anda selalu tahu sumbernya sebelum meraih kolom. Kita akan membangun query "daftar user dengan profil" dalam urutan persis itu, sumber dulu, lalu bentuk, lalu urutan.</p>
+
+    <div class="steps">
+      <div class="step"><span class="sn">1</span><div class="sb"><b>Source.</b> <code>FROM users u</code>, and give it a short <em>alias</em> (<code>u</code>) so you can refer to it concisely throughout the query.</div></div>
+      <div class="step"><span class="sn">2</span><div class="sb"><b>Join the related table.</b> The profile lives elsewhere, linked by the foreign key, so <code>LEFT JOIN user_profiles up ON u.id = up.user_id</code>.</div></div>
+      <div class="step"><span class="sn">3</span><div class="sb"><b>Shape.</b> Now pick columns: <code>u.*</code> plus the folded profile, <code>to_jsonb(up.*) AS profile</code>.</div></div>
+      <div class="step g"><span class="sn">4</span><div class="sb"><b>Order.</b> Finish with <code>ORDER BY u.created_at DESC</code> so results are deterministic and newest-first.</div></div>
+    </div>
+
+    <h3>Meng-join tabel: dan kenapa LEFT JOIN</h3>
+    <p>Untuk mengembalikan setiap user <em>dengan</em> profilnya dalam satu panggilan API, Anda join <code>users</code> ke <code>user<em>profiles</code> pada foreign key. Pakai <strong>LEFT JOIN</strong>, bukan INNER JOIN: user mungkin tidak pernah membuat baris profil, dan INNER JOIN hanya mengembalikan baris tempat </em>kedua<em> sisi punya kecocokan, jadi user tanpa profil itu diam-diam menghilang dari hasil, mengembalikan lebih sedikit user daripada yang ada. LEFT JOIN menjaga </em>setiap_ baris dari tabel kiri (utama) apa pun yang terjadi, mengisi sisi profil dengan null saat tak ada kecocokan. Karena kita selalu ingin user-nya kembali, dengan atau tanpa profil, LEFT JOIN yang benar di sini. (INNER dan LEFT join mencakup mayoritas besar query nyata; yang lain langka.)</p>
+    <p>Dua detail lagi di query itu. <strong>Alias</strong> pendek (<code>u</code>, <code>up</code>) hanya membuat query panjang tetap terbaca, Anda menetapkannya sekali di <code>FROM</code>/<code>JOIN</code> dan memakai ulang di mana-mana. Dan <code>to<em>jsonb(up.*)</code> adalah fungsi bawaan Postgres yang mengonversi baris profil yang cocok menjadi objek JSON, disematkan sebagai satu field <code>profile</code> di tiap user, jadi frontend mendapat <code>user.profile</code> bersarang, dalam satu round trip, alih-alih membuat panggilan kedua. Selalu akhiri query daftar dengan <code>ORDER BY</code> (di sini <code>created</em>at DESC</code>): hasil query datang dalam urutan <em>arbitrer</em> kalau tidak, dan urutan itu bisa berubah antar panggilan, jadi Anda sortir secara eksplisit, biasanya terbaru-dulu berdasarkan waktu pembuatan.</p>
+
+    <div class="code">
+      <div class="code-top"><span class="dots"><i></i><i></i><i></i></span>
+        <div class="tabs"><button class="tab active" data-lang="sql">SQL</button></div>
+        <span class="code-cap">GET /v1/users, list users with embedded profile</span>
+      </div>
+      <pre class="code-body" data-lang="sql">SELECT
+  u.*,
+  to_jsonb(up.*) AS profile          -- fold the profile row into one JSON field
+FROM users u
+LEFT JOIN user_profiles up           -- LEFT so users without a profile still appear
+  ON u.id = up.user_id               -- the foreign-key join condition
+ORDER BY u.created_at DESC;          -- newest first; never rely on default order</pre>
+    </div>
+
+    <h3>Query berparameter: jangan pernah menggabungkan string</h3>
+    <p>Ini kebiasaan keamanan paling penting dengan database. <strong>Query berparameter</strong> menyisakan slot placeholder dan memasok nilainya terpisah; database memperlakukan apa pun yang Anda berikan sebagai <strong>data murni (string), bukan SQL yang bisa dieksekusi</strong>. Jika penyerang memasukkan <code>'; DELETE FROM users; --</code> ke parameter, ia disimpan/dibandingkan sebagai string literal yang tak berbahaya, bukan dijalankan sebagai perintah.</p>
+    <div class="callout trap">
+      <span class="clabel">SQL injection / the cardinal sin</span>
+      <p>Kerentanan muncul saat Anda membangun query dengan <strong>menggabungkan string</strong> dengan input pengguna. Maka input hasil rekayasa bisa kabur dan menjalankan SQL-nya sendiri, membaca, mengubah, atau menghapus data Anda. <strong>Jangan pernah</strong> menggabungkan string nilai pengguna ke query. Selalu pakai placeholder parameter; driver/ORM Anda menangani substitusi yang aman. Ini bukan opsional.</p>
+    </div>
+
+    <div class="code">
+      <div class="code-top"><span class="dots"><i></i><i></i><i></i></span>
+        <div class="tabs"><button class="tab active" data-lang="sql">SQL</button><button class="tab" data-lang="go">Go</button><button class="tab" data-lang="python">Python</button></div>
+        <span class="code-cap">GET /v1/users/:id, same query, parameter-safe in each layer</span>
+      </div>
+      <pre class="code-body" data-lang="sql">SELECT u.*, to_jsonb(up.*) AS profile
+FROM users u
+LEFT JOIN user_profiles up ON u.id = up.user_id
+WHERE u.id = $1;        -- $1 is a parameter slot; the value is sent separately</pre>
+      <pre class="code-body hidden" data-lang="go">// database/sql, the driver substitutes the parameter safely
+row := db.QueryRow(`
+  SELECT u.*, to_jsonb(up.*) AS profile
+  FROM users u
+  LEFT JOIN user_profiles up ON u.id = up.user_id
+  WHERE u.id = $1`, userID) // userID is treated strictly as data, never SQL</pre>
+      <pre class="code-body hidden" data-lang="python"># psycopg, pass params as a tuple; NEVER use f-strings to build SQL
+cur.execute(
+    """
+    SELECT u.*, to_jsonb(up.*) AS profile
+    FROM users u
+    LEFT JOIN user_profiles up ON u.id = up.user_id
+    WHERE u.id = %s
+    """,
+    (user_id,),  # the driver escapes it; injection is impossible
+)</pre>
+    </div>
+
+    <h3>Insert &amp; update</h3>
+    <div class="code">
+      <div class="code-top"><span class="dots"><i></i><i></i><i></i></span>
+        <div class="tabs"><button class="tab active" data-lang="sql">SQL</button></div>
+        <span class="code-cap">POST create / PATCH partial update</span>
+      </div>
+      <pre class="code-body" data-lang="sql">-- POST /v1/users  -&gt; returning the new row back to the client
+INSERT INTO users (email, full_name, password_hash)
+VALUES ($1, $2, $3)
+RETURNING *;
+
+-- PATCH /v1/users/:id  -&gt; only the fields the client actually sent
+UPDATE user_profiles
+SET bio = $1, phone = $2
+WHERE user_id = $3
+RETURNING *;</pre>
+    </div>
+
+    <h3>Filter, sort &amp; pagination dinamis</h3>
+    <p>Endpoint daftar mendukung filtering, sorting, dan pagination, dibangun dinamis di kode aplikasi dari query param, dengan default yang masuk akal (tanpa <code>page</code> -&gt; 1, tanpa <code>limit</code> -&gt; 10, tanpa sort -&gt; <code>created_at DESC</code>). Di level SQL:</p>
+    <ul>
+      <li><strong>Filter</strong> dengan <code>ILIKE</code>, pencocokan pola tanpa sensitif huruf. <code>WHERE u.full_name ILIKE $1 || '%'</code> cocok dengan nama yang diawali huruf tertentu tanpa memedulikan huruf besar/kecil.</li>
+      <li><strong>Sort</strong> dari <em>allow-list</em> kolom yang boleh dipakai klien untuk menyortir (<code>full<em>name</code>, <code>email</code>, <code>created</em>at</code>) plus satu arah.</li>
+      <li><strong>Paginate</strong> dengan <code>LIMIT</code> + <code>OFFSET</code>. Catatan: halaman 1 di API memetakan ke <code>OFFSET 0</code> database, offset-nya berbasis nol.</li>
+    </ul>
+    <div class="code">
+      <div class="code-top"><span class="dots"><i></i><i></i><i></i></span>
+        <div class="tabs"><button class="tab active" data-lang="sql">SQL</button></div>
+        <span class="code-cap">list with filter + sort + pagination</span>
+      </div>
+      <pre class="code-body" data-lang="sql">SELECT u.*, to_jsonb(up.*) AS profile
+FROM users u
+LEFT JOIN user_profiles up ON u.id = up.user_id
+WHERE u.full_name ILIKE $1 || '%'   -- filter: names starting with $1 (case-insensitive)
+ORDER BY u.created_at DESC           -- sort (column from an allow-list, direction chosen)
+LIMIT $2 OFFSET $3;                  -- page 1 -&gt; OFFSET 0, page 2 -&gt; OFFSET (limit), ...</pre>
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section id="s11">
+    <div class="sec-head"><span class="sec-num">11</span><h2>Index</h2></div>
+    <p>Index adalah tuas performa terbesar yang Anda miliki, dan paling baik dipahami lewat analogi buku. Indeks buku mencantumkan tiap bab dan nomor halamannya, jadi untuk sampai ke bab 4 Anda tidak membalik 50 halaman satu per satu, Anda mencarinya lalu melompat langsung ke sana.</p>
+
+    <h3>Masalahnya: sequential scan</h3>
+    <p>Ingat database menyimpan baris tersebar di disk, tidak dalam urutan rapi. Tanpa index, menemukan satu task berdasarkan ID berarti <strong>sequential scan</strong>: database memeriksa baris demi baris, lokasi demi lokasi, sampai menemukan kecocokan. Dengan enam baris itu instan; dengan sejuta atau satu miliar baris itu sangat lambat.</p>
+
+    <div class="diagram">
+      <div class="diagram-label">Sequential scan vs index lookup</div>
+      <svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace" font-size="10">
+        <!-- left: scan -->
+        <text x="20" y="22" fill="#b8402e" font-weight="600" font-size="11">WITHOUT INDEX / scan every row</text>
+        <g fill="#e6dcca" stroke="#e2dccf">
+          <rect x="20" y="34" width="150" height="22"/><rect x="20" y="58" width="150" height="22"/>
+          <rect x="20" y="82" width="150" height="22"/><rect x="20" y="106" width="150" height="22"/>
+          <rect x="20" y="130" width="150" height="22"/>
+        </g>
+        <text x="30" y="49">task / check...</text><text x="30" y="73">task / check...</text>
+        <text x="30" y="97">task / check...</text><text x="30" y="121">task / check...</text>
+        <text x="30" y="145" fill="#3f6f4e">task / MATCH </text>
+        <text x="20" y="172" fill="#5b5347" font-size="9">scattered on disk / O(n), brutal at a million rows</text>
+        <!-- right: index -->
+        <text x="400" y="22" fill="#3f6f4e" font-weight="600" font-size="11">WITH INDEX / lookup table -&gt; jump</text>
+        <rect x="400" y="34" width="150" height="118" rx="6" fill="#e0e9dd" stroke="#bcd3b6"/>
+        <text x="412" y="52" fill="#3f6f4e" font-weight="600">id -&gt; location</text>
+        <text x="412" y="72">a1 -&gt; 0x4F</text><text x="412" y="90">a2 -&gt; 0x1C</text>
+        <text x="412" y="108">a3 -&gt; 0x9B  &lt; found</text><text x="412" y="126">a4 -&gt; 0x22</text>
+        <line x1="550" y1="104" x2="640" y2="104" stroke="#3f6f4e" stroke-width="1.6" marker-end="url(#ar)"/>
+        <rect x="610" y="92" width="90" height="24" rx="5" fill="#232019"/><text x="655" y="108" text-anchor="middle" fill="#e9e2d3" font-size="9">0x9B -&gt; row</text>
+        <text x="400" y="172" fill="#5b5347" font-size="9">sorted lookup -&gt; direct jump to the disk location</text>
+        <defs><marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#3f6f4e"/></marker></defs>
+      </svg>
+    </div>
+
+    <h3>Solusinya: tabel pencarian</h3>
+    <p>Index pada dasarnya <strong>tabel pencarian</strong> terpisah dan terurut yang memetakan setiap nilai yang di-index ke <strong>lokasi</strong> disk barisnya. Query berdasarkan field yang di-index dan database memindai struktur kompak tersortir ini (secara internal B-tree), menemukan entrinya cepat, membaca lokasinya, dan melompat langsung ke baris, tanpa scan penuh. Dua sifat yang penting:</p>
+    <ul>
+      <li><strong>Pencarian langsung</strong>: nilai -&gt; lokasi, alih-alih memeriksa setiap baris.</li>
+      <li><strong>Urutan</strong>: index bisa menaik atau menurun. Jika Anda sering menjalankan <code>ORDER BY created<em>at DESC</code>, bangun index-nya </em>menurun_ supaya baris datang sudah terurut, tanpa langkah sort tambahan.</li>
+    </ul>
+
+    <h3>Kapan membuat index</h3>
+    <p>Aturan praktisnya, index kolom jika ia dipakai di klausa <strong><code>WHERE</code></strong>, <strong>kondisi <code>JOIN</code></strong>, atau <strong><code>ORDER BY</code></strong>. Satu detail penting: <strong>primary key otomatis di-index, tapi foreign key tidak</strong>: jadi foreign key yang Anda gunakan untuk join (seperti <code>tasks.project<em>id</code>, <code>tasks.assigned</em>to</code>) adalah kandidat index utama.</p>
+
+    <p>Menapaki alasan sebenarnya di balik tiap index di skema kita membuat aturannya konkret:</p>
+    <ul>
+      <li><code>users.email</code> -&gt; ada pencarian "cari user berdasarkan email" dan join pada email, jadi ia muncul di <code>WHERE</code>/<code>JOIN</code> -&gt; index.</li>
+      <li><code>users.created<em>at DESC</code> -&gt; API daftar-user menyortir terbaru-dulu secara default dan dipanggil terus, jadi index </em>menurun_ agar cocok persis dengan <code>ORDER BY</code>.</li>
+      <li><code>tasks.project<em>id</code> -&gt; "ambil semua task sebuah proyek" join <code>projects</code> ke <code>tasks</code> pada foreign key ini. Sisi <code>projects.id</code> adalah primary key (sudah di-index), tapi <code>project</em>id</code> di sini foreign key dan <em>tidak</em> di-index, jadi index.</li>
+      <li><code>tasks.assigned_to</code> -&gt; "ambil semua task seorang user" join pada foreign key ini. Logika sama, foreign key, tidak otomatis di-index, dipakai di join -&gt; index.</li>
+      <li><code>tasks.status</code> -&gt; "ambil semua task tertunda" memfilter status di klausa <code>WHERE</code> -&gt; index.</li>
+      <li><code>tasks.created_at DESC</code> -&gt; API daftar-task menyortir terbaru-dulu -&gt; index menurun.</li>
+    </ul>
+    <p>Secara internal B-tree menjaga entri ini tetap terurut, itulah yang membuat pencarian langsung dan scan terurut sama-sama cepat, tapi Anda tidak butuh internal untuk menerapkan aturannya; tiga pemicu (WHERE / JOIN / ORDER BY) sudah cukup untuk memutuskan.</p>
+
+    <div class="code">
+      <div class="code-top"><span class="dots"><i></i><i></i><i></i></span>
+        <div class="tabs"><button class="tab active" data-lang="sql">SQL</button></div>
+        <span class="code-cap">indexes chosen from real WHERE / JOIN / ORDER BY usage</span>
+      </div>
+      <pre class="code-body" data-lang="sql">CREATE INDEX idx_users_email        ON users (email);              -- WHERE / JOIN on email
+CREATE INDEX idx_users_created_at    ON users (created_at DESC);    -- ORDER BY newest first
+CREATE INDEX idx_tasks_project_id    ON tasks (project_id);         -- FK join (not auto-indexed)
+CREATE INDEX idx_tasks_assigned_to   ON tasks (assigned_to);        -- FK join (not auto-indexed)
+CREATE INDEX idx_tasks_status        ON tasks (status);             -- WHERE status = ...
+CREATE INDEX idx_tasks_created_at    ON tasks (created_at DESC);    -- ORDER BY newest first</pre>
+    </div>
+
+    <div class="callout trap">
+      <span class="clabel">The write-overhead trade-off</span>
+      <p>Index mempercepat <strong>baca</strong> tapi sedikit memperlambat <strong>tulis</strong>: setiap <code>INSERT</code>/<code>UPDATE</code> juga harus menjaga index tetap terbaru. Jadi jangan membuta meng-index semuanya. Evaluasi seberapa <em>sering</em> query itu berjalan dan apakah untung baca sepadan dengan biaya tulis. Langkah praktis: buat index untuk kolom WHERE/JOIN/ORDER BY panas, lalu pantau, buang yang ternyata query-nya jarang.</p>
+    </div>
+  </section>
+
+  <!-- 12 -->
+  <section id="s12">
+    <div class="sec-head"><span class="sec-num">12</span><h2>Trigger</h2></div>
+    <p>Setiap tabel di sini punya kolom <code>updated_at</code> yang harus disegarkan ke "sekarang" setiap kali baris berubah. Anda bisa men-set-nya manual di setiap UPDATE, atau Anda bisa <strong>mengotomasinya</strong> dengan trigger supaya aplikasi tidak pernah perlu memikirkannya.</p>
+    <p><strong>Trigger</strong> menjalankan fungsi otomatis saat kondisi terpenuhi. Di sini: definisikan fungsi yang men-set <code>NEW.updated_at = now()</code> dan mengembalikan barisnya, lalu pasang trigger <code>BEFORE UPDATE</code> di tiap tabel yang memanggilnya.</p>
+
+    <div class="diagram">
+      <div class="diagram-label">UPDATE fires the trigger automatically</div>
+      <svg viewBox="0 0 720 100" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace" font-size="10.5">
+        <rect x="20" y="34" width="170" height="34" rx="7" fill="#dee5ee" stroke="#b9c8da"/><text x="105" y="55" text-anchor="middle">UPDATE row</text>
+        <line x1="190" y1="51" x2="250" y2="51" stroke="#c7bca6" stroke-width="1.5" marker-end="url(#a2)"/>
+        <rect x="250" y="34" width="200" height="34" rx="7" fill="#b8402e"/><text x="350" y="55" text-anchor="middle" fill="#fff">BEFORE UPDATE trigger</text>
+        <line x1="450" y1="51" x2="510" y2="51" stroke="#c7bca6" stroke-width="1.5" marker-end="url(#a2)"/>
+        <rect x="510" y="34" width="190" height="34" rx="7" fill="#e0e9dd" stroke="#bcd3b6"/><text x="605" y="55" text-anchor="middle" fill="#3f6f4e">updated_at = now()</text>
+        <defs><marker id="a2" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7 z" fill="#c7bca6"/></marker></defs>
+      </svg>
+    </div>
+
+    <div class="code">
+      <div class="code-top"><span class="dots"><i></i><i></i><i></i></span>
+        <div class="tabs"><button class="tab active" data-lang="sql">SQL</button></div>
+        <span class="code-cap">one function, reused as a trigger on every table</span>
+      </div>
+      <pre class="code-body" data-lang="sql">-- the function: stamp updated_at, return the modified row
+CREATE FUNCTION set_updated_at() RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- attach it before every UPDATE on each table
+CREATE TRIGGER trg_users_updated
+  BEFORE UPDATE ON users
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_projects_updated
+  BEFORE UPDATE ON projects
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+-- ...and likewise for user_profiles, tasks, project_members</pre>
+    </div>
+
+    <p>Sekarang setiap UPDATE, dari mana pun, kode aplikasi atau query manual, otomatis menyegarkan <code>updated_at</code>. Tidak ada kolom yang terlupakan, dan logikanya tinggal di satu tempat.</p>
+
+    <div class="callout model">
+      <span class="clabel">The chapter in one breath</span>
+      <p>Database menyimpan data di <strong>disk</strong> murah yang lega; <strong>DBMS</strong> memberi Anda CRUD efisien dan aman yang tak bisa diberikan file teks. Default ke <strong>Postgres</strong> demi integritas plus JSONB. Modelkan dengan <strong>hubungan</strong> yang tepat (one-to-one, one-to-many, many-to-many via tabel penghubung), tegakkan kebenaran dengan <strong>constraint &amp; enum</strong>, berkembang aman lewat <strong>migrasi</strong>, query dengan <strong>join</strong> dan SQL yang selalu <strong>berparameter</strong>, dan raih dua tuas performa, <strong>index</strong> (pada kolom WHERE/JOIN/ORDER BY) dan <strong>trigger</strong> (untuk mengotomasi yang membosankan). Itulah ±80% kerja database sebagai engineer backend.</p>
+    </div>
+  </section>
+
+  <!-- 13 -->
+  <section id="s13">
+    <div class="sec-head"><span class="sec-num">13</span><h2>Transaksi &amp; ACID</h2></div>
+    <p>Kembali ke bagian 3: kita melihat kenapa file teks tidak bisa menangani dua orang mengedit nilai yang sama bersamaan, balapan lost-update. DBMS sungguhan menyelesaikannya dengan <strong>transaksi</strong>: kelompok operasi yang <em>semuanya</em> sukses bersama atau <em>tidak ada</em>. Inilah mesin yang membuat konkurensi aman, dan layak dipahami karena uang, inventaris, dan logika "baca-lalu-tulis" apa pun bergantung padanya.</p>
+
+    <h3>Contoh klasik: transfer uang</h3>
+    <p>Pindahkan INR 500 dari akun A ke akun B. Itu dua tulisan: kurangi dari A, tambahkan ke B. Jika server crash <em>di antara</em> keduanya, A kehilangan INR 500 yang tak pernah sampai ke B, uang lenyap. Transaksi membuat pasangannya atomik: bungkus dalam <code>BEGIN ... COMMIT</code>, dan keduanya terjadi atau, saat ada kegagalan, <code>ROLLBACK</code> mengurungkan semuanya seolah tak terjadi apa-apa.</p>
+
+    <div class="code">
+      <div class="code-top"><span class="dots"><i></i><i></i><i></i></span>
+        <div class="tabs"><button class="tab active" data-lang="sql">SQL</button><button class="tab" data-lang="go">Go</button><button class="tab" data-lang="python">Python</button></div>
+        <span class="code-cap">both writes commit together, or neither does</span>
+      </div>
+      <pre class="code-body" data-lang="sql">BEGIN;                                              -- start the transaction
+  UPDATE accounts SET balance = balance - 500 WHERE id = $1;  -- debit A
+  UPDATE accounts SET balance = balance + 500 WHERE id = $2;  -- credit B
+COMMIT;                                             -- both are now permanent
+-- if anything fails between BEGIN and COMMIT -&gt; ROLLBACK undoes it all</pre>
+      <pre class="code-body hidden" data-lang="go">tx, err := db.Begin()
+if err != nil { return err }
+defer tx.Rollback() // safety net: a no-op if we already committed
+
+if _, err = tx.Exec(`UPDATE accounts SET balance = balance - 500 WHERE id = $1`, a); err != nil {
+	return err // deferred Rollback fires -&gt; A is untouched
+}
+if _, err = tx.Exec(`UPDATE accounts SET balance = balance + 500 WHERE id = $1`, b); err != nil {
+	return err // deferred Rollback fires -&gt; both reverted
+}
+return tx.Commit() // only here do both writes become permanent</pre>
+      <pre class="code-body hidden" data-lang="python">conn = pool.getconn()
+try:
+    with conn:                       # commits on success, ROLLBACKs on any exception
+        with conn.cursor() as cur:
+            cur.execute("UPDATE accounts SET balance = balance - 500 WHERE id = %s", (a,))
+            cur.execute("UPDATE accounts SET balance = balance + 500 WHERE id = %s", (b,))
+    # reaching here means both writes committed atomically
+finally:
+    pool.putconn(conn)</pre>
+    </div>
+
+    <h3>ACID: empat jaminan</h3>
+    <p>Transaksi memberi Anda empat sifat, disingkat ACID:</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Sifat</th><th>Jaminan</th><th>Dalam contoh transfer</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Atomicity</strong></td><td>Semua operasi sukses, atau tidak ada.</td><td>Anda tidak pernah mendebet A tanpa mengkredit B.</td></tr>
+          <tr><td><strong>Consistency</strong></td><td>DB berpindah dari satu state valid ke state valid lain; constraint selalu berlaku.</td><td>Total uang lintas akun tetap benar.</td></tr>
+          <tr><td><strong>Isolation</strong></td><td>Transaksi serentak tidak saling menginjak; masing-masing berjalan seolah sendirian.</td><td>Dua transfer sekaligus tidak bisa merusak saldo.</td></tr>
+          <tr><td><strong>Durability</strong></td><td>Begitu commit, ia bertahan dari crash/putus daya.</td><td>Setelah COMMIT, transfernya permanen.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Ini alasan besar meraih database relasional seperti Postgres saat data kritis: transaksi ACID adalah jaminan kelas satu, persis hal yang tidak pernah bisa diberikan file teks bagian 3.</p>
+
+    <h3>Isolation &amp; balapan lost-update, ditinjau ulang</h3>
+    <p><strong>Isolation</strong> adalah sifat yang sebenarnya memperbaiki masalah dua-penulis-pada-40 kita. Di balik layar database memakai <strong>penguncian</strong> dan <strong>MVCC (multi-version concurrency control)</strong> sehingga transaksi serentak melihat snapshot konsisten dan menyeriakkan tulisan yang bertabrakan, alih-alih membuta menimpa satu sama lain.</p>
+    <p>Khusus untuk logika baca-lalu-tulis, ada dua alat standar:</p>
+    <ul>
+      <li><strong>Tulis atomik</strong>: dorong komputasinya ke SQL itu sendiri: <code>UPDATE accounts SET balance = balance - 500 ...</code> membaca dan menulis dalam satu langkah terkunci, jadi tidak ada celah bagi penulis lain menyusup. (Jauh lebih aman daripada membaca saldo ke kode aplikasi, menghitung, lalu menulisnya kembali.)</li>
+      <li><strong>Penguncian baris</strong>: <code>SELECT ... FOR UPDATE</code> mengunci baris yang Anda baca sampai transaksi Anda berakhir, jadi transaksi serentak harus menunggu gilirannya alih-alih balapan dengan Anda.</li>
+    </ul>
+
+    <div class="code">
+      <div class="code-top"><span class="dots"><i></i><i></i><i></i></span>
+        <div class="tabs"><button class="tab active" data-lang="sql">SQL</button></div>
+        <span class="code-cap">SELECT ... FOR UPDATE, lock the row, then safely modify</span>
+      </div>
+      <pre class="code-body" data-lang="sql">BEGIN;
+  -- lock this account's row so no other transaction can change it until we're done
+  SELECT balance FROM accounts WHERE id = $1 FOR UPDATE;
+  -- ... compute safely in app code ...
+  UPDATE accounts SET balance = $2 WHERE id = $1;
+COMMIT;</pre>
+    </div>
+
+    <div class="callout trap">
+      <span class="clabel">Don't read-then-write in app code without protection</span>
+      <p>Pola naif, <code>SELECT balance</code> ke program Anda, tambah di kode, <code>UPDATE</code> kembali, adalah persis kondisi balapan bagian 3, hanya dipindah ke backend Anda. Dua request sama-sama membaca saldo lama dan satu menimpa yang lain. Pakai <strong>update SQL atomik</strong> (<code>balance = balance - 500</code>) atau <strong>penguncian baris <code>FOR UPDATE</code></strong> di dalam transaksi. Ini salah satu bug konkurensi dunia nyata yang paling umum.</p>
+    </div>
+
+    <div class="callout model">
+      <span class="clabel">Where transactions fit</span>
+      <p>Kapan pun satu operasi logis merentang <strong>beberapa tulisan</strong> yang harus utuh bersama, transfer, "buat order + kurangi stok," "arsipkan org + pembersihan berantai", bungkus dalam transaksi. ACID yang membuat Anda memperlakukan kelompok itu sebagai satu unit tak terbagi, aman-crash, aman-konkurensi. Itulah database menepati janji yang tak pernah bisa ditepati file teks.</p>
+    </div>
+  </section>
+
+  <!-- 14 -->
+  <section id="s14">
+    <div class="sec-head"><span class="sec-num">14</span><h2>Esensi Produksi</h2></div>
+    <p>Transkripnya berhenti di dasar-dasar. Empat topik ini tidak ada di sana, tapi Anda akan menabrak semuanya begitu database melayani lalu lintas nyata. Itulah pembeda antara "berfungsi di mesin saya dengan enam baris" dan "berfungsi di skala".</p>
+
+    <h3>Masalah query N+1: bug performa DB paling umum</h3>
+    <p>Anda mengambil daftar N proyek, lalu mengulanginya dan menembakkan <em>satu query lagi per proyek</em> untuk memuat task-nya. Itu <strong>1 + N query</strong>: untuk 100 proyek, 101 round trip ke database. Tiap round trip punya overhead jaringan + perencanaan, jadi ini kematian oleh seribu luka. Sangat licik dengan ORM, tempat lazy-loading relasi di dalam loop menyembunyikan query ekstra di balik kode yang tampak polos.</p>
+
+    <div class="diagram">
+      <div class="diagram-label">N+1 vs a single join</div>
+      <svg viewBox="0 0 720 150" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace" font-size="10">
+        <text x="20" y="22" fill="#b8402e" font-weight="600" font-size="11">N+1 / 1 list query, then one per row</text>
+        <rect x="20" y="32" width="120" height="22" rx="5" fill="#f4ded6" stroke="#e3c4b8"/><text x="80" y="47" text-anchor="middle">list projects</text>
+        <rect x="160" y="32" width="64" height="22" rx="5" fill="#f6e4de" stroke="#e3c4b8"/><text x="192" y="47" text-anchor="middle">tasks?</text>
+        <rect x="230" y="32" width="64" height="22" rx="5" fill="#f6e4de" stroke="#e3c4b8"/><text x="262" y="47" text-anchor="middle">tasks?</text>
+        <rect x="300" y="32" width="64" height="22" rx="5" fill="#f6e4de" stroke="#e3c4b8"/><text x="332" y="47" text-anchor="middle">tasks?</text>
+        <text x="374" y="47" fill="#b8402e">... xN</text>
+        <text x="20" y="78" fill="#5b5347" font-size="9">100 projects -&gt; 101 round trips</text>
+        <text x="20" y="108" fill="#3f6f4e" font-weight="600" font-size="11">Fixed / ONE query with a join</text>
+        <rect x="20" y="118" width="280" height="22" rx="5" fill="#e0e9dd" stroke="#bcd3b6"/><text x="160" y="133" text-anchor="middle">projects LEFT JOIN tasks, 1 round trip</text>
+      </svg>
+    </div>
+
+    <p>Perbaikannya mengambil data terkait dalam <strong>satu</strong> query, JOIN, atau <code>WHERE project_id = ANY($1)</code> yang di-batch, atau agregat yang membangun JSON bersarang di sisi server. Dengan ORM, padanannya "eager loading" (mis. <code>JOIN</code>/<code>preload</code>/<code>include</code>) alih-alih lazy loading di dalam loop.</p>
+
+    <div class="code">
+      <div class="code-top"><span class="dots"><i></i><i></i><i></i></span>
+        <div class="tabs"><button class="tab active" data-lang="sql">SQL</button></div>
+        <span class="code-cap">N+1 collapsed into one query with aggregated tasks</span>
+      </div>
+      <pre class="code-body" data-lang="sql">-- instead of: SELECT * FROM projects;  then per row: SELECT * FROM tasks WHERE project_id = ?
+SELECT
+  p.*,
+  COALESCE(jsonb_agg(t.*) FILTER (WHERE t.id IS NOT NULL), '[]') AS tasks
+FROM projects p
+LEFT JOIN tasks t ON t.project_id = p.id
+GROUP BY p.id;        -- one round trip, every project with its tasks nested</pre>
+    </div>
+
+    <h3>Connection pooling</h3>
+    <p>Membuka koneksi Postgres <strong>mahal</strong>: Postgres men-spawn satu proses per koneksi, dan ada plafon keras (default ±100 <code>max_connections</code>). Jika setiap request web membuka koneksinya sendiri, Anda menghabiskan server dan membayar biaya penyetelan terus-menerus. Perbaikannya <strong>connection pool</strong>: sekumpulan kecil koneksi umur panjang yang dipinjam dan dikembalikan request.</p>
+    <div class="diagram">
+      <div class="diagram-label">Many requests, a few reused connections</div>
+      <svg viewBox="0 0 720 120" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace" font-size="10">
+        <text x="20" y="20" fill="#5b5347" font-size="9">hundreds of requests</text>
+        <rect x="20" y="28" width="40" height="16" rx="3" fill="#dee5ee" stroke="#b9c8da"/>
+        <rect x="20" y="48" width="40" height="16" rx="3" fill="#dee5ee" stroke="#b9c8da"/>
+        <rect x="20" y="68" width="40" height="16" rx="3" fill="#dee5ee" stroke="#b9c8da"/>
+        <rect x="20" y="88" width="40" height="16" rx="3" fill="#dee5ee" stroke="#b9c8da"/>
+        <line x1="60" y1="66" x2="150" y2="66" stroke="#c7bca6" stroke-width="1.4"/>
+        <rect x="150" y="40" width="150" height="52" rx="8" fill="#b8402e"/><text x="225" y="62" text-anchor="middle" fill="#fff">pool / ~10-20 conns</text><text x="225" y="78" text-anchor="middle" fill="#f4ded6" font-size="9">borrow -&gt; use -&gt; return</text>
+        <line x1="300" y1="66" x2="390" y2="66" stroke="#c7bca6" stroke-width="1.4"/>
+        <rect x="390" y="44" width="110" height="44" rx="8" fill="#f0e5c9" stroke="#ddc79a"/><text x="445" y="70" text-anchor="middle" fill="#b07d2b">Postgres</text>
+      </svg>
+    </div>
+    <p>Dua lapisan, sering digabung: <strong>pool bawaan driver</strong> (di Go <code>database/sql</code> melakukan pooling otomatis; Python memakai <code>psycopg_pool</code>/pool SQLAlchemy) untuk satu instance aplikasi, dan <strong>pooler eksternal seperti PgBouncer</strong> saat banyak instance aplikasi masing-masing memegang pool sendiri dan bakal membanjiri Postgres. Setel ukuran pool ke beban kerja Anda, lebih besar bukan lebih baik; terlalu banyak koneksi justru menurunkan Postgres.</p>
+
+    <h3>EXPLAIN ANALYZE: verifikasi index benar-benar dipakai</h3>
+    <p>Membuat index tidak menjamin planner memakainya. <code>EXPLAIN</code> menampilkan rencana query; <code>EXPLAIN ANALYZE</code> benar-benar <em>menjalankan</em> query dan melaporkan waktu nyata. Anda membacanya mencari <strong>"Index Scan"</strong> (bagus, index Anda bekerja) versus <strong>"Seq Scan"</strong> (planner membaca setiap baris).</p>
+    <div class="callout tip">
+      <span class="clabel">Verified live / this is real output</span>
+      <p>Menjalankan <code>EXPLAIN SELECT * FROM tasks WHERE status = 'pending'</code> terhadap skema nyata bab ini di Postgres 16 menghasilkan: <code>Bitmap Index Scan on idx<em>tasks</em>status</code>, mengonfirmasi index status dari bagian 11 benar-benar dipakai untuk filter itu, bukan sekadar dibuat lalu diabaikan.</p>
+    </div>
+    <p>Satu peringatan yang membingungkan orang: pada tabel <em>kecil</em> planner mungkin dengan benar memilih Seq Scan (membaca 6 baris langsung lebih cepat daripada round trip index). Itu bukan bug, manfaat index muncul di skala. <code>EXPLAIN ANALYZE</code> pada data berskala produksi adalah cara mengonfirmasi index membayar upahnya, dan cara men-debug query lambat yang <em>seharusnya</em> memakai index tapi tidak.</p>
+
+    <h3>Soft delete</h3>
+    <p>Sering Anda tidak ingin baris benar-benar hilang, Anda ingin ia dipertahankan untuk audit, pemulihan, atau integritas historis, tapi disembunyikan dari query normal. Itu <strong>soft delete</strong>: tambahkan kolom nullable <code>deleted_at TIMESTAMPTZ</code> (null = hidup, timestamp = terhapus). "Menghapus" menjadi UPDATE; setiap baca memfilter baris yang terhapus.</p>
+    <div class="code">
+      <div class="code-top"><span class="dots"><i></i><i></i><i></i></span>
+        <div class="tabs"><button class="tab active" data-lang="sql">SQL</button></div>
+        <span class="code-cap">soft delete / the column, the "delete", the reads, and the unique-index gotcha</span>
+      </div>
+      <pre class="code-body" data-lang="sql">ALTER TABLE users ADD COLUMN deleted_at TIMESTAMPTZ;   -- null = alive
+
+-- "delete" = mark, don't remove
+UPDATE users SET deleted_at = now() WHERE id = $1;
+
+-- every read must exclude the dead rows
+SELECT * FROM users WHERE deleted_at IS NULL ORDER BY created_at DESC;
+
+-- gotcha: a plain UNIQUE now blocks reusing a soft-deleted email.
+-- a PARTIAL unique index fixes it, uniqueness only among LIVE rows:
+CREATE UNIQUE INDEX uniq_active_email
+  ON users (email) WHERE deleted_at IS NULL;</pre>
+    </div>
+    <p>Komprominya nyata: setiap query harus mengingat filter <code>WHERE deleted_at IS NULL</code> (mudah dilupakan, kebocoran), constraint unik perlu perlakuan partial-index seperti yang ditunjukkan di atas, dan tabel hanya akan terus bertambah. Pakai soft delete saat riwayat penting (order, akun pengguna, apa pun yang bisa diaudit); pakai <code>DELETE</code> keras untuk data yang benar-benar sekali pakai.</p>
+
+    <div class="callout model">
+      <span class="clabel">Production mindset</span>
+      <p>Fundamental membuat Anda punya database yang benar; ini membuat Anda punya yang <em>cepat, aman, dan bisa dioperasikan</em>. Runtuhkan N+1 menjadi join, pool koneksi Anda, buktikan index Anda dengan <code>EXPLAIN ANALYZE</code>, dan raih soft delete saat data harus selamat dari penghapusannya sendiri. Tak satu pun eksotis, ini realitas hari kedua menjalankan database di produksi.</p>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>The Backend Lens / Field Manual v2, Bab 12. Skema, constraint, trigger, join, dan pemakaian index di bab ini dieksekusi dan diverifikasi terhadap PostgreSQL 16. Bab pendamping: 11 / Desain REST API Lengkap (contoh manajemen proyek yang sama).</p>
+  </div>
+
+      <footer class="bfp-footer">Belajar Prinsip-Prinsip Backend / Chapter 08 / Postgres. Code targets Go 1.22+ and Python 3.11+.</footer>
+</main>
+</div>
+<script>
+document.querySelectorAll('.code').forEach(block=>{
+  const tabs=block.querySelectorAll('.tab');
+  const bodies=block.querySelectorAll('.code-body');
+  tabs.forEach(tab=>tab.addEventListener('click',()=>{
+    const lang=tab.dataset.lang;
+    tabs.forEach(t=>t.classList.toggle('active',t===tab));
+    bodies.forEach(b=>b.classList.toggle('hidden',b.dataset.lang!==lang));
+  }));
+});
+
+function highlight(text,lang){
+  const KW={
+    go:['func','package','import','var','const','type','struct','interface','map','return','if','else','for','range','switch','case','default','go','defer','chan','select','break','continue','nil','true','false','string','int','int64','bool','float64','error','make','append','len','any'],
+    python:['def','class','import','from','as','return','if','elif','else','for','while','in','is','not','and','or','None','True','False','try','except','finally','with','lambda','yield','pass','raise','self','async','await','int','str','bool','float','list','dict'],
+    sql:['SELECT','FROM','WHERE','JOIN','LEFT','RIGHT','INNER','OUTER','FULL','ON','AND','OR','NOT','NULL','AS','ORDER','GROUP','BY','LIMIT','OFFSET','INSERT','INTO','VALUES','UPDATE','SET','DELETE','RETURNING','CREATE','TABLE','TYPE','ENUM','PRIMARY','KEY','FOREIGN','REFERENCES','UNIQUE','DEFAULT','CHECK','BETWEEN','CASCADE','RESTRICT','DROP','INDEX','FUNCTION','RETURNS','TRIGGER','BEFORE','AFTER','EACH','ROW','EXECUTE','BEGIN','END','NEW','OLD','LANGUAGE','ILIKE','LIKE','DESC','ASC','WITH','DISTINCT','IN','IS','EXISTS','UUID','TEXT','INTEGER','BIGINT','SMALLINT','SERIAL','BIGSERIAL','BOOLEAN','TIMESTAMPTZ','TIMESTAMP','DATE','TIME','NUMERIC','DECIMAL','REAL','JSONB','JSON','VARCHAR','CHAR','INTERVAL']
+  };
+  const kw=KW[lang]||[];
+  const isWord=c=>/[A-Za-z0-9_]/.test(c);
+  let out='',i=0;const n=text.length;
+  const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  while(i<n){
+    const c=text[i];
+    if((lang==='python'&&c==='#')||(lang==='go'&&c==='/'&&text[i+1]==='/')||(lang==='sql'&&c==='-'&&text[i+1]==='-')){
+      let j=i;while(j<n&&text[j]!=='\n')j++;
+      out+='<span class="c-com">'+esc(text.slice(i,j))+'</span>';i=j;continue;
+    }
+    if(c==='"'||c==='\''||c==='`'){
+      const q=c;let j=i+1;while(j<n&&text[j]!==q){if(text[j]==='\\')j++;j++;}
+      j=Math.min(j+1,n);
+      out+='<span class="c-str">'+esc(text.slice(i,j))+'</span>';i=j;continue;
+    }
+    if(/[A-Za-z_]/.test(c)){
+      let j=i;while(j<n&&isWord(text[j]))j++;
+      const w=text.slice(i,j);
+      const match = lang==='sql' ? kw.includes(w.toUpperCase()) : kw.includes(w);
+      if(match)out+='<span class="c-kw">'+esc(w)+'</span>';
+      else if(text[j]==='(')out+='<span class="c-fn">'+esc(w)+'</span>';
+      else out+=esc(w);
+      i=j;continue;
+    }
+    if(/[0-9]/.test(c)){
+      let j=i;while(j<n&&/[0-9._]/.test(text[j]))j++;
+      out+='<span class="c-num">'+esc(text.slice(i,j))+'</span>';i=j;continue;
+    }
+    out+=esc(c);i++;
+  }
+  return out;
+}
+document.querySelectorAll('.code-body').forEach(el=>{ el.innerHTML=highlight(el.textContent,el.dataset.lang); });
+
+</script>
+<!-- CHAPTER NAVIGATION -->
+<nav class="chapter-nav" id="chapterNav">
+  <a href="../../7.API-DESIGN-RestAPI/html_notes/notes.html" class="nav-chapter-link"><span class="nav-arrow"><svg class="ico-arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="13.5" y1="8" x2="3.5" y2="8"/><polyline points="7.5,4 3.5,8 7.5,12"/></svg></span><span class="nav-label"><span class="nav-small">Chapter 7</span>API Design (REST)</span></a>
+  <a href="../../index.html" class="nav-indicator"><span class="nav-dot"></span> Chapter 8 <span class="nav-sep">/</span> 24</a>
+  <a href="../../9.Caching, the secret behind it all/html_notes/notes.html" class="nav-chapter-link nav-next"><span class="nav-label"><span class="nav-small">Chapter 9</span>Caching</span><span class="nav-arrow"><svg class="ico-arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2.5" y1="8" x2="12.5" y2="8"/><polyline points="8.5,4 12.5,8 8.5,12"/></svg></span></a>
+</nav>
+  <script src="../../assets/copy-button.js"></script>
+  <script src="../../assets/enhancements.js"></script>
+<script src="../../assets/shell.js"></script>
+</body>
+
+</html>

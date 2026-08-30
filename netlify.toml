@@ -1,0 +1,9 @@
+# Konfigurasi Netlify — situs statis murni, tanpa build step
+[build]
+  publish = "public"
+
+# Aset di-cache lama (immutable) karena konten statis
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

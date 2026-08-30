@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="referrer" content="no-referrer">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validations & Transformations / Chapter 05 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Chapter 05 of Belajar Prinsip-Prinsip Backend: Validations & Transformations. First-principles notes, diagrams and runnable Go and Python examples.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23b8402e'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='19'%20font-weight='700'%20fill='%23f3ede2'%20text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>
+:root{
+  --bg: #f3ede2;
+  --paper: #f3ede2;
+  --paper-2: #ece3d4;
+  --ink: #211e1a;
+  --ink-soft: #5b5347;
+  --ink-faint: #8d8475;
+  --red: #b8402e;
+  --red-deep: #8f2f20;
+  --rule: #d8cfbe;
+  --rule-soft: #d8cfbe;
+  --code-bg: #e6dcca;
+  --code-ink: #e9e2d3;
+  --shadow: 0 1px 0 rgba(0,0,0,.04),0 18px 40px -28px rgba(40,30,20,.5);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Spline Sans", system-ui, sans-serif;font-size: 17px;line-height: 1.7;-webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(circle at 12% 8%, rgba(184,64,46,.04), transparent 40%),radial-gradient(circle at 88% 40%, rgba(120,90,40,.045), transparent 45%);}
+::selection{background:var(--red);color:#fff;}
+#progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--red);z-index:200;transition:width .1s linear;}
+.kicker{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:12px;letter-spacing:.36em;text-transform:uppercase;color:var(--red);font-weight:700;}
+h1.title{font-family:"Fraunces", Georgia, serif;font-weight:900;font-size:clamp(46px,6.6vw,92px);line-height:.96;letter-spacing:-.025em;margin:18px 0 0;}
+h1.title em{font-style:italic;color:var(--red);font-weight:900;}
+.lede{font-size: 19px;line-height: 1.6;color:var(--ink-soft);max-width:760px;margin:30px 0 0;}
+.lede em{font-style:italic;color:var(--ink);}
+.pills{display:flex;flex-wrap:wrap;gap:12px;margin:34px 0 0;}
+.pill{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:12.5px;color:var(--ink-soft);border:1px solid var(--rule);border-radius:30px;padding:8px 16px;background:rgba(255,255,255,.22);}
+.hero-rule{height:3px;width:118px;background:var(--red);margin:42px 0 0;}
+.part-label{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:11.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--red);font-weight:700;margin:96px 0 16px;display:flex;align-items:center;gap:16px;}
+.part-label::after{content:"";flex:1;height:1px;background:var(--rule);}
+.sec-head{display:flex;align-items:center;gap:20px;margin:14px 0 8px;scroll-margin-top:30px;}
+.sec-num{font-family:"JetBrains Mono", ui-monospace, monospace;font-weight:700;font-size:16px;color:#fff;background:var(--red);width:42px;height:34px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:0 4px 10px -4px rgba(184,64,46,.6);}
+.sec-head h2{font-family:"Fraunces", Georgia, serif;font-weight:700;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.02em;margin:0;line-height:1.04;}
+.sec-divider{height:1px;background:var(--rule);margin:18px 0 30px;}
+h3{font-family:"Fraunces", Georgia, serif;font-weight:600;font-size:25px;letter-spacing:-.01em;margin:42px 0 10px;}
+h4{font-family:"JetBrains Mono", ui-monospace, monospace;font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--red-deep);margin:30px 0 8px;}
+p{margin:14px 0;}
+em{font-style:italic;}
+code{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:.82em;background:var(--code-bg);color:var(--code-ink);padding:2px 7px;border-radius:5px;border:1px solid rgba(0,0,0,.04);}
+.note{border-left:3px solid var(--red);background:rgba(184,64,46,.05);padding:16px 22px;border-radius:0 8px 8px 0;margin:24px 0;font-size:16.5px;}
+.note .tag{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--red-deep);font-weight:700;display:block;margin-bottom:5px;}
+.note.dark{border-left-color:var(--ink);background:rgba(33,30,26,.045);}
+.note.dark .tag{color:var(--ink);}
+.defs{margin:22px 0;border-top:1px solid var(--rule);}
+.defs .row{display:flex;gap:24px;padding:16px 0;border-bottom:1px solid var(--rule-soft);align-items:baseline;}
+.defs .term{flex:0 0 200px;font-family:"Fraunces", Georgia, serif;font-weight:600;font-size:19px;}
+.defs .term small{display:block;font-family:"JetBrains Mono", ui-monospace, monospace;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--red);font-weight:700;margin-bottom:3px;}
+.defs .desc{flex:1;color:var(--ink-soft);font-size:16.5px;}
+
+/* ---- code: BOTH languages always shown, side by side ---- */
+.codeduo{margin:26px 0;display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.codeduo.solo{grid-template-columns:1fr;}
+.codecard{border:1px solid var(--rule);border-radius:12px;overflow:hidden;background:#232019;box-shadow:var(--shadow);display:flex;flex-direction:column;}
+.codebar{display:flex;align-items:center;gap:9px;background:#1a1813;padding:10px 15px;border-bottom:1px solid #35302a;}
+.codebar .dot{width:10px;height:10px;border-radius:50%;background:#4a443b;}
+.codebar .fname{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:11.5px;color:#9c948a;margin-left:4px;}
+.langtag{margin-left:auto;font-family:"JetBrains Mono", ui-monospace, monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:4px 11px;border-radius:20px;font-weight:700;}
+.langtag.go{background:#35302a;color:#7fb0c9;}
+.langtag.py{background:#35302a;color:#c58fb0;}
+.langtag.sql{background:#35302a;color:#d8b66a;}
+.codecard pre{margin:0;padding:18px 18px;overflow-x:auto;font-family:"JetBrains Mono", ui-monospace, monospace;font-size:12.6px;line-height:1.68;color:#e9e2d3;flex:1;}
+.codecard pre::-webkit-scrollbar{height:8px;}
+.codecard pre::-webkit-scrollbar-thumb{background:#4a443b;border-radius:10px;}
+.kw{color:#e0896a;}.fn{color:#7fb0c9;}.str{color:#a9c98a;}.cm{color:#7d7468;font-style:italic;}.num2{color:#d8b66a;}.ty{color:#7fb0c9;}.pp{color:#d8b66a;}
+.codenote{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin:-12px 0 8px;}
+
+figure{margin:34px 0;}
+.fig-frame{border:1px solid var(--rule);border-radius:13px;background:rgba(255,255,255,.34);padding:26px 22px 18px;box-shadow:var(--shadow);}
+.fig-frame svg{width:100%;height:auto;display:block;}
+figcaption{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin-top:14px;text-align:center;}
+figcaption b{color:var(--red);font-weight:700;}
+.demo{border:1px solid var(--rule);border-radius:11px;overflow:hidden;margin:24px 0;background:rgba(255,255,255,.3);}
+.demo .dhead{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:12px;letter-spacing:.06em;background:var(--paper-2);padding:11px 18px;border-bottom:1px solid var(--rule);display:flex;gap:10px;align-items:center;}
+.method{font-weight:700;color:#fff;background:var(--red);border-radius:5px;padding:2px 9px;font-size:11px;}
+.demo .dbody{padding:4px 18px 14px;}
+.req,.res{margin:13px 0;}
+.req .lbl,.res .lbl{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;}
+.req pre,.res pre{font-family:"JetBrains Mono", ui-monospace, monospace;font-size:12.8px;line-height:1.6;background:#232019;border:1px solid #35302a;border-radius:7px;padding:12px 14px;overflow-x:auto;margin:6px 0 0;color:#e9e2d3;}
+.status{font-family:"JetBrains Mono", ui-monospace, monospace;font-weight:700;font-size:12px;padding:2px 9px;border-radius:5px;}
+.s400{background:#f4ded6;color:#8f2f20;}
+.s200{background:#e0e9dd;color:#3f6f4e;}
+.s500{background:#35302a;color:#e9e2d3;}
+ol.steps{counter-reset:s;list-style:none;padding:0;margin:22px 0;}
+ol.steps li{position:relative;padding:14px 0 14px 56px;border-bottom:1px solid var(--rule-soft);}
+ol.steps li::before{counter-increment:s;content:counter(s);position:absolute;left:0;top:13px;width:34px;height:34px;border-radius:8px;background:var(--paper-2);border:1px solid var(--rule);font-family:"JetBrains Mono", ui-monospace, monospace;font-weight:700;color:var(--red);display:flex;align-items:center;justify-content:center;font-size:14px;}
+ol.steps li b{font-family:"Fraunces", Georgia, serif;font-weight:600;font-size:18px;}
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.in{opacity:1;transform:none;}
+.hero-stagger>*{opacity:0;transform:translateY(14px);animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards;}
+.hero-stagger>*:nth-child(1){animation-delay:.05s}.hero-stagger>*:nth-child(2){animation-delay:.14s}.hero-stagger>*:nth-child(3){animation-delay:.24s}.hero-stagger>*:nth-child(4){animation-delay:.34s}.hero-stagger>*:nth-child(5){animation-delay:.44s}
+@keyframes rise{to{opacity:1;transform:none;}}
+footer.end{margin-top:120px;border-top:1px solid var(--rule);padding-top:28px;font-family:"JetBrains Mono", ui-monospace, monospace;font-size:12px;letter-spacing:.06em;color:var(--ink-faint);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+@media(max-width:1100px){.codeduo{grid-template-columns:1fr;}}</style>
+<style>
+.chapter-nav{position:fixed;bottom:0;left:0;right:0;z-index:9998;display:flex;align-items:center;justify-content:space-between;padding:14px clamp(16px,4vw,48px);background:rgba(243,237,226,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1.5px solid #c7bca6;box-shadow:0 -8px 32px -16px rgba(40,30,20,.18);font-family:"JetBrains Mono", ui-monospace, monospace;}
+.nav-chapter-link{display:flex;align-items:center;gap:12px;text-decoration:none;color:#5b5347;padding:10px 18px;border-radius:10px;transition:all .2s ease;max-width:38%;}
+.nav-chapter-link:hover{background:rgba(184,64,46,.08);color:#b8402e;transform:translateY(-1px);}
+.nav-chapter-link.nav-next{text-align:right;flex-direction:row;}
+.nav-arrow{font-size:22px;color:#b8402e;font-weight:700;flex:none;}
+.nav-label{display:flex;flex-direction:column;gap:2px;font-size:13.5px;line-height:1.3;}
+.nav-small{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#8d8475;font-weight:600;}
+.nav-indicator{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#b8402e;font-weight:700;text-decoration:none;padding:8px 16px;border:1.5px solid #c7bca6;border-radius:40px;background:rgba(255,255,255,.5);transition:all .2s;white-space:nowrap;}
+.nav-indicator:hover{background:#b8402e;color:#fff;border-color:#b8402e;}
+.nav-dot{display:inline-block;width:7px;height:7px;background:#b8402e;border-radius:50%;margin-right:4px;vertical-align:middle;}
+.nav-sep{color:#c7bca6;margin:0 2px;}
+.nav-disabled{visibility:hidden;pointer-events:none;}
+@media(max-width:700px){.nav-label{font-size:11.5px;}.nav-chapter-link{padding:8px 10px;max-width:38%;}.chapter-nav{padding:10px 12px;}.nav-small{font-size:9px;letter-spacing:.16em;}}
+@media(max-width:520px){.nav-label{display:none;}.nav-chapter-link{max-width:none;padding:8px 12px;}.nav-arrow{font-size:20px;}.nav-indicator{font-size:11px;padding:7px 13px;letter-spacing:.12em;}}
+body{padding-bottom:80px;}
+</style>
+  <link rel="stylesheet" href="../../assets/copy-button.css">
+  <link rel="stylesheet" href="../../assets/enhancements.css">
+  <link rel="stylesheet" href="../../assets/shell.css">
+  <link rel="stylesheet" href="../../assets/theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="../../assets/theme.js"></script>
+</head>
+<body>
+<button class="bfp-toc-toggle" id="bfpTocToggle" aria-controls="bfpToc" aria-expanded="false"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>Contents</button>
+<div class="bfp-toc-scrim" id="bfpTocScrim"></div>
+<div class="bfp-shell">
+    <aside class="bfp-toc" id="bfpToc">
+      <div class="bfp-brand"><span class="bfp-brand-name">Validation</span><span class="bfp-brand-slash">/</span><span class="bfp-brand-lens">the backend lens</span></div>
+      <div class="bfp-brand-sub">Chapter 05 / Field Manual</div>
+      <div class="bfp-toc-rule"></div>
+      <nav class="bfp-toc-nav">
+        <div class="bfp-toc-part">Part I / Mental Model</div>
+        <a class="bfp-toc-link" href="#s1"><span class="bfp-toc-num">01</span><span class="bfp-toc-text">What &amp; Why</span></a>
+        <a class="bfp-toc-link" href="#s2"><span class="bfp-toc-num">02</span><span class="bfp-toc-text">The Three Layers</span></a>
+        <a class="bfp-toc-link" href="#s3"><span class="bfp-toc-num">03</span><span class="bfp-toc-text">The Request Lifecycle</span></a>
+        <a class="bfp-toc-link" href="#s4"><span class="bfp-toc-num">04</span><span class="bfp-toc-text">The Execution Point</span></a>
+        <a class="bfp-toc-link" href="#s5"><span class="bfp-toc-num">05</span><span class="bfp-toc-text">Why It Is Critical: 500 vs 400</span></a>
+        <a class="bfp-toc-link" href="#s6"><span class="bfp-toc-num">06</span><span class="bfp-toc-text">Inside the Pipeline</span></a>
+        <div class="bfp-toc-part">Part II / Types of Validation</div>
+        <a class="bfp-toc-link" href="#s7"><span class="bfp-toc-num">07</span><span class="bfp-toc-text">Type Validation</span></a>
+        <a class="bfp-toc-link" href="#s8"><span class="bfp-toc-num">08</span><span class="bfp-toc-text">Syntactic Validation</span></a>
+        <a class="bfp-toc-link" href="#s9"><span class="bfp-toc-num">09</span><span class="bfp-toc-text">Semantic Validation</span></a>
+        <a class="bfp-toc-link" href="#s10"><span class="bfp-toc-num">10</span><span class="bfp-toc-text">Complex / Dependent</span></a>
+        <div class="bfp-toc-part">Part III / Transformation</div>
+        <a class="bfp-toc-link" href="#s11"><span class="bfp-toc-num">11</span><span class="bfp-toc-text">Type Casting</span></a>
+        <a class="bfp-toc-link" href="#s12"><span class="bfp-toc-num">12</span><span class="bfp-toc-text">Normalization</span></a>
+        <a class="bfp-toc-link" href="#s13"><span class="bfp-toc-num">13</span><span class="bfp-toc-text">One Combined Pipeline</span></a>
+        <div class="bfp-toc-part">Part IV / The Golden Rule</div>
+        <a class="bfp-toc-link" href="#s14"><span class="bfp-toc-num">14</span><span class="bfp-toc-text">Frontend vs Backend</span></a>
+        <a class="bfp-toc-link" href="#s15"><span class="bfp-toc-num">15</span><span class="bfp-toc-text">Full Annotated Controller</span></a>
+      </nav>
+    </aside>
+    <main class="bfp-content">
+    <div class="hero-stagger">
+      <div class="kicker">A detailed backend reference</div>
+      <h1 class="title">Validasi &amp; <em>Transformasi.</em></h1>
+      <p class="lede">Penelusuran dari prinsip dasar tentang aturan dan pedoman yang Anda pegang saat merancang API, gerbang yang dilalui setiap data klien <em>sebelum</em> logika bisnis apa pun berjalan. Mengapa ia ada, di mana ia tinggal, bagaimana ia bekerja di dalamnya, dengan implementasi lengkap di Go dan Python ditampilkan berdampingan.</p>
+      <div class="pills">
+        <span class="pill">Data Integrity</span><span class="pill">Security</span><span class="pill">Controller Entry Point</span><span class="pill">Go + Python / full code</span><span class="pill">15 sections</span>
+      </div>
+      <div class="hero-rule"></div>
+    </div>
+
+    <!-- PART I -->
+    <div class="part-label reveal">Part I / The Mental Model</div>
+
+    <div class="sec-head reveal" id="s1"><div class="sec-num">01</div><h2>Apa Itu &amp; Kenapa Ada</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal">Validasi dan transformasi bukan satu fitur yang Anda pasang. Mereka <strong>seperangkat aturan dan pedoman yang Anda pegang saat merancang API</strong>. Hampir semuanya berakar pada dua tujuan, dan dua tujuan itulah lensa yang dipakai mengambil setiap keputusan berikutnya:</p>
+    <div class="defs reveal">
+      <div class="row"><div class="term"><small>Goal 01</small>Data Integrity</div><div class="desc">Whatever data finally reaches your business logic and your database is in the <em>exact</em> shape your application expects, correct fields, correct types, correct ranges, correct meaning.</div></div>
+      <div class="row"><div class="term"><small>Goal 02</small>Security</div><div class="desc">Untrusted input from the outside world is never allowed to drive your system into an unexpected, unhandled state. The server stays defensive about everything that crosses its boundary.</div></div>
+    </div>
+    <h4 class="reveal">Apa yang dihitung sebagai "data klien yang masuk"</h4>
+    <p class="reveal">Batas validasi mencakup <strong>setiap</strong> jenis data yang bisa didorong klien ke server, bukan hanya body request. Semua yang berikut ini harus diperlakukan tidak tepercaya sampai terbukti sebaliknya:</p>
+    <ul class="reveal">
+      <li><strong>Payload JSON</strong>: body dari request <code>POST</code> / <code>PUT</code> / <code>PATCH</code>.</li>
+      <li><strong>Parameter query</strong>: mis. <code>?page=2&amp;limit=20</code>.</li>
+      <li><strong>Parameter path</strong>: mis. <code>5</code> di <code>/users/5</code>.</li>
+      <li><strong>Header</strong>: apa pun yang di-set klien pada request.</li>
+    </ul>
+    <div class="note reveal"><span class="tag">The one-sentence definition</span> Validation answers <em>"is this data in the exact format my API expects?"</em> Transformation answers <em>"how do I reshape this data into the format my service layer wants?"</em> They run together, at the front door, before anything important happens.</div>
+
+    <div class="sec-head reveal" id="s2"><div class="sec-num">02</div><h2>Di Mana Ia Tinggal: Tiga Lapisan</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal">Untuk menemukan <em>di mana</em> validasi terjadi, Anda dulu butuh model mental standar backend: tiga lapisan yang ditumpuk, masing-masing satu tugas. Request turun melewati tumpukan dan respons naik kembali.</p>
+    <div class="defs reveal">
+      <div class="row"><div class="term"><small>Bottom</small>Repository Layer</div><div class="desc">Deals only with the database, connections, queries, inserts, updates, deletes. It does not care <em>why</em> a row is being written, only that it is. Works against a relational DB (Postgres), Redis, or any other persistent store.</div></div>
+      <div class="row"><div class="term"><small>Middle</small>Service Layer</div><div class="desc">The <em>business logic</em>. A single service method may call one or more repository methods, send push notifications, email users, store data, fire a webhook, everything an API is expected to actually <em>do</em>.</div></div>
+      <div class="row"><div class="term"><small>Top</small>Controller Layer</div><div class="desc">The HTTP-facing entry point. It owns everything <em>HTTP</em>: which status code to return, the response format, and, crucially, the validations. It receives client data, calls the matching service method, and returns whatever that method gives back.</div></div>
+    </div>
+    <p class="reveal">Alasan controller dan service <strong>sengaja dipisahkan</strong> adalah menjaga urusan HTTP (kode error, kode sukses, bentuk respons, validasi) di satu tempat, dan logika bisnis murni di tempat lain. Controller memanggil service; service boleh atau tidak memanggil repository, tergantung kebutuhan request.</p>
+
+    <figure class="reveal">
+      <div class="fig-frame">
+        <svg viewBox="0 0 760 430" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono">
+          <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#b8402e"/></marker></defs>
+          <rect x="40" y="30" width="170" height="56" rx="10" fill="#fff" stroke="#d8cfbe"/>
+          <text x="125" y="56" text-anchor="middle" font-size="14" font-weight="700" fill="#211e1a">CLIENT</text>
+          <text x="125" y="74" text-anchor="middle" font-size="10" fill="#8d8475">JSON / query / path / headers</text>
+          <rect x="270" y="20" width="450" height="92" rx="12" fill="#f7d9d1" stroke="#b8402e" stroke-width="1.5"/>
+          <text x="495" y="46" text-anchor="middle" font-size="15" font-weight="700" fill="#8f2f20">CONTROLLER LAYER</text>
+          <text x="495" y="66" text-anchor="middle" font-size="10.5" fill="#7a4135">HTTP concerns / status codes / response shape</text>
+          <text x="495" y="84" text-anchor="middle" font-size="10.5" font-weight="700" fill="#8f2f20">&gt; VALIDATION &amp; TRANSFORMATION live here &lt;</text>
+          <text x="495" y="100" text-anchor="middle" font-size="9.5" fill="#7a4135">the only layer that touches raw client data</text>
+          <rect x="270" y="160" width="450" height="78" rx="12" fill="#fff" stroke="#d8cfbe"/>
+          <text x="495" y="188" text-anchor="middle" font-size="15" font-weight="700" fill="#211e1a">SERVICE LAYER</text>
+          <text x="495" y="208" text-anchor="middle" font-size="10.5" fill="#8d8475">business logic / email / notifications</text>
+          <text x="495" y="224" text-anchor="middle" font-size="10.5" fill="#8d8475">webhooks / orchestration</text>
+          <rect x="270" y="286" width="450" height="74" rx="12" fill="#fff" stroke="#d8cfbe"/>
+          <text x="495" y="314" text-anchor="middle" font-size="15" font-weight="700" fill="#211e1a">REPOSITORY LAYER</text>
+          <text x="495" y="334" text-anchor="middle" font-size="10.5" fill="#8d8475">DB connections / queries / insert / update / delete</text>
+          <ellipse cx="495" cy="392" rx="60" ry="14" fill="#f3ede2" stroke="#d8cfbe"/>
+          <text x="495" y="397" text-anchor="middle" font-size="11" font-weight="700" fill="#5b5347">Postgres / Redis</text>
+          <line x1="210" y1="62" x2="264" y2="64" stroke="#b8402e" stroke-width="2" marker-end="url(#ar)"/>
+          <line x1="495" y1="112" x2="495" y2="154" stroke="#b8402e" stroke-width="2" marker-end="url(#ar)"/>
+          <line x1="495" y1="238" x2="495" y2="280" stroke="#b8402e" stroke-width="2" marker-end="url(#ar)"/>
+          <line x1="495" y1="360" x2="495" y2="376" stroke="#b8402e" stroke-width="2" marker-end="url(#ar)"/>
+          <text x="520" y="138" font-size="9.5" fill="#8d8475">calls service method</text>
+          <text x="520" y="264" font-size="9.5" fill="#8d8475">may call repository</text>
+        </svg>
+      </div>
+      <figcaption>The standard stack, validation is pinned to the <b>top of the controller</b></figcaption>
+    </figure>
+
+    <div class="sec-head reveal" id="s3"><div class="sec-num">03</div><h2>Siklus Hidup Request</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal">Request tidak muncul dengan ajaib di dalam method controller Anda. Ia tiba, <strong>dicocokkan ke route</strong>, dan baru setelah itu method controller yang terdaftar untuk route itu dipanggil. Urutan itulah kunci menempatkan validasi dengan benar.</p>
+    <ol class="steps reveal">
+      <li>Data tiba. Klien membuka koneksi HTTP dan mengirim request, biasanya payload JSON, plus parameter query dan path serta header.</li>
+      <li>Pencocokan route berjalan. Router membandingkan path yang masuk dengan pola-polanya dan memilih method controller yang terdaftar untuk route yang cocok.</li>
+      <li>Pipeline validasi &amp; transformasi menyala. Sebelum <em>logika penting apa pun</em> berjalan, controller yang cocok melewatkan data mentah lewat pipeline.</li>
+      <li>Logika bisnis berjalan. Hanya jika data lulus, controller memanggil method service.</li>
+      <li>Service -&gt; repository. Service mengeksekusi logika, kadang memanggil method repository yang menyentuh database.</li>
+      <li>Respons naik kembali. Apa pun yang dikembalikan service diserahkan ke controller, yang mengembalikannya ke pemanggil lewat koneksi HTTP.</li>
+    </ol>
+    <figure class="reveal">
+      <div class="fig-frame">
+        <svg viewBox="0 0 900 220" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono">
+          <defs><marker id="ar2" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#b8402e"/></marker></defs>
+          <g font-size="11" font-weight="700">
+            <rect x="14" y="80" width="110" height="58" rx="9" fill="#fff" stroke="#d8cfbe"/><text x="69" y="106" text-anchor="middle" fill="#211e1a">CLIENT</text><text x="69" y="122" text-anchor="middle" font-size="9" font-weight="400" fill="#8d8475">sends request</text>
+            <rect x="158" y="80" width="120" height="58" rx="9" fill="#fff" stroke="#d8cfbe"/><text x="218" y="102" text-anchor="middle" fill="#211e1a">ROUTE</text><text x="218" y="118" text-anchor="middle" fill="#211e1a">MATCHING</text>
+            <rect x="312" y="64" width="186" height="92" rx="11" fill="#f7d9d1" stroke="#b8402e" stroke-width="1.6"/><text x="405" y="92" text-anchor="middle" fill="#8f2f20">VALIDATION &amp;</text><text x="405" y="108" text-anchor="middle" fill="#8f2f20">TRANSFORMATION</text><text x="405" y="128" text-anchor="middle" font-size="9" font-weight="400" fill="#7a4135">the gate, runs first</text>
+            <rect x="532" y="80" width="120" height="58" rx="9" fill="#fff" stroke="#d8cfbe"/><text x="592" y="102" text-anchor="middle" fill="#211e1a">CONTROLLER</text><text x="592" y="118" text-anchor="middle" font-size="9" font-weight="400" fill="#8d8475">business path</text>
+            <rect x="686" y="80" width="100" height="58" rx="9" fill="#fff" stroke="#d8cfbe"/><text x="736" y="106" text-anchor="middle" fill="#211e1a">SERVICE</text><text x="736" y="122" text-anchor="middle" font-size="9" font-weight="400" fill="#8d8475">-&gt; repository</text>
+            <line x1="124" y1="109" x2="154" y2="109" stroke="#b8402e" stroke-width="2" marker-end="url(#ar2)"/>
+            <line x1="278" y1="109" x2="308" y2="109" stroke="#b8402e" stroke-width="2" marker-end="url(#ar2)"/>
+            <line x1="498" y1="109" x2="528" y2="109" stroke="#b8402e" stroke-width="2" marker-end="url(#ar2)"/>
+            <line x1="652" y1="109" x2="682" y2="109" stroke="#b8402e" stroke-width="2" marker-end="url(#ar2)"/>
+            <path d="M405 156 q0 30 -150 30 L150 186" fill="none" stroke="#8f2f20" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ar2)"/>
+            <text x="250" y="205" font-size="9.5" font-weight="700" fill="#8f2f20">on failure -&gt; 400 Bad Request, never reaches service</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>The gate sits between <b>route matching</b> and any <b>business logic</b></figcaption>
+    </figure>
+
+    <div class="sec-head reveal" id="s4"><div class="sec-num">04</div><h2>Titik Eksekusi</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal">Validasi dan transformasi terjadi di <strong>tepat satu titik</strong>: di dalam lapisan controller, segera <em>setelah</em> route dicocokkan dan <em>sebelum</em> method service apa pun dipanggil atau logika bisnis berjalan. Secara konkret ia diimplementasikan sebagai <strong>middleware atau fungsi utilitas</strong> yang bisa dipakai ulang, yang Anda beri <strong>skema</strong>: deskripsi bentuk data yang seharusnya, dan ia menapaki setiap field payload yang masuk terhadap skema itu.</p>
+    <div class="note dark reveal"><span class="tag">Why the front door, specifically</span> Validating at the entry point guarantees the system never carries an <em>unexpected state</em> any deeper than the front door. Bad data is rejected while it is still cheap to reject, before database connections open, before emails queue, before any side effect fires.</div>
+
+    <div class="sec-head reveal" id="s5"><div class="sec-num">05</div><h2>Kenapa Kritis: Kisah 500 vs 400</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal">Cara paling jelas merasakan kebutuhan validasi adalah melihat apa yang terjadi <em>tanpa</em> itu. Bayangkan API "create book" yang mengharapkan body JSON berisi field <code>name</code> yang harus string. Klien malah mengirim <strong>angka</strong> <code>0</code>:</p>
+    <div class="demo reveal">
+      <div class="dhead"><span class="method">POST</span> /api/books</div>
+      <div class="dbody"><div class="req"><span class="lbl">Request body (malformed)</span><pre>{ "name": 0 }</pre></div></div>
+    </div>
+    <p class="reveal">Di skema Postgres Anda, kolom itu hampir pasti dideklarasikan seperti ini, kolom string yang tidak boleh null:</p>
+    <div class="codeduo solo reveal">
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">schema.sql</span><span class="langtag sql">SQL</span></div>
+        <pre><span class="kw">CREATE TABLE</span> books (
+  id    <span class="ty">SERIAL</span> <span class="kw">PRIMARY KEY</span>,
+  name  <span class="ty">TEXT</span> <span class="kw">NOT NULL</span>   <span class="cm">-- expects text, refuses an integer</span>
+);</pre>
+      </div>
+    </div>
+    <p class="reveal">Tanpa <strong>validasi</strong>, <code>0</code> itu meluncur melewati controller, melewati service, turun ke repository, dan menjadi <code>INSERT</code>. Postgres memeriksa tipe kolom, melihat angka di tempat yang menuntut <code>TEXT</code>, dan <strong>menolak operasinya</strong>. Panggilan database gagal, dan klien menerima:</p>
+    <div class="demo reveal">
+      <div class="dhead">Response without validation <span class="status s500" style="margin-left:auto">500 INTERNAL SERVER ERROR</span></div>
+      <div class="dbody"><div class="res"><span class="lbl">"Something went wrong on the server"</span><pre>{ "error": "Internal Server Error" }</pre></div></div>
+    </div>
+    <p class="reveal">Itu <strong>pengalaman pengguna yang buruk</strong>. 500 berbunyi "ada yang tidak terduga rusak di dalam kami" padahal kenyataannya <em>klien</em> yang mengirim input buruk, dan tidak memberi mereka apa pun untuk diperbaiki. Dengan pipeline validasi di titik masuk, server menangkap kesalahannya seketika, database tak pernah tersentuh, dan klien mendapat <strong>400 Bad Request</strong> yang bisa ditindaklanjuti:</p>
+    <div class="demo reveal">
+      <div class="dhead">Response with validation <span class="status s400" style="margin-left:auto">400 BAD REQUEST</span></div>
+      <div class="dbody"><div class="res"><span class="lbl">Actionable, returned before any DB call</span><pre>{ "errors": [ "name: expected a string, received a number" ] }</pre></div></div>
+    </div>
+    <figure class="reveal">
+      <div class="fig-frame">
+        <svg viewBox="0 0 880 270" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono">
+          <defs><marker id="ar3" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#9a8f78"/></marker><marker id="ar3r" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#b8402e"/></marker></defs>
+          <text x="20" y="28" font-size="12" font-weight="700" fill="#7a4135">PATH A / NO VALIDATION</text>
+          <g font-size="10" font-weight="700">
+            <rect x="20" y="44" width="92" height="44" rx="8" fill="#fff" stroke="#d8cfbe"/><text x="66" y="70" text-anchor="middle" fill="#211e1a">{name:0}</text>
+            <rect x="150" y="44" width="92" height="44" rx="8" fill="#fff" stroke="#d8cfbe"/><text x="196" y="70" text-anchor="middle" fill="#211e1a">controller</text>
+            <rect x="280" y="44" width="92" height="44" rx="8" fill="#fff" stroke="#d8cfbe"/><text x="326" y="70" text-anchor="middle" fill="#211e1a">service</text>
+            <rect x="410" y="44" width="92" height="44" rx="8" fill="#fff" stroke="#d8cfbe"/><text x="456" y="70" text-anchor="middle" fill="#211e1a">repository</text>
+            <rect x="540" y="44" width="100" height="44" rx="8" fill="#2c1a14" stroke="#2c1a14"/><text x="590" y="64" text-anchor="middle" fill="#e9e2d3">DB REJECTS</text><text x="590" y="79" text-anchor="middle" font-size="8.5" font-weight="400" fill="#d9a99c">type mismatch</text>
+            <rect x="678" y="44" width="178" height="44" rx="8" fill="#35302a" stroke="#35302a"/><text x="767" y="64" text-anchor="middle" fill="#e9e2d3">500 to client</text><text x="767" y="79" text-anchor="middle" font-size="8.5" font-weight="400" fill="#d9a99c">"something broke" / unhelpful</text>
+            <line x1="112" y1="66" x2="146" y2="66" stroke="#9a8f78" stroke-width="2" marker-end="url(#ar3)"/>
+            <line x1="242" y1="66" x2="276" y2="66" stroke="#9a8f78" stroke-width="2" marker-end="url(#ar3)"/>
+            <line x1="372" y1="66" x2="406" y2="66" stroke="#9a8f78" stroke-width="2" marker-end="url(#ar3)"/>
+            <line x1="502" y1="66" x2="536" y2="66" stroke="#9a8f78" stroke-width="2" marker-end="url(#ar3)"/>
+            <line x1="640" y1="66" x2="674" y2="66" stroke="#9a8f78" stroke-width="2" marker-end="url(#ar3)"/>
+          </g>
+          <line x1="20" y1="120" x2="860" y2="120" stroke="#d8cfbe" stroke-dasharray="3 4"/>
+          <text x="20" y="158" font-size="12" font-weight="700" fill="#8f2f20">PATH B / WITH VALIDATION AT THE GATE</text>
+          <g font-size="10" font-weight="700">
+            <rect x="20" y="174" width="92" height="44" rx="8" fill="#fff" stroke="#d8cfbe"/><text x="66" y="200" text-anchor="middle" fill="#211e1a">{name:0}</text>
+            <rect x="150" y="166" width="150" height="60" rx="9" fill="#f7d9d1" stroke="#b8402e" stroke-width="1.5"/><text x="225" y="192" text-anchor="middle" fill="#8f2f20">VALIDATION</text><text x="225" y="208" text-anchor="middle" font-size="8.5" font-weight="400" fill="#7a4135">expected string, got number</text>
+            <rect x="360" y="174" width="200" height="44" rx="8" fill="#f4ded6" stroke="#b8402e"/><text x="460" y="194" text-anchor="middle" fill="#8f2f20">400 to client (instant)</text><text x="460" y="209" text-anchor="middle" font-size="8.5" font-weight="400" fill="#7a4135">exactly what to fix</text>
+            <rect x="600" y="174" width="170" height="44" rx="8" fill="#fff" stroke="#d8cfbe" stroke-dasharray="4 4"/><text x="685" y="194" text-anchor="middle" fill="#9a8f78">service / DB</text><text x="685" y="209" text-anchor="middle" font-size="8.5" font-weight="400" fill="#9a8f78">never touched</text>
+            <line x1="112" y1="196" x2="146" y2="196" stroke="#b8402e" stroke-width="2" marker-end="url(#ar3r)"/>
+            <line x1="300" y1="196" x2="356" y2="196" stroke="#b8402e" stroke-width="2" marker-end="url(#ar3r)"/>
+          </g>
+        </svg>
+      </div>
+      <figcaption>Same bad input, two outcomes, <b>500 disaster</b> vs a clean <b>400</b> that never wakes the database</figcaption>
+    </figure>
+
+    <div class="sec-head reveal" id="s6"><div class="sec-num">06</div><h2>Di Dalam Pipeline: Langkah demi Langkah</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal">Pipeline yang kokoh memproses satu field dalam <strong>lapisan</strong>, dan urutannya penting: tiap pemeriksaan hanya berjalan jika yang sebelumnya lulus. Ambil satu field, <code>name</code>, yang diwajibkan string dengan panjang 5-100:</p>
+    <ol class="steps reveal">
+      <li>Pemeriksaan keberadaan. Apakah <code>name</code> ada di payload sama sekali? Jika tidak -&gt; <code>"name is required"</code>, berhenti.</li>
+      <li>Pemeriksaan tipe. Ada, apakah ia string, atau klien mengirim larik / boolean / angka? Jika tipe salah -&gt; <code>"expected a string"</code>, berhenti.</li>
+      <li>Pemeriksaan batasan. Ia string, apakah memenuhi pembatasan? Panjang 5-100. String 2 karakter maupun satu paragraf penuh sama-sama gagal dengan pesan yang disesuaikan.</li>
+    </ol>
+    <figure class="reveal">
+      <div class="fig-frame">
+        <svg viewBox="0 0 720 260" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono">
+          <defs><marker id="ar4" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#211e1a"/></marker><marker id="ar4r" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#b8402e"/></marker></defs>
+          <g font-size="11" font-weight="700">
+            <rect x="270" y="14" width="180" height="40" rx="9" fill="#f3ede2" stroke="#d8cfbe"/><text x="360" y="39" text-anchor="middle" fill="#211e1a">incoming field "name"</text>
+            <rect x="250" y="74" width="220" height="42" rx="9" fill="#fff" stroke="#d8cfbe"/><text x="360" y="100" text-anchor="middle" fill="#211e1a">1 / EXISTENCE CHECK</text>
+            <rect x="250" y="134" width="220" height="42" rx="9" fill="#fff" stroke="#d8cfbe"/><text x="360" y="160" text-anchor="middle" fill="#211e1a">2 / TYPE CHECK</text>
+            <rect x="250" y="194" width="220" height="42" rx="9" fill="#fff" stroke="#d8cfbe"/><text x="360" y="220" text-anchor="middle" fill="#211e1a">3 / CONSTRAINT CHECK</text>
+            <line x1="360" y1="54" x2="360" y2="70" stroke="#211e1a" stroke-width="2" marker-end="url(#ar4)"/>
+            <line x1="360" y1="116" x2="360" y2="130" stroke="#211e1a" stroke-width="2" marker-end="url(#ar4)"/>
+            <line x1="360" y1="176" x2="360" y2="190" stroke="#211e1a" stroke-width="2" marker-end="url(#ar4)"/>
+            <rect x="540" y="194" width="160" height="42" rx="9" fill="#e0e9dd" stroke="#3f6f4e"/><text x="620" y="220" text-anchor="middle" fill="#3f6f4e" font-size="11">PASS -&gt; controller</text>
+            <line x1="470" y1="215" x2="536" y2="215" stroke="#211e1a" stroke-width="2" marker-end="url(#ar4)"/>
+            <rect x="20" y="74" width="200" height="42" rx="9" fill="#f4ded6" stroke="#b8402e"/><text x="120" y="95" text-anchor="middle" fill="#8f2f20" font-size="9.5">"name is required"</text><text x="120" y="109" text-anchor="middle" font-size="8" font-weight="400" fill="#7a4135">400</text>
+            <rect x="20" y="134" width="200" height="42" rx="9" fill="#f4ded6" stroke="#b8402e"/><text x="120" y="155" text-anchor="middle" fill="#8f2f20" font-size="9.5">"expected a string"</text><text x="120" y="169" text-anchor="middle" font-size="8" font-weight="400" fill="#7a4135">400</text>
+            <rect x="20" y="194" width="200" height="42" rx="9" fill="#f4ded6" stroke="#b8402e"/><text x="120" y="211" text-anchor="middle" fill="#8f2f20" font-size="9">"length must be 5-100"</text><text x="120" y="225" text-anchor="middle" font-size="8" font-weight="400" fill="#7a4135">400</text>
+            <line x1="248" y1="95" x2="224" y2="95" stroke="#b8402e" stroke-width="1.8" stroke-dasharray="4 3" marker-end="url(#ar4r)"/>
+            <line x1="248" y1="155" x2="224" y2="155" stroke="#b8402e" stroke-width="1.8" stroke-dasharray="4 3" marker-end="url(#ar4r)"/>
+            <line x1="248" y1="215" x2="224" y2="215" stroke="#b8402e" stroke-width="1.8" stroke-dasharray="4 3" marker-end="url(#ar4r)"/>
+          </g>
+        </svg>
+      </div>
+      <figcaption>Each gate only opens if the previous one passed, failure <b>short-circuits</b> to a 400</figcaption>
+    </figure>
+    <p class="reveal">Dalam kode, library mengekspresikan ini sebagai skema deklaratif. Go umumnya memakai struct tag dengan <code>go-playground/validator</code>; Python memakai Pydantic, tempat model yang sama memvalidasi <em>dan</em> mentransformasi. Ini versi <strong>lengkap dan bisa dijalankan</strong> dari pipeline di masing-masing:</p>
+    <div class="codenote reveal">v Go (left) / Python (right), both shown in full, no toggle</div>
+    <div class="codeduo reveal">
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">pipeline.go</span><span class="langtag go">Go</span></div>
+        <pre><span class="kw">package</span> books
+
+<span class="kw">import</span> (
+    <span class="str">"encoding/json"</span>
+    <span class="str">"fmt"</span>
+    <span class="str">"net/http"</span>
+    <span class="str">"strings"</span>
+
+    <span class="str">"github.com/go-playground/validator/v10"</span>
+)
+
+<span class="cm">// one shared, reusable validator (the pipeline engine)</span>
+<span class="kw">var</span> validate = validator.<span class="fn">New</span>()
+
+<span class="cm">// CreateBook is the SCHEMA. The tags declare every rule:</span>
+<span class="cm">//   required      -&gt; existence check</span>
+<span class="cm">//   the Go type   -&gt; type check (string)</span>
+<span class="cm">//   min=5,max=100 -&gt; constraint check</span>
+<span class="kw">type</span> CreateBook <span class="kw">struct</span> {
+    Name <span class="ty">string</span> <span class="str">`json:"name" validate:"required,min=5,max=100"`</span>
+}
+
+<span class="cm">// runPipeline decodes then validates; returns 400-ready messages.</span>
+<span class="kw">func</span> <span class="fn">runPipeline</span>(r *http.Request) (*CreateBook, []<span class="ty">string</span>) {
+    <span class="kw">var</span> body CreateBook
+
+    <span class="cm">// 1. TYPE CHECK during decode: a JSON number for `name`</span>
+    <span class="cm">//    cannot unmarshal into a Go string -&gt; caught here.</span>
+    <span class="kw">if</span> err := json.<span class="fn">NewDecoder</span>(r.Body).<span class="fn">Decode</span>(&amp;body); err != <span class="kw">nil</span> {
+        <span class="kw">return nil</span>, []<span class="ty">string</span>{<span class="str">"name: expected a string"</span>}
+    }
+    <span class="cm">// 2. EXISTENCE + CONSTRAINT checks in one pass.</span>
+    <span class="kw">if</span> err := validate.<span class="fn">Struct</span>(body); err != <span class="kw">nil</span> {
+        <span class="kw">return nil</span>, <span class="fn">formatErrors</span>(err)
+    }
+    <span class="kw">return</span> &amp;body, <span class="kw">nil</span>
+}
+
+<span class="cm">// formatErrors turns validator output into human messages.</span>
+<span class="kw">func</span> <span class="fn">formatErrors</span>(err <span class="ty">error</span>) []<span class="ty">string</span> {
+    <span class="kw">var</span> msgs []<span class="ty">string</span>
+    <span class="kw">for</span> _, e := <span class="kw">range</span> err.(validator.ValidationErrors) {
+        f := strings.<span class="fn">ToLower</span>(e.<span class="fn">Field</span>())
+        <span class="kw">switch</span> e.<span class="fn">Tag</span>() {
+        <span class="kw">case</span> <span class="str">"required"</span>:
+            msgs = <span class="fn">append</span>(msgs, fmt.<span class="fn">Sprintf</span>(<span class="str">"%s: is required"</span>, f))
+        <span class="kw">case</span> <span class="str">"min"</span>:
+            msgs = <span class="fn">append</span>(msgs, fmt.<span class="fn">Sprintf</span>(<span class="str">"%s: min %s chars"</span>, f, e.<span class="fn">Param</span>()))
+        <span class="kw">case</span> <span class="str">"max"</span>:
+            msgs = <span class="fn">append</span>(msgs, fmt.<span class="fn">Sprintf</span>(<span class="str">"%s: max %s chars"</span>, f, e.<span class="fn">Param</span>()))
+        <span class="kw">default</span>:
+            msgs = <span class="fn">append</span>(msgs, fmt.<span class="fn">Sprintf</span>(<span class="str">"%s: failed %s"</span>, f, e.<span class="fn">Tag</span>()))
+        }
+    }
+    <span class="kw">return</span> msgs
+}</pre>
+      </div>
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">pipeline.py</span><span class="langtag py">Python</span></div>
+        <pre><span class="kw">from</span> fastapi <span class="kw">import</span> HTTPException
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field, ValidationError
+
+
+<span class="cm"># CreateBook is the SCHEMA. Each annotation = one rule:</span>
+<span class="cm">#   no default      -&gt; existence check (required)</span>
+<span class="cm">#   : str           -&gt; type check</span>
+<span class="cm">#   min/max_length  -&gt; constraint check</span>
+<span class="kw">class</span> <span class="ty">CreateBook</span>(BaseModel):
+    name: <span class="ty">str</span> = <span class="fn">Field</span>(min_length=<span class="num2">5</span>, max_length=<span class="num2">100</span>)
+
+
+<span class="kw">def</span> <span class="fn">run_pipeline</span>(raw: <span class="ty">dict</span>) -&gt; CreateBook:
+    <span class="str">"""Decode + validate in one call.
+    Raises a 400-ready error on failure."""</span>
+    <span class="kw">try</span>:
+        <span class="cm"># constructing the model runs all three layers</span>
+        <span class="cm"># in order: existence -&gt; type -&gt; constraint</span>
+        <span class="kw">return</span> CreateBook(**raw)
+    <span class="kw">except</span> ValidationError <span class="kw">as</span> e:
+        <span class="cm"># reshape pydantic errors into clean strings</span>
+        messages = [
+            <span class="str">f"{err['loc'][0]}: {err['msg']}"</span>
+            <span class="kw">for</span> err <span class="kw">in</span> e.<span class="fn">errors</span>()
+        ]
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(status_code=<span class="num2">400</span>, detail=messages)
+
+
+<span class="cm"># run_pipeline({})            -&gt; 400 ["name: Field required"]</span>
+<span class="cm"># run_pipeline({"name": 0})   -&gt; 400 ["name: Input should be</span>
+<span class="cm">#                                      a valid string"]</span>
+<span class="cm"># run_pipeline({"name": "ab"})-&gt; 400 ["name: String should</span>
+<span class="cm">#                                      have at least 5 chars"]</span>
+<span class="cm"># run_pipeline({"name": "Dune"}) ... still &lt;5 -&gt; 400</span>
+<span class="cm"># run_pipeline({"name": "The Hobbit"}) -&gt; OK</span></pre>
+      </div>
+    </div>
+
+    <!-- PART II -->
+    <div class="part-label reveal">Part II / The Four Types of Validation</div>
+    <p class="reveal">Ini bukan taksonomi tetap yang wajib dihafal, bisa lebih banyak tergantung kebutuhan, tapi dalam praktik empat rasa menutupi hampir semua yang akan Anda temui saat merancang API. Pesan yang sebenarnya adalah pertanyaan yang terus Anda tanyakan ke diri sendiri: <em>seberapa ketat dan seberapa spesifik saya mau terhadap data ini?</em></p>
+
+    <div class="sec-head reveal" id="s7"><div class="sec-num">07</div><h2>Validasi Tipe</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal">Rasa paling dasar: apakah field cocok dengan <strong>tipe data</strong> yang diharapkan API? Apakah ia string, angka, boolean, larik, atau objek JSON bertingkat, dan bukan yang lain? Ia juga bisa berlaku <strong>rekursif</strong>: field larik mungkin mewajibkan <em>setiap elemen</em> berupa string, jadi elemen <code>0</code> yang berupa angka adalah error tipe tersendiri.</p>
+    <div class="demo reveal">
+      <div class="dhead"><span class="method">POST</span> /api/valid/type</div>
+      <div class="dbody">
+        <div class="req"><span class="lbl">Wrong types sent</span><pre>{ "stringField":"x", "numberField":"x", "arrayField":"x", "boolField":"x" }</pre></div>
+        <div class="res"><span class="lbl">Response <span class="status s400">400</span></span><pre>numberField: expected number, received string
+arrayField:  expected array,  received string
+boolField:   expected boolean, received string</pre></div>
+        <div class="req"><span class="lbl">Then an array of numbers where strings are required</span><pre>{ "arrayField": [1, 2] }  -&gt;  arrayField[0]: expected string, received number</pre></div>
+        <div class="res"><span class="lbl">Fully corrected -&gt; <span class="status s200">200</span></span><pre>{ "stringField":"something", "numberField":10, "arrayField":["one","two"], "boolField":false }</pre></div>
+      </div>
+    </div>
+    <div class="codeduo reveal">
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">type_validation.go</span><span class="langtag go">Go</span></div>
+        <pre><span class="kw">package</span> validate
+
+<span class="kw">import</span> (
+    <span class="str">"encoding/json"</span>
+    <span class="str">"errors"</span>
+    <span class="str">"net/http"</span>
+)
+
+<span class="cm">// *bool so we can tell "false" apart from "missing".</span>
+<span class="kw">type</span> TypePayload <span class="kw">struct</span> {
+    StringField <span class="ty">string</span>   <span class="str">`json:"stringField" validate:"required"`</span>
+    NumberField <span class="ty">float64</span>  <span class="str">`json:"numberField" validate:"required"`</span>
+    <span class="cm">// dive = recurse INTO the slice; each element required</span>
+    ArrayField  []<span class="ty">string</span> <span class="str">`json:"arrayField" validate:"required,dive,required"`</span>
+    BoolField   *<span class="ty">bool</span>    <span class="str">`json:"boolField" validate:"required"`</span>
+}
+
+<span class="kw">func</span> <span class="fn">parseTypes</span>(r *http.Request) (*TypePayload, <span class="ty">error</span>) {
+    <span class="kw">var</span> p TypePayload
+    dec := json.<span class="fn">NewDecoder</span>(r.Body)
+    dec.<span class="fn">DisallowUnknownFields</span>() <span class="cm">// reject stray keys</span>
+
+    <span class="cm">// json.Decode enforces the BASE types: a string for</span>
+    <span class="cm">// numberField / arrayField / boolField fails to unmarshal.</span>
+    <span class="kw">if</span> err := dec.<span class="fn">Decode</span>(&amp;p); err != <span class="kw">nil</span> {
+        <span class="kw">return nil</span>, errors.<span class="fn">New</span>(<span class="str">"a field has the wrong data type"</span>)
+    }
+    <span class="cm">// existence + recursive element check</span>
+    <span class="kw">if</span> err := validate.<span class="fn">Struct</span>(p); err != <span class="kw">nil</span> {
+        <span class="kw">return nil</span>, err
+    }
+    <span class="kw">return</span> &amp;p, <span class="kw">nil</span>
+}
+
+<span class="cm">// {"numberField":"x"} -&gt; expected number, received string</span>
+<span class="cm">// {"arrayField":[1,2]} -&gt; arrayField[0]: expected string</span></pre>
+      </div>
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">type_validation.py</span><span class="langtag py">Python</span></div>
+        <pre><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+<span class="kw">from</span> typing <span class="kw">import</span> List
+
+
+<span class="kw">class</span> <span class="ty">TypePayload</span>(BaseModel):
+    stringField: <span class="ty">str</span>
+    numberField: <span class="ty">float</span>
+    arrayField:  List[<span class="ty">str</span>]   <span class="cm"># recursive: EVERY element a string</span>
+    boolField:   <span class="ty">bool</span>
+
+
+<span class="cm"># Strict, explicit type errors:</span>
+<span class="cm">#</span>
+<span class="cm"># TypePayload(stringField="x", numberField="x",</span>
+<span class="cm">#             arrayField="x", boolField="x")</span>
+<span class="cm">#   -&gt; numberField: Input should be a valid number</span>
+<span class="cm">#   -&gt; arrayField:  Input should be a valid list</span>
+<span class="cm">#   -&gt; boolField:   Input should be a valid boolean</span>
+<span class="cm">#</span>
+<span class="cm"># TypePayload(..., arrayField=[1, 2], ...)</span>
+<span class="cm">#   -&gt; arrayField.0: Input should be a valid string</span>
+<span class="cm">#   -&gt; arrayField.1: Input should be a valid string</span>
+<span class="cm">#</span>
+<span class="cm"># TypePayload(stringField="something", numberField=10,</span>
+<span class="cm">#             arrayField=["one","two"], boolField=False) -&gt; OK</span></pre>
+      </div>
+    </div>
+
+    <div class="sec-head reveal" id="s8"><div class="sec-num">08</div><h2>Validasi Sintaksis</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal">Di sini tipe sudah benar (string) tapi stringnya harus mengikuti <strong>pola struktural tertentu</strong>. Algoritma validasi memeriksa <em>bentuk</em> nilainya:</p>
+    <ul class="reveal">
+      <li><strong>Email</strong>: bagian lokal, lalu karakter <code>@</code>, lalu domain yang terdiri dari nama plus top-level domain (<code>.com</code>, <code>.co.in</code>, <code>.org</code>, ...). Ada ribuan TLD valid; struktur yang diperiksa.</li>
+      <li><strong>Nomor telepon</strong>: kode negara diikuti jumlah digit yang benar untuk negara itu (mis. kode negara lalu angka 10 digit).</li>
+      <li><strong>Tanggal</strong>: harus cocok dengan struktur yang diharapkan, mis. <code>YYYY-MM-DD</code> (tahun, lalu bulan, lalu hari).</li>
+    </ul>
+    <div class="demo reveal">
+      <div class="dhead"><span class="method">POST</span> /api/valid/syntactic</div>
+      <div class="dbody">
+        <div class="req"><span class="lbl">Empty body</span><pre>{ }</pre></div>
+        <div class="res"><span class="lbl">Response <span class="status s400">400</span>, the errors double as live documentation</span><pre>email: required   phone: required   date: required</pre></div>
+        <div class="req"><span class="lbl">Bad values</span><pre>{ "email":"randomstring", "phone":1234567, "date":"2025-11-05" }</pre></div>
+        <div class="res"><span class="lbl">Response <span class="status s400">400</span></span><pre>email: invalid email format
+phone: expected a string, received a number</pre></div>
+        <div class="req"><span class="lbl">Corrected</span><pre>{ "email":"test@test.com", "phone":"1234567", "date":"2025-11-05" }  -&gt;  <span style="color:#3f6f4e">200</span></pre></div>
+      </div>
+    </div>
+    <div class="note reveal"><span class="tag">A free benefit</span> Even a client that hits the API blind, with an empty payload, gets back the list of required fields and their expected shapes. When the API docs are missing or out of date, the validation error messages themselves are a perfectly good way to discover what the endpoint demands.</div>
+    <div class="codeduo reveal">
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">syntactic.go</span><span class="langtag go">Go</span></div>
+        <pre><span class="kw">package</span> validate
+
+<span class="kw">import</span> (
+    <span class="str">"errors"</span>
+    <span class="str">"regexp"</span>
+)
+
+<span class="cm">// optional + then 7-15 digits (country code + national no.)</span>
+<span class="kw">var</span> phoneRe = regexp.<span class="fn">MustCompile</span>(<span class="str">`^\+?[0-9]{7,15}$`</span>)
+
+<span class="kw">type</span> Contact <span class="kw">struct</span> {
+    Email <span class="ty">string</span> <span class="str">`validate:"required,email"`</span>            <span class="cm">// local @ domain.tld</span>
+    Phone <span class="ty">string</span> <span class="str">`validate:"required"`</span>                  <span class="cm">// checked below</span>
+    Date  <span class="ty">string</span> <span class="str">`validate:"required,datetime=2006-01-02"`</span> <span class="cm">// YYYY-MM-DD</span>
+}
+
+<span class="cm">// checkSyntax handles the phone pattern (validator's</span>
+<span class="cm">// built-ins cover email + date structure already).</span>
+<span class="kw">func</span> (c Contact) <span class="fn">checkSyntax</span>() <span class="ty">error</span> {
+    <span class="kw">if</span> !phoneRe.<span class="fn">MatchString</span>(c.Phone) {
+        <span class="kw">return</span> errors.<span class="fn">New</span>(<span class="str">"phone: invalid phone number format"</span>)
+    }
+    <span class="kw">return nil</span>
+}
+
+<span class="cm">// "randomstring"            -&gt; email: invalid email format</span>
+<span class="cm">// phone sent as JSON number -&gt; received a number, want string</span>
+<span class="cm">// "2025-13-40"              -&gt; date: does not match YYYY-MM-DD</span></pre>
+      </div>
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">syntactic.py</span><span class="langtag py">Python</span></div>
+        <pre><span class="kw">from</span> datetime <span class="kw">import</span> date
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, EmailStr, Field
+
+
+<span class="kw">class</span> <span class="ty">Contact</span>(BaseModel):
+    email: EmailStr                       <span class="cm"># local @ domain.tld</span>
+    <span class="cm"># country code + 7-15 digits</span>
+    phone: <span class="ty">str</span> = <span class="fn">Field</span>(pattern=<span class="str">r"^\+?[0-9]{7,15}$"</span>)
+    date:  date                           <span class="cm"># only accepts YYYY-MM-DD</span>
+
+
+<span class="cm"># Contact(email="randomstring", phone=1234567,</span>
+<span class="cm">#         date="2025-11-05")</span>
+<span class="cm">#   -&gt; email: value is not a valid email address</span>
+<span class="cm">#   -&gt; phone: Input should be a valid string</span>
+<span class="cm">#</span>
+<span class="cm"># Contact(email="bad@", ...)</span>
+<span class="cm">#   -&gt; email: there must be something after the @-sign</span>
+<span class="cm">#</span>
+<span class="cm"># Contact(email="test@test.com", phone="1234567",</span>
+<span class="cm">#         date="2025-11-05")  -&gt; OK</span></pre>
+      </div>
+    </div>
+
+    <div class="sec-head reveal" id="s9"><div class="sec-num">09</div><h2>Validasi Semantik</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal">Tipe benar dan sintaks benar, tapi apakah nilainya <strong>masuk akal di dunia nyata?</strong> Pemeriksaan semantik meng-encode logika domain:</p>
+    <ul class="reveal">
+      <li><strong>Tanggal lahir</strong> tidak bisa di masa depan; jika hari ini <code>2025-01-11</code>, DOB <code>2025-01-13</code> tidak masuk akal meski itu tanggal yang sepenuhnya valid.</li>
+      <li><strong>Usia</strong> <code>365</code> (atau <code>430</code>) tidak masuk akal, setidaknya belum. Rentang usia manusia yang wajar kira-kira <code>1</code> sampai <code>120</code>.</li>
+    </ul>
+    <div class="demo reveal">
+      <div class="dhead"><span class="method">POST</span> /api/valid/semantic</div>
+      <div class="dbody">
+        <div class="req"><span class="lbl">Future DOB</span><pre>{ "dateOfBirth":"2026-06-12", "age":43 }</pre></div>
+        <div class="res"><span class="lbl">Response <span class="status s400">400</span></span><pre>dateOfBirth: date of birth cannot be in the future</pre></div>
+        <div class="req"><span class="lbl">Impossible age</span><pre>{ "dateOfBirth":"1995-06-12", "age":430 }</pre></div>
+        <div class="res"><span class="lbl">Response <span class="status s400">400</span></span><pre>age: number must be less than or equal to 120</pre></div>
+        <div class="req"><span class="lbl">Sensible</span><pre>{ "dateOfBirth":"1995-06-12", "age":43 }  -&gt;  <span style="color:#3f6f4e">200</span></pre></div>
+      </div>
+    </div>
+    <div class="codeduo reveal">
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">semantic.go</span><span class="langtag go">Go</span></div>
+        <pre><span class="kw">package</span> validate
+
+<span class="kw">import</span> (
+    <span class="str">"errors"</span>
+    <span class="str">"time"</span>
+)
+
+<span class="kw">type</span> Profile <span class="kw">struct</span> {
+    DateOfBirth <span class="ty">string</span> <span class="str">`validate:"required,datetime=2006-01-02"`</span>
+    <span class="cm">// gte/lte cover the "430 is impossible" semantic bound</span>
+    Age <span class="ty">int</span> <span class="str">`validate:"required,gte=1,lte=120"`</span>
+}
+
+<span class="cm">// Type &amp; syntax can't express "not in the future"</span>
+<span class="cm">// semantics need real logic against the real clock.</span>
+<span class="kw">func</span> (p Profile) <span class="fn">checkSemantics</span>() <span class="ty">error</span> {
+    dob, err := time.<span class="fn">Parse</span>(<span class="str">"2006-01-02"</span>, p.DateOfBirth)
+    <span class="kw">if</span> err != <span class="kw">nil</span> {
+        <span class="kw">return</span> errors.<span class="fn">New</span>(<span class="str">"dateOfBirth: invalid date"</span>)
+    }
+    <span class="kw">if</span> dob.<span class="fn">After</span>(time.<span class="fn">Now</span>()) {
+        <span class="kw">return</span> errors.<span class="fn">New</span>(
+            <span class="str">"dateOfBirth: date of birth cannot be in the future"</span>)
+    }
+    <span class="kw">return nil</span>
+}
+
+<span class="cm">// {"dateOfBirth":"2026-06-12"} -&gt; cannot be in the future</span>
+<span class="cm">// {"age":430}                  -&gt; age: must be 120 or less</span></pre>
+      </div>
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">semantic.py</span><span class="langtag py">Python</span></div>
+        <pre><span class="kw">from</span> datetime <span class="kw">import</span> date
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field, field_validator
+
+
+<span class="kw">class</span> <span class="ty">Profile</span>(BaseModel):
+    dateOfBirth: date
+    age: <span class="ty">int</span> = <span class="fn">Field</span>(ge=<span class="num2">1</span>, le=<span class="num2">120</span>)   <span class="cm"># 430 -&gt; must be &lt;= 120</span>
+
+    <span class="pp">@field_validator</span>(<span class="str">"dateOfBirth"</span>)
+    <span class="pp">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">not_in_future</span>(cls, v: date) -&gt; date:
+        <span class="kw">if</span> v &gt; date.<span class="fn">today</span>():
+            <span class="kw">raise</span> <span class="fn">ValueError</span>(
+                <span class="str">"date of birth cannot be in the future"</span>)
+        <span class="kw">return</span> v
+
+
+<span class="cm"># Profile(dateOfBirth="2026-06-12", age=43)</span>
+<span class="cm">#   -&gt; dateOfBirth: date of birth cannot be in the future</span>
+<span class="cm"># Profile(dateOfBirth="1995-06-12", age=430)</span>
+<span class="cm">#   -&gt; age: Input should be less than or equal to 120</span>
+<span class="cm"># Profile(dateOfBirth="1995-06-12", age=43) -&gt; OK</span></pre>
+      </div>
+    </div>
+
+    <div class="sec-head reveal" id="s10"><div class="sec-num">10</div><h2>Validasi Kompleks / Dependen</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal">Rasa paling kuat: aturan sebuah field bergantung pada <strong>field lain</strong>. Pipeline bisa meng-encode logika lintas-field yang arbitrer:</p>
+    <ul class="reveal">
+      <li><strong>Konfirmasi kata sandi</strong>: <code>passwordConfirmation</code> harus persis cocok dengan <code>password</code>; dan <code>password</code> minimal 8 karakter. Dua string berbeda menghasilkan <em>"passwords don't match"</em>; kata sandi 6 karakter menghasilkan <em>"string must contain at least 8 characters"</em>.</li>
+      <li><strong>Syarat kondisional</strong>: <code>partner</code> opsional saat <code>married</code> <code>false</code>, tapi begitu <code>married</code> <code>true</code> nama <code>partner</code> jadi wajib: <em>"partner name is required when married is true"</em>.</li>
+    </ul>
+    <div class="demo reveal">
+      <div class="dhead"><span class="method">POST</span> /api/valid/complex</div>
+      <div class="dbody">
+        <div class="req"><span class="lbl">Mismatched + short password</span><pre>{ "password":"random", "passwordConfirmation":"another", "married":false }</pre></div>
+        <div class="res"><span class="lbl">Response <span class="status s400">400</span></span><pre>password: string must contain at least 8 characters
+passwordConfirmation: passwords don't match</pre></div>
+        <div class="req"><span class="lbl">married=true but no partner</span><pre>{ "password":"random12", "passwordConfirmation":"random12", "married":true }</pre></div>
+        <div class="res"><span class="lbl">Response <span class="status s400">400</span></span><pre>partner: partner name is required when married is true</pre></div>
+        <div class="req"><span class="lbl">Complete</span><pre>{ "password":"random12", "passwordConfirmation":"random12", "married":true, "partner":"Sam" }  -&gt;  <span style="color:#3f6f4e">200</span></pre></div>
+      </div>
+    </div>
+    <div class="codeduo reveal">
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">complex.go</span><span class="langtag go">Go</span></div>
+        <pre><span class="kw">package</span> validate
+
+<span class="kw">type</span> Signup <span class="kw">struct</span> {
+    Password <span class="ty">string</span> <span class="str">`json:"password" validate:"required,min=8"`</span>
+    <span class="cm">// eqfield: must equal another field on the struct</span>
+    PasswordConf <span class="ty">string</span> <span class="str">`json:"passwordConfirmation" \</span>
+<span class="str">        validate:"required,eqfield=Password"`</span>
+    Married *<span class="ty">bool</span> <span class="str">`json:"married" validate:"required"`</span>
+    <span class="cm">// required_if: partner required only if married == true</span>
+    Partner <span class="ty">string</span> <span class="str">`json:"partner" \</span>
+<span class="str">        validate:"required_if=Married true"`</span>
+}
+
+<span class="cm">// {password:"random", passwordConfirmation:"another",</span>
+<span class="cm">//  married:false}</span>
+<span class="cm">//   -&gt; password: must be at least 8 characters</span>
+<span class="cm">//   -&gt; passwordConfirmation: passwords don't match</span>
+<span class="cm">//</span>
+<span class="cm">// {password:"random12", passwordConfirmation:"random12",</span>
+<span class="cm">//  married:true}</span>
+<span class="cm">//   -&gt; partner: required when married is true</span></pre>
+      </div>
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">complex.py</span><span class="langtag py">Python</span></div>
+        <pre><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field, model_validator
+
+
+<span class="kw">class</span> <span class="ty">Signup</span>(BaseModel):
+    password: <span class="ty">str</span> = <span class="fn">Field</span>(min_length=<span class="num2">8</span>)
+    passwordConfirmation: <span class="ty">str</span>
+    married: <span class="ty">bool</span>
+    partner: <span class="ty">str</span> | <span class="kw">None</span> = <span class="kw">None</span>
+
+    <span class="cm"># mode="after": runs once all fields are parsed,</span>
+    <span class="cm"># so it can compare them against each other.</span>
+    <span class="pp">@model_validator</span>(mode=<span class="str">"after"</span>)
+    <span class="kw">def</span> <span class="fn">cross_field_rules</span>(self):
+        <span class="kw">if</span> self.password != self.passwordConfirmation:
+            <span class="kw">raise</span> <span class="fn">ValueError</span>(<span class="str">"passwords don't match"</span>)
+        <span class="kw">if</span> self.married <span class="kw">and not</span> self.partner:
+            <span class="kw">raise</span> <span class="fn">ValueError</span>(
+                <span class="str">"partner name is required when married is true"</span>)
+        <span class="kw">return</span> self
+
+
+<span class="cm"># Signup(password="random", passwordConfirmation="another",</span>
+<span class="cm">#        married=False)</span>
+<span class="cm">#   -&gt; password: String should have at least 8 characters</span>
+<span class="cm">#   -&gt; Value error, passwords don't match</span></pre>
+      </div>
+    </div>
+    <figure class="reveal">
+      <div class="fig-frame">
+        <svg viewBox="0 0 720 230" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono">
+          <text x="360" y="26" text-anchor="middle" font-size="12" font-weight="700" fill="#8f2f20">THE FOUR FLAVORS, INCREASING STRICTNESS &amp; CONTEXT -&gt;</text>
+          <g font-size="11" font-weight="700">
+            <rect x="20" y="56" width="160" height="140" rx="11" fill="#fff" stroke="#d8cfbe"/><text x="100" y="84" text-anchor="middle" fill="#b8402e">TYPE</text><text x="100" y="112" text-anchor="middle" font-size="9" font-weight="400" fill="#8d8475">is it the right</text><text x="100" y="126" text-anchor="middle" font-size="9" font-weight="400" fill="#8d8475">data type?</text><text x="100" y="160" text-anchor="middle" font-size="8.5" font-weight="400" fill="#9a8f78">string / number</text><text x="100" y="173" text-anchor="middle" font-size="8.5" font-weight="400" fill="#9a8f78">bool / array</text>
+            <rect x="195" y="56" width="160" height="140" rx="11" fill="#fff" stroke="#d8cfbe"/><text x="275" y="84" text-anchor="middle" fill="#b8402e">SYNTACTIC</text><text x="275" y="112" text-anchor="middle" font-size="9" font-weight="400" fill="#8d8475">right structural</text><text x="275" y="126" text-anchor="middle" font-size="9" font-weight="400" fill="#8d8475">pattern?</text><text x="275" y="160" text-anchor="middle" font-size="8.5" font-weight="400" fill="#9a8f78">email / phone</text><text x="275" y="173" text-anchor="middle" font-size="8.5" font-weight="400" fill="#9a8f78">date format</text>
+            <rect x="370" y="56" width="160" height="140" rx="11" fill="#fff" stroke="#d8cfbe"/><text x="450" y="84" text-anchor="middle" fill="#b8402e">SEMANTIC</text><text x="450" y="112" text-anchor="middle" font-size="9" font-weight="400" fill="#8d8475">does the value</text><text x="450" y="126" text-anchor="middle" font-size="9" font-weight="400" fill="#8d8475">make sense?</text><text x="450" y="160" text-anchor="middle" font-size="8.5" font-weight="400" fill="#9a8f78">DOB not future</text><text x="450" y="173" text-anchor="middle" font-size="8.5" font-weight="400" fill="#9a8f78">age &lt;= 120</text>
+            <rect x="545" y="56" width="160" height="140" rx="11" fill="#f7d9d1" stroke="#b8402e" stroke-width="1.5"/><text x="625" y="84" text-anchor="middle" fill="#8f2f20">COMPLEX</text><text x="625" y="112" text-anchor="middle" font-size="9" font-weight="400" fill="#7a4135">depends on</text><text x="625" y="126" text-anchor="middle" font-size="9" font-weight="400" fill="#7a4135">other fields?</text><text x="625" y="160" text-anchor="middle" font-size="8.5" font-weight="400" fill="#a06054">password match</text><text x="625" y="173" text-anchor="middle" font-size="8.5" font-weight="400" fill="#a06054">married-&gt;partner</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>From "right type" to "right relationship", pick how strict the endpoint needs to be</figcaption>
+    </figure>
+
+    <!-- PART III -->
+    <div class="part-label reveal">Part III / Transformation</div>
+
+    <div class="sec-head reveal" id="s11"><div class="sec-num">11</div><h2>Transformasi sebagai Type Casting</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal"><strong>Transformasi</strong> berarti mengeksekusi operasi pada data yang masuk untuk mengonversinya ke format yang diinginkan, entah sebelum validasi (supaya ia <em>bisa</em> lulus) atau setelahnya (untuk menyiapkannya bagi lapisan service). Kasus buku teksnya adalah <strong>parameter query pagination</strong>.</p>
+    <p class="reveal">Anggap <code>GET /bookmarks?page=2&amp;limit=20</code> dengan syarat-syarat ini:</p>
+    <ul class="reveal">
+      <li><code>page</code>, angka, lebih besar dari 0 dan lebih kecil dari 500.</li>
+      <li><code>limit</code>, angka, lebih besar dari 0 dan lebih kecil dari 10.000 (paling banyak 10.000 record dikembalikan sekali waktu).</li>
+    </ul>
+    <div class="note dark reveal"><span class="tag">The catch</span> Query parameters are <strong>always strings by default.</strong> Every value in the query string arrives at your server as a string, they have no other native type. So <code>page</code> arrives as the string <code>"2"</code>, not the number <code>2</code>. Validation that demands a <em>number</em> fails on its very first check, even though the client did nothing wrong, strings are simply how query params work.</div>
+    <p class="reveal">Perbaikannya bukan error. Ia <strong>tanggung jawab server</strong> untuk <em>meng-cast</em> string menjadi angka lebih dulu. "Casting" adalah memaksa satu tipe data menjadi tipe lain. Cast <code>"2"</code> -&gt; <code>2</code>, lalu jalankan validasi numeriknya. Langkah casting itulah transformasinya.</p>
+    <figure class="reveal">
+      <div class="fig-frame">
+        <svg viewBox="0 0 760 150" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono">
+          <defs><marker id="ar5" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#b8402e"/></marker></defs>
+          <g font-size="11" font-weight="700">
+            <rect x="20" y="50" width="150" height="56" rx="9" fill="#fff" stroke="#d8cfbe"/><text x="95" y="74" text-anchor="middle" fill="#211e1a">?page="2"</text><text x="95" y="92" text-anchor="middle" font-size="9" font-weight="400" fill="#8d8475">arrives as STRING</text>
+            <rect x="225" y="42" width="170" height="72" rx="10" fill="#f7d9d1" stroke="#b8402e" stroke-width="1.5"/><text x="310" y="72" text-anchor="middle" fill="#8f2f20">TRANSFORM</text><text x="310" y="90" text-anchor="middle" font-size="9" font-weight="400" fill="#7a4135">cast "2" -&gt; 2</text><text x="310" y="104" text-anchor="middle" font-size="9" font-weight="400" fill="#7a4135">(force the type)</text>
+            <rect x="450" y="50" width="150" height="56" rx="9" fill="#fff" stroke="#d8cfbe"/><text x="525" y="74" text-anchor="middle" fill="#211e1a">page = 2</text><text x="525" y="92" text-anchor="middle" font-size="9" font-weight="400" fill="#8d8475">now a NUMBER</text>
+            <rect x="630" y="50" width="110" height="56" rx="9" fill="#e0e9dd" stroke="#3f6f4e"/><text x="685" y="74" text-anchor="middle" fill="#3f6f4e" font-size="10">VALIDATE</text><text x="685" y="92" text-anchor="middle" font-size="8.5" font-weight="400" fill="#3f6f4e">0 &lt; n &lt; 500</text>
+            <line x1="170" y1="78" x2="221" y2="78" stroke="#b8402e" stroke-width="2" marker-end="url(#ar5)"/>
+            <line x1="395" y1="78" x2="446" y2="78" stroke="#b8402e" stroke-width="2" marker-end="url(#ar5)"/>
+            <line x1="600" y1="78" x2="626" y2="78" stroke="#b8402e" stroke-width="2" marker-end="url(#ar5)"/>
+          </g>
+        </svg>
+      </div>
+      <figcaption>Transformation runs <b>before</b> validation here, cast the string, then the numeric rules can even apply</figcaption>
+    </figure>
+    <div class="codeduo reveal">
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">pagination.go</span><span class="langtag go">Go</span></div>
+        <pre><span class="kw">package</span> validate
+
+<span class="kw">import</span> (
+    <span class="str">"errors"</span>
+    <span class="str">"net/url"</span>
+    <span class="str">"strconv"</span>
+)
+
+<span class="kw">type</span> Pagination <span class="kw">struct</span> {
+    Page  <span class="ty">int</span>
+    Limit <span class="ty">int</span>
+}
+
+<span class="cm">// Query params are ALWAYS strings, so we must CAST</span>
+<span class="cm">// (transform) before we can VALIDATE the numbers.</span>
+<span class="kw">func</span> <span class="fn">parsePagination</span>(q url.Values) (*Pagination, <span class="ty">error</span>) {
+    <span class="cm">// TRANSFORM: force the string "2" into the int 2</span>
+    page, err := strconv.<span class="fn">Atoi</span>(q.<span class="fn">Get</span>(<span class="str">"page"</span>))
+    <span class="kw">if</span> err != <span class="kw">nil</span> {
+        <span class="kw">return nil</span>, errors.<span class="fn">New</span>(<span class="str">"page: must be a number"</span>)
+    }
+    limit, err := strconv.<span class="fn">Atoi</span>(q.<span class="fn">Get</span>(<span class="str">"limit"</span>))
+    <span class="kw">if</span> err != <span class="kw">nil</span> {
+        <span class="kw">return nil</span>, errors.<span class="fn">New</span>(<span class="str">"limit: must be a number"</span>)
+    }
+
+    <span class="cm">// VALIDATE the now-numeric values</span>
+    <span class="kw">if</span> page &lt;= 0 || page &gt;= 500 {
+        <span class="kw">return nil</span>, errors.<span class="fn">New</span>(<span class="str">"page: must be 1..499"</span>)
+    }
+    <span class="kw">if</span> limit &lt;= 0 || limit &gt;= 10000 {
+        <span class="kw">return nil</span>, errors.<span class="fn">New</span>(<span class="str">"limit: must be 1..9999"</span>)
+    }
+    <span class="kw">return</span> &amp;Pagination{Page: page, Limit: limit}, <span class="kw">nil</span>
+}</pre>
+      </div>
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">pagination.py</span><span class="langtag py">Python</span></div>
+        <pre><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field
+
+
+<span class="kw">class</span> <span class="ty">Pagination</span>(BaseModel):
+    <span class="cm"># Pydantic AUTO-CASTS the incoming string "2" into</span>
+    <span class="cm"># int 2 (transform), THEN enforces gt/lt (validate)</span>
+    <span class="cm"># -- both steps in one schema, in the right order.</span>
+    page:  <span class="ty">int</span> = <span class="fn">Field</span>(gt=<span class="num2">0</span>, lt=<span class="num2">500</span>)
+    limit: <span class="ty">int</span> = <span class="fn">Field</span>(gt=<span class="num2">0</span>, lt=<span class="num2">10_000</span>)
+
+
+<span class="cm"># request: /bookmarks?page=2&amp;limit=20</span>
+<span class="cm"># (both values arrive as strings)</span>
+<span class="cm">#</span>
+<span class="cm"># Pagination(page="2", limit="20")</span>
+<span class="cm">#   -&gt; Pagination(page=2, limit=20)   # real ints</span>
+<span class="cm">#</span>
+<span class="cm"># Pagination(page="0", limit="20")</span>
+<span class="cm">#   -&gt; page: Input should be greater than 0</span>
+<span class="cm">#</span>
+<span class="cm"># Pagination(page="abc", limit="20")</span>
+<span class="cm">#   -&gt; page: Input should be a valid integer</span></pre>
+      </div>
+    </div>
+
+    <div class="sec-head reveal" id="s12"><div class="sec-num">12</div><h2>Transformasi sebagai Normalisasi</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal">Transformasi juga <em>membersihkan</em> data setelah lolos validasi, membentuk ulang menjadi yang disukai lapisan service. Server menormalkan payload dengan tenang sebelum melakukan apa pun dengannya:</p>
+    <ul class="reveal">
+      <li><strong>Email</strong> yang dikirim campuran huruf, <code>Test@TEST.com</code>, tersimpan sebagai huruf kecil semua <code>test@test.com</code>.</li>
+      <li><strong>Telepon</strong> mendapat awalan <code>+</code> yang disuntikkan di depannya.</li>
+      <li><strong>Tanggal</strong> dihitung ulang ke format kanonis yang diharapkan backend.</li>
+    </ul>
+    <div class="demo reveal">
+      <div class="dhead"><span class="method">POST</span> /api/valid/transform</div>
+      <div class="dbody">
+        <div class="req"><span class="lbl">What the client sent</span><pre>{ "email":"Test@TEST.com", "phone":"1234567", "date":"2025-11-05" }</pre></div>
+        <div class="res"><span class="lbl">What the server returns <span class="status s200">200</span>, normalized</span><pre>{ "email":"test@test.com", "phone":"+1234567", "date":"2025-11-05" }</pre></div>
+      </div>
+    </div>
+    <div class="codeduo reveal">
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">normalize.go</span><span class="langtag go">Go</span></div>
+        <pre><span class="kw">package</span> validate
+
+<span class="kw">import</span> <span class="str">"strings"</span>
+
+<span class="cm">// normalize runs AFTER validation passes and BEFORE</span>
+<span class="cm">// the data is handed to the service layer.</span>
+<span class="kw">func</span> (c *Contact) <span class="fn">normalize</span>() {
+    <span class="cm">// lowercase + trim the email</span>
+    c.Email = strings.<span class="fn">ToLower</span>(strings.<span class="fn">TrimSpace</span>(c.Email))
+
+    <span class="cm">// inject the leading + if it is missing</span>
+    c.Phone = strings.<span class="fn">TrimSpace</span>(c.Phone)
+    <span class="kw">if</span> !strings.<span class="fn">HasPrefix</span>(c.Phone, <span class="str">"+"</span>) {
+        c.Phone = <span class="str">"+"</span> + c.Phone
+    }
+}
+
+<span class="cm">// "Test@TEST.com" -&gt; "test@test.com"</span>
+<span class="cm">// "1234567"       -&gt; "+1234567"</span></pre>
+      </div>
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">normalize.py</span><span class="langtag py">Python</span></div>
+        <pre><span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, EmailStr, field_validator
+
+
+<span class="kw">class</span> <span class="ty">Contact</span>(BaseModel):
+    email: EmailStr
+    phone: <span class="ty">str</span>
+
+    <span class="cm"># field_validators double as transformers: whatever</span>
+    <span class="cm"># they return REPLACES the incoming value.</span>
+    <span class="pp">@field_validator</span>(<span class="str">"email"</span>)
+    <span class="pp">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">lower_email</span>(cls, v: <span class="ty">str</span>) -&gt; <span class="ty">str</span>:
+        <span class="kw">return</span> v.<span class="fn">strip</span>().<span class="fn">lower</span>()       <span class="cm"># normalize case</span>
+
+    <span class="pp">@field_validator</span>(<span class="str">"phone"</span>)
+    <span class="pp">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">add_plus</span>(cls, v: <span class="ty">str</span>) -&gt; <span class="ty">str</span>:
+        v = v.<span class="fn">strip</span>()
+        <span class="kw">return</span> v <span class="kw">if</span> v.<span class="fn">startswith</span>(<span class="str">"+"</span>) <span class="kw">else</span> <span class="str">"+"</span> + v
+
+
+<span class="cm"># Contact(email="Test@TEST.com", phone="1234567")</span>
+<span class="cm">#   -&gt; email="test@test.com", phone="+1234567"</span></pre>
+      </div>
+    </div>
+
+    <div class="sec-head reveal" id="s13"><div class="sec-num">13</div><h2>Satu Pipeline Gabungan</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal">Dalam praktik validasi dan transformasi <strong>dipasangkan menjadi satu pipeline</strong>. Alasannya lokalitas: seluruh "lapisan data input", setiap syarat <em>dan</em> setiap operasi yang dilakukan pada data masuk sebelum logika bisnis berjalan, tinggal di <strong>satu tempat</strong>. Anda tak pernah harus berburu lintas file untuk menemukan apa yang diharapkan sebuah endpoint atau apa yang diam-diam ia lakukan pada data. Pipeline bisa transformasi -&gt; validasi, atau validasi -&gt; transformasi, urutan mana pun, sesuai tuntutan kebutuhan.</p>
+    <figure class="reveal">
+      <div class="fig-frame">
+        <svg viewBox="0 0 760 160" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono">
+          <defs><marker id="ar6" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#b8402e"/></marker></defs>
+          <rect x="120" y="40" width="520" height="80" rx="14" fill="#f7d9d1" stroke="#b8402e" stroke-width="1.6"/>
+          <text x="380" y="32" text-anchor="middle" font-size="11" font-weight="700" fill="#8f2f20">VALIDATION &amp; TRANSFORMATION PIPELINE, one place</text>
+          <g font-size="10.5" font-weight="700">
+            <rect x="150" y="62" width="120" height="38" rx="8" fill="#fff" stroke="#b8402e"/><text x="210" y="86" text-anchor="middle" fill="#8f2f20">transform</text>
+            <rect x="320" y="62" width="120" height="38" rx="8" fill="#fff" stroke="#b8402e"/><text x="380" y="86" text-anchor="middle" fill="#8f2f20">validate</text>
+            <rect x="490" y="62" width="120" height="38" rx="8" fill="#fff" stroke="#b8402e"/><text x="550" y="86" text-anchor="middle" fill="#8f2f20">transform</text>
+            <line x1="270" y1="81" x2="316" y2="81" stroke="#b8402e" stroke-width="2" marker-end="url(#ar6)"/>
+            <line x1="440" y1="81" x2="486" y2="81" stroke="#b8402e" stroke-width="2" marker-end="url(#ar6)"/>
+          </g>
+          <text x="210" y="135" text-anchor="middle" font-size="8.5" fill="#7a4135">cast query strings</text>
+          <text x="380" y="135" text-anchor="middle" font-size="8.5" fill="#7a4135">type / syntax / semantic / complex</text>
+          <text x="550" y="135" text-anchor="middle" font-size="8.5" fill="#7a4135">lowercase / prefix / reformat</text>
+        </svg>
+      </div>
+      <figcaption>All input-layer logic, requirements and operations, collected in <b>a single reusable middleware</b></figcaption>
+    </figure>
+
+    <!-- PART IV -->
+    <div class="part-label reveal">Part IV / The Golden Rule</div>
+
+    <div class="sec-head reveal" id="s14"><div class="sec-num">14</div><h2>Validasi Frontend vs Backend</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal">Kesalahan umum dan berbahaya adalah memperlakukan validasi frontend sebagai <strong>pengganti</strong> validasi backend. Keduanya tidak bisa dipertukarkan, mereka melayani tujuan berbeda, dan Anda butuh <strong>keduanya</strong> untuk setiap API.</p>
+    <div class="defs reveal">
+      <div class="row"><div class="term"><small>Frontend</small>For UX</div><div class="desc">A web form validates as the user types and on submit, giving <strong>immediate, friendly feedback</strong> ("that doesn't look like an email") before any API call is made. Its entire job is user experience. It is <em>not</em> about security or data integrity.</div></div>
+      <div class="row"><div class="term"><small>Backend</small>For Security</div><div class="desc">Server-side validation is <strong>mandatory</strong> and exists for security and data integrity. It does not matter what the client is or whether the client validated at all, the server must be as strict and specific as possible on its own.</div></div>
+    </div>
+    <p class="reveal">Kenapa backend tidak bisa memercayai frontend? Karena server bisa punya <strong>banyak klien berbeda.</strong> Aplikasi web yang rapi mungkin memvalidasi dengan indah, tapi API yang sama bisa juga dipukul langsung lewat API client seperti <strong>Postman atau Insomnia</strong>, tempat tidak ada frontend yang bertindak sebagai proxy sehingga tidak ada validasi frontend sama sekali. Jika backend pernah bergantung pada frontend untuk keamanan atau integritas, server akan rusak begitu klien berubah.</p>
+    <figure class="reveal">
+      <div class="fig-frame">
+        <svg viewBox="0 0 760 280" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono">
+          <defs><marker id="ar7" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#b8402e"/></marker></defs>
+          <g font-size="10.5" font-weight="700">
+            <rect x="30" y="22" width="190" height="56" rx="9" fill="#fff" stroke="#d8cfbe"/><text x="125" y="44" text-anchor="middle" fill="#211e1a">WEB APP</text><text x="125" y="62" text-anchor="middle" font-size="8.5" font-weight="400" fill="#3f6f4e">has FE validation (UX)</text>
+            <rect x="30" y="112" width="190" height="56" rx="9" fill="#fff" stroke="#d8cfbe"/><text x="125" y="134" text-anchor="middle" fill="#211e1a">POSTMAN / INSOMNIA</text><text x="125" y="152" text-anchor="middle" font-size="8.5" font-weight="400" fill="#8f2f20">NO FE validation at all</text>
+            <rect x="30" y="202" width="190" height="56" rx="9" fill="#fff" stroke="#d8cfbe"/><text x="125" y="224" text-anchor="middle" fill="#211e1a">MOBILE / 3RD PARTY</text><text x="125" y="242" text-anchor="middle" font-size="8.5" font-weight="400" fill="#9a8f78">validation unknown</text>
+            <rect x="430" y="80" width="300" height="120" rx="14" fill="#f7d9d1" stroke="#b8402e" stroke-width="1.8"/><text x="580" y="116" text-anchor="middle" font-size="13" fill="#8f2f20">SERVER</text><text x="580" y="142" text-anchor="middle" font-size="10" fill="#8f2f20">BACKEND VALIDATION</text><text x="580" y="160" text-anchor="middle" font-size="8.5" font-weight="400" fill="#7a4135">strict / specific / mandatory</text><text x="580" y="176" text-anchor="middle" font-size="8.5" font-weight="400" fill="#7a4135">security &amp; data integrity, for ALL clients</text>
+            <line x1="220" y1="50" x2="426" y2="110" stroke="#b8402e" stroke-width="1.8" marker-end="url(#ar7)"/>
+            <line x1="220" y1="140" x2="426" y2="140" stroke="#b8402e" stroke-width="1.8" marker-end="url(#ar7)"/>
+            <line x1="220" y1="230" x2="426" y2="170" stroke="#b8402e" stroke-width="1.8" marker-end="url(#ar7)"/>
+          </g>
+        </svg>
+      </div>
+      <figcaption>One server, many clients, only the <b>backend</b> gate is guaranteed to run, so it must never be skippable</figcaption>
+    </figure>
+    <p class="reveal">Saat keduanya dihubungkan dengan benar, mereka saling melengkapi: dalam form web, email tak valid memblokir submit dan menampilkan error inline, <strong>panggilan API bahkan tidak dibuat</strong>. Perbaiki ke alamat sungguhan dan submit mengirim request yang layak; payload terkirim, server memvalidasi lagi, dan mengembalikan <code>200</code>. Frontend memberi umpan balik instan; backend memberi jaminannya.</p>
+    <div class="note reveal"><span class="tag">The rule, stated plainly</span> Design your server-side validation to be as strict and specific as possible <em>without ever thinking about</em> what the client validation looks like. Frontend validation is for user experience; backend validation is for security and data integrity. You always need both.</div>
+
+    <div class="sec-head reveal" id="s15"><div class="sec-num">15</div><h2>Controller Beranotasi Lengkap</h2></div>
+    <div class="sec-divider reveal"></div>
+    <p class="reveal">Merangkai gambaran utuh: sebuah controller lengkap yang mencocokkan route, menjalankan pipeline gabungan (transformasi -&gt; validasi -&gt; normalisasi) <em>sebelum</em> logika bisnis apa pun, mengembalikan <code>400</code> yang bersih saat gagal, dan baru setelah itu memanggil lapisan service, yang memanggil repository. Kedua ujung ditampilkan lengkap.</p>
+    <div class="codeduo reveal">
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">main.go</span><span class="langtag go">Go</span></div>
+        <pre><span class="kw">package</span> main
+
+<span class="kw">import</span> (
+    <span class="str">"context"</span>
+    <span class="str">"encoding/json"</span>
+    <span class="str">"net/http"</span>
+    <span class="str">"strings"</span>
+
+    <span class="str">"github.com/go-playground/validator/v10"</span>
+)
+
+<span class="kw">var</span> validate = validator.<span class="fn">New</span>()
+
+<span class="cm">// ---- schema (the gate) ----</span>
+<span class="kw">type</span> CreateBook <span class="kw">struct</span> {
+    Name <span class="ty">string</span> <span class="str">`json:"name" validate:"required,min=5,max=100"`</span>
+}
+
+<span class="kw">type</span> Book <span class="kw">struct</span> {
+    ID   <span class="ty">int</span>    <span class="str">`json:"id"`</span>
+    Name <span class="ty">string</span> <span class="str">`json:"name"`</span>
+}
+
+<span class="cm">// ---- helper ----</span>
+<span class="kw">func</span> <span class="fn">writeJSON</span>(w http.ResponseWriter, status <span class="ty">int</span>, b <span class="kw">any</span>) {
+    w.<span class="fn">Header</span>().<span class="fn">Set</span>(<span class="str">"Content-Type"</span>, <span class="str">"application/json"</span>)
+    w.<span class="fn">WriteHeader</span>(status)
+    json.<span class="fn">NewEncoder</span>(w).<span class="fn">Encode</span>(b)
+}
+
+<span class="cm">// ---- CONTROLLER: owns HTTP + the validation gate ----</span>
+<span class="kw">func</span> <span class="fn">createBookHandler</span>(w http.ResponseWriter, r *http.Request) {
+    <span class="kw">var</span> body CreateBook
+
+    <span class="cm">// === GATE, runs before ANY business logic ===</span>
+    <span class="kw">if</span> err := json.<span class="fn">NewDecoder</span>(r.Body).<span class="fn">Decode</span>(&amp;body); err != <span class="kw">nil</span> {
+        <span class="fn">writeJSON</span>(w, 400, map[<span class="ty">string</span>]<span class="ty">string</span>{
+            <span class="str">"error"</span>: <span class="str">"name: expected a string"</span>})
+        <span class="kw">return</span> <span class="cm">// 400, the DB is never touched</span>
+    }
+    body.Name = strings.<span class="fn">TrimSpace</span>(body.Name) <span class="cm">// transform</span>
+    <span class="kw">if</span> err := validate.<span class="fn">Struct</span>(body); err != <span class="kw">nil</span> {
+        <span class="fn">writeJSON</span>(w, 400, map[<span class="ty">string</span>]<span class="ty">string</span>{
+            <span class="str">"error"</span>: err.<span class="fn">Error</span>()})
+        <span class="kw">return</span> <span class="cm">// 400 Bad Request, not a confusing 500</span>
+    }
+
+    <span class="cm">// === only now: business logic (service -&gt; repo) ===</span>
+    book, err := <span class="fn">createBook</span>(r.<span class="fn">Context</span>(), body.Name)
+    <span class="kw">if</span> err != <span class="kw">nil</span> {
+        <span class="fn">writeJSON</span>(w, 500, map[<span class="ty">string</span>]<span class="ty">string</span>{
+            <span class="str">"error"</span>: <span class="str">"could not create book"</span>})
+        <span class="kw">return</span>
+    }
+    <span class="fn">writeJSON</span>(w, 201, book)
+}
+
+<span class="cm">// ---- service + repository (sketched) ----</span>
+<span class="kw">func</span> <span class="fn">createBook</span>(ctx context.Context, name <span class="ty">string</span>) (*Book, <span class="ty">error</span>) {
+    <span class="cm">// service logic ... repository INSERT ... then:</span>
+    <span class="kw">return</span> &amp;Book{ID: 1, Name: name}, <span class="kw">nil</span>
+}
+
+<span class="kw">func</span> <span class="fn">main</span>() {
+    http.<span class="fn">HandleFunc</span>(<span class="str">"/api/books"</span>, createBookHandler)
+    http.<span class="fn">ListenAndServe</span>(<span class="str">":8080"</span>, <span class="kw">nil</span>)
+}</pre>
+      </div>
+      <div class="codecard">
+        <div class="codebar"><span class="dot"></span><span class="fname">main.py</span><span class="langtag py">Python</span></div>
+        <pre><span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI, HTTPException
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel, Field, field_validator
+
+app = <span class="fn">FastAPI</span>()
+
+
+<span class="cm"># ---- schema (the gate) ----</span>
+<span class="kw">class</span> <span class="ty">CreateBook</span>(BaseModel):
+    name: <span class="ty">str</span> = <span class="fn">Field</span>(min_length=<span class="num2">5</span>, max_length=<span class="num2">100</span>)
+
+    <span class="pp">@field_validator</span>(<span class="str">"name"</span>)
+    <span class="pp">@classmethod</span>
+    <span class="kw">def</span> <span class="fn">trim</span>(cls, v: <span class="ty">str</span>) -&gt; <span class="ty">str</span>:
+        <span class="kw">return</span> v.<span class="fn">strip</span>()          <span class="cm"># transform / normalize</span>
+
+
+<span class="kw">class</span> <span class="ty">Book</span>(BaseModel):
+    id: <span class="ty">int</span>
+    name: <span class="ty">str</span>
+
+
+<span class="cm"># ---- service + repository (sketched) ----</span>
+<span class="kw">def</span> <span class="fn">create_book</span>(name: <span class="ty">str</span>) -&gt; Book:
+    <span class="cm"># service logic ... repository INSERT ... then:</span>
+    <span class="kw">return</span> <span class="fn">Book</span>(id=<span class="num2">1</span>, name=name)
+
+
+<span class="cm"># ---- CONTROLLER ----</span>
+<span class="cm"># FastAPI runs the CreateBook schema (the GATE) BEFORE</span>
+<span class="cm"># this function body. A bad payload never enters the</span>
+<span class="cm"># function, the client gets an automatic 422/400, so</span>
+<span class="cm"># the DB is never touched and no client mistake leaks</span>
+<span class="cm"># out as a confusing 500.</span>
+<span class="pp">@app.post</span>(<span class="str">"/api/books"</span>, status_code=<span class="num2">201</span>)
+<span class="kw">def</span> <span class="fn">create_book_endpoint</span>(body: CreateBook) -&gt; Book:
+    <span class="cm"># validation already passed, straight to logic</span>
+    <span class="kw">try</span>:
+        <span class="kw">return</span> <span class="fn">create_book</span>(body.name)  <span class="cm"># service -&gt; repo</span>
+    <span class="kw">except</span> Exception:
+        <span class="kw">raise</span> <span class="fn">HTTPException</span>(
+            status_code=<span class="num2">500</span>, detail=<span class="str">"could not create book"</span>)
+
+
+<span class="cm"># run:  uvicorn main:app --reload</span></pre>
+      </div>
+    </div>
+
+    <div class="note dark reveal"><span class="tag">The whole topic, in one breath</span> Validations and transformations are a small set of rules you keep in mind while designing APIs. They live at the entry point of the controller, run before any business logic, reject bad data with a clear <code>400</code> instead of a confusing <code>500</code>, come in four flavors (type, syntactic, semantic, complex), pair with transformations (casting and normalization) into one pipeline, and on the backend are mandatory for security and data integrity, no matter what the client does.</div>
+
+    
+  
+      <footer class="bfp-footer">Belajar Prinsip-Prinsip Backend / Chapter 05 / Validation. Code targets Go 1.22+ and Python 3.11+.</footer>
+</main>
+</div>
+<script>
+
+const io = new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:0.06,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+const links=[...document.querySelectorAll('.toc a')], secs=links.map(a=>document.querySelector(a.getAttribute('href')));
+const spy=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){const id='#'+e.target.id;links.forEach(a=>a.classList.toggle('active',a.getAttribute('href')===id));}});},{rootMargin:'-20% 0px -70% 0px'});
+secs.forEach(s=>s&&spy.observe(s));
+</script>
+<!-- CHAPTER NAVIGATION -->
+<nav class="chapter-nav" id="chapterNav">
+  <a href="../../4.Authentication and authorization for backend engineers/html_notes/notes.html" class="nav-chapter-link"><span class="nav-arrow"><svg class="ico-arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="13.5" y1="8" x2="3.5" y2="8"/><polyline points="7.5,4 3.5,8 7.5,12"/></svg></span><span class="nav-label"><span class="nav-small">Chapter 4</span>Authentication & Authorization</span></a>
+  <a href="../../index.html" class="nav-indicator"><span class="nav-dot"></span> Chapter 5 <span class="nav-sep">/</span> 24</a>
+  <a href="../../6.controllers-services-repositories-middlewares-and-request-context/html_notes/notes.html" class="nav-chapter-link nav-next"><span class="nav-label"><span class="nav-small">Chapter 6</span>Controllers, Services & Middlewares</span><span class="nav-arrow"><svg class="ico-arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2.5" y1="8" x2="12.5" y2="8"/><polyline points="8.5,4 12.5,8 8.5,12"/></svg></span></a>
+</nav>
+  <script src="../../assets/copy-button.js"></script>
+  <script src="../../assets/enhancements.js"></script>
+<script src="../../assets/shell.js"></script>
+</body>
+
+</html>

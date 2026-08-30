@@ -1,0 +1,2820 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="referrer" content="no-referrer">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>gRPC & Inter-Service Communication / Chapter 13 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Chapter 13 of Belajar Prinsip-Prinsip Backend: gRPC & Inter-Service Communication. First-principles notes, diagrams and runnable Go and Python examples.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%23b8402e'/%3E%3Ctext%20x='16'%20y='23'%20font-family='Georgia,serif'%20font-size='19'%20font-weight='700'%20fill='%23f3ede2'%20text-anchor='middle'%3EB%3C/text%3E%3C/svg%3E">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/protobuf.min.js"></script>
+
+    <style>
+        :root{
+  --paper: #f3ede2;
+  --paper-2: #ece3d4;
+  --ink: #211e1a;
+  --ink-soft: #5b5347;
+  --rust: #b8402e;
+  --rust-deep: #8f2f20;
+  --gold: #b07d2b;
+  --teal: #3f6f4e;
+  --line: #d8cfbe;
+  --code-bg: #232019;
+  --code-bar: #1a1813;
+  --shadow: 0 1px 0 rgba(0,0,0,.04),0 18px 40px -28px rgba(40,30,20,.5);
+}
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 24px
+        }
+
+        body {
+            background: var(--paper);
+            color: var(--ink);
+            font-family:"Spline Sans", system-ui, sans-serif;
+            font-size: 17px;
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+            background-image: radial-gradient(circle at 12% 8%, rgba(184,64,46, .05), transparent 38%), radial-gradient(circle at 88% 92%, rgba(63,111,78, .05), transparent 42%);
+        }
+
+        .hero {
+            margin-bottom: 64px;
+        }
+
+        .kicker {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+            font-size: 12.5px;
+            letter-spacing: .3em;
+            text-transform: uppercase;
+            color: var(--rust);
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            font-family:"Fraunces", Georgia, serif;
+            font-weight: 900;
+            font-size: clamp(40px, 6.5vw, 78px);
+            line-height: .95;
+            letter-spacing: -.025em;
+            margin-bottom: 24px;
+        }
+
+        .hero h1 em {
+            font-style: italic;
+            color: var(--rust);
+            font-weight: 500;
+        }
+
+        .hero .lede{
+            font-size: 19px;
+            max-width:64ch;
+            color: var(--ink-soft);
+            line-height: 1.6;
+        }
+
+        .hero .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 32px;
+        }
+
+        .hero .meta span {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+            font-size: 12px;
+            border: 1px solid var(--line);
+            background: var(--paper-2);
+            padding: 6px 13px;
+            border-radius: 30px;
+            color: var(--ink-soft);
+        }
+
+        .hero .rule {
+            height: 3px;
+            width:120px;
+            background: var(--rust);
+            margin-top: 38px;
+        }
+
+        .part-label {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+            font-size: 12px;
+            letter-spacing: .22em;
+            text-transform: uppercase;
+            color: var(--rust);
+            font-weight: 700;
+            margin: 64px 0 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed var(--line);
+        }
+
+        .part-label:first-of-type {
+            margin-top: 0;
+        }
+
+        section {
+            margin-bottom: 72px;
+            scroll-margin-top: 20px;
+        }
+
+        .sec-head {
+            display: flex;
+            align-items: flex-start;
+            gap: 18px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--line);
+            padding-bottom: 16px;
+        }
+
+        .sec-num {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+            font-weight: 700;
+            font-size: 14px;
+            color: #fff;
+            background: var(--rust);
+            border-radius: 8px;
+            padding: 7px 11px;
+            line-height: 1;
+            margin-top: 8px;
+            white-space: nowrap;
+            box-shadow: 0 3px 10px rgba(184,64,46, .3);
+        }
+
+        h2 {
+            font-family:"Fraunces", Georgia, serif;
+            font-weight: 600;
+            font-size: clamp(27px, 3.6vw, 38px);
+            line-height: 1.06;
+            letter-spacing: -.015em;
+        }
+
+        h3 {
+            font-family:"Fraunces", Georgia, serif;
+            font-weight: 600;
+            font-size: 22px;
+            margin: 34px 0 12px;
+            letter-spacing: -.01em;
+        }
+
+        h4 {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+            color: var(--rust-deep);
+            margin: 24px 0 9px;
+        }
+
+        p {
+            margin-bottom: 15px;
+            max-width:76ch;
+        }
+
+        strong {
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        ul,
+        ol {
+            margin: 0 0 17px 0;
+            padding-left:0;
+            max-width:76ch;
+        }
+
+        li {
+            margin: 0 0 9px 28px;
+        }
+
+        li::marker {
+            color: var(--rust);
+            font-weight: 700;
+        }
+
+        code:not(pre code) {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+            font-size: .85em;
+            background: var(--paper-2);
+            border: 1px solid var(--line);
+            padding: .12em .42em;
+            border-radius: 5px;
+            color: var(--rust-deep);
+            white-space: nowrap;
+        }
+
+        .box {
+            border-radius: 12px;
+            padding: 18px 22px;
+            margin: 22px 0;
+            border: 1px solid var(--line);
+            background: var(--paper-2);
+        }
+
+        .box .tag {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+            font-size: 11px;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 7px;
+            display: block;
+        }
+
+        .box p:last-child {
+            margin-bottom: 0;
+        }
+
+        .box.key {
+            background: linear-gradient(180deg, rgba(176,125,43, .1), rgba(176,125,43, .04));
+            border-color: rgba(176,125,43, .4);
+        }
+
+        .box.key .tag {
+            color: var(--gold);
+        }
+
+        .box.gotcha {
+            background: linear-gradient(180deg, rgba(184,64,46, .1), rgba(184,64,46, .03));
+            border-color: rgba(184,64,46, .4);
+        }
+
+        .box.gotcha .tag {
+            color: var(--rust);
+        }
+
+        .box.note {
+            background: linear-gradient(180deg, rgba(63,111,78, .09), rgba(63,111,78, .03));
+            border-color: rgba(63,111,78, .4);
+        }
+
+        .box.note .tag {
+            color: var(--teal);
+        }
+
+        .analogy {
+            font-style: italic;
+            color: var(--ink-soft);
+            font-family:"Fraunces", Georgia, serif;
+            font-size: 18px;
+            line-height: 1.55;
+            border-left: 3px solid var(--gold);
+            padding: 6px 0 6px 22px;
+            margin: 20px 0;
+        }
+
+        .tbl-wrap {
+            overflow-x: auto;
+            margin: 22px 0;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width:100%;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 11px 15px;
+            border-bottom: 1px solid var(--line);
+            vertical-align: top;
+        }
+
+        th {
+            background: var(--paper-2);
+            font-weight: 700;
+            font-size: 11.5px;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            color: var(--rust-deep);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        td code {
+            white-space: nowrap;
+        }
+
+        .mono-cell {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+            font-weight: 700;
+            color: var(--rust-deep);
+            font-size: 13px;
+        }
+
+        .yes {
+            color: #3f6f4e;
+            font-weight: 700;
+        }
+
+        .no {
+            color: #b8402e;
+            font-weight: 700;
+        }
+
+        .cond {
+            color: #b07d2b;
+            font-weight: 700;
+        }
+
+        .sc {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .sc.s1 {
+            background: #dee5ee;
+            color: #3f6f4e;
+        }
+
+        .sc.s2 {
+            background: #e0e9dd;
+            color: #3f6f4e;
+        }
+
+        .sc.s3 {
+            background: #f0e5c9;
+            color: #b07d2b;
+        }
+
+        .sc.s4 {
+            background: #f4ded6;
+            color: #b8402e;
+        }
+
+        .sc.s5 {
+            background: #eccdc2;
+            color: #8f2f20;
+        }
+
+        .codeblock {
+      background: var(--code-bg);
+            margin: 20px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 14px 30px -16px var(--shadow);
+            border: 1px solid #35302a;
+        }
+
+        .code-bar {
+            display: flex;
+            align-items: center;
+            background: var(--code-bar);
+            padding: 0 14px;
+            border-bottom: 1px solid #35302a;
+        }
+
+        .code-bar .dots {
+            display: flex;
+            gap: 7px;
+            margin-right: 14px;
+        }
+
+        .code-bar .dots i {
+            width:11px;
+            height: 11px;
+            border-radius: 50%;
+            display: block;
+        }
+
+        .dots i:nth-child(1) {
+            background: #d05a47;
+        }
+
+        .dots i:nth-child(2) {
+            background: #cf9f4b;
+        }
+
+        .dots i:nth-child(3) {
+            background: #5a9a5f;
+        }
+
+        .code-tabs {
+            display: flex;
+        }
+
+        .code-tabs button {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+            font-size: 12.5px;
+            font-weight: 600;
+            background: none;
+            border: none;
+            color: #9c948a;
+            padding: 13px 18px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: .15s;
+        }
+
+        .code-tabs button:hover {
+            color: #e9e2d3;
+        }
+
+        .code-tabs button.on {
+            color: #fff;
+            border-bottom-color: var(--rust);
+        }
+
+        .lang-go {
+            color: #7fb0c9;
+        }
+
+        .lang-py {
+            color: #d8b66a;
+        }
+
+        .code-panel {
+            display: none;
+        }
+
+        .code-panel.on {
+            display: block;
+        }
+
+        .codeblock pre {
+            margin: 0;
+        }
+
+        .codeblock pre code {
+            font-family:"JetBrains Mono", ui-monospace, monospace !important;
+            font-size: 13px;
+            line-height: 1.6;
+            padding: 18px 20px !important;
+            display: block;
+            overflow-x: auto;
+            background: var(--code-bg) !important;
+        }
+
+        .code-cap {
+            font-size: 13px;
+            color: var(--ink-soft);
+            font-style: italic;
+            margin: -8px 2px 22px;
+            font-family:"Fraunces", Georgia, serif;
+        }
+
+        .codeblock.single .code-bar .filename {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+            font-size: 12.5px;
+            color: #9c948a;
+            padding: 13px 4px;
+        }
+
+        .flow {
+            margin: 22px 0;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--paper-2);
+            padding: 24px 22px;
+        }
+
+        .flow .step {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+            padding: 9px 0;
+        }
+
+        .flow .step .b {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+            font-weight: 700;
+            font-size: 12px;
+            background: var(--ink);
+            color: var(--paper);
+            min-width:30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .flow .step.srv .b {
+            background: var(--teal);
+        }
+
+        .flow .step.cli .b {
+            background: var(--rust);
+        }
+
+        .flow .step .t {
+            padding-top: 3px;
+            font-size: 14.5px;
+        }
+
+        .flow .arrow {
+            color: var(--line);
+            text-align: center;
+            font-size: 18px;
+            line-height: .4;
+            margin: 0 0 0 14px;
+        }
+
+        /* method card */
+        .method {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            margin: 26px 0;
+            overflow: hidden;
+            background: var(--paper-2);
+        }
+
+        .method-top {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 22px;
+            background: linear-gradient(180deg, rgba(33,30,26, .04), transparent);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .method-top .verb {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+            font-weight: 700;
+            font-size: 18px;
+            color: #fff;
+            background: var(--ink);
+            padding: 6px 14px;
+            border-radius: 8px;
+        }
+
+        .method-top .verb.get {
+            background: #3f6f4e;
+        }
+
+        .method-top .verb.post {
+            background: var(--rust);
+        }
+
+        .method-top .verb.put {
+            background: #8a6420;
+        }
+
+        .method-top .verb.patch {
+            background: #b07d2b;
+        }
+
+        .method-top .verb.delete {
+            background: #8f2f20;
+        }
+
+        .method-top .verb.head {
+            background: #37607f;
+        }
+
+        .method-top .verb.options {
+            background: var(--teal);
+        }
+
+        .method-top .verb.connect {
+            background: #5b5347;
+        }
+
+        .method-top .verb.trace {
+            background: #8d8475;
+        }
+
+        .method-top .props {
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+            margin-left:auto;
+        }
+
+        .method-top .props span {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 9px;
+            border-radius: 20px;
+            border: 1px solid var(--line);
+            background: var(--paper);
+        }
+
+        .method-top .props .y {
+            color: #3f6f4e;
+            border-color: #bcd3b6;
+        }
+
+        .method-top .props .c {
+            color: #b07d2b;
+            border-color: #ddc79a;
+        }
+
+        .method-body {
+            padding: 6px 22px 20px;
+        }
+
+        .method-body .gloss {
+            font-family:"Fraunces", Georgia, serif;
+            font-style: italic;
+            font-size: 17px;
+            color: var(--ink-soft);
+            margin: 14px 0;
+        }
+
+        .foot {
+            border-top: 3px solid var(--rust);
+            margin-top: 56px;
+            padding-top: 28px;
+            color: var(--ink-soft);
+            font-size: 14px;
+        }
+
+        .foot strong {
+            color: var(--ink);
+        }
+
+        .toc-toggle {
+            display: none;
+        }
+
+        /* ============ VISUALIZATION STYLES (added) ============ */
+        .viz {
+            margin: 30px 0;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: linear-gradient(180deg, #f6f0e6, var(--paper-2));
+            padding: 24px 22px 18px;
+            box-shadow: 0 10px 26px -18px var(--shadow);
+        }
+
+        .viz-cap {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+            font-size: 11px;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--rust);
+            font-weight: 700;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .viz-cap::before {
+            content: "";
+            width:18px;
+            height: 2px;
+            background: var(--rust);
+            display: inline-block;
+        }
+
+        .viz-title {
+            font-family:"Fraunces", Georgia, serif;
+            font-weight: 600;
+            font-size: 18px;
+            letter-spacing: -.01em;
+            margin-bottom: 16px;
+            color: var(--ink);
+        }
+
+        .viz svg {
+            display: block;
+            width:100%;
+            height: auto;
+            overflow: visible;
+        }
+
+        .viz svg text {
+            font-family:"Spline Sans", system-ui, sans-serif;
+        }
+
+        .viz svg .mono {
+            font-family:"JetBrains Mono", ui-monospace, monospace;
+        }
+
+        .viz svg .serif {
+            font-family:"Fraunces", Georgia, serif;
+        }
+
+        .viz-note {
+            font-size: 12.5px;
+            color: var(--ink-soft);
+            font-style: italic;
+            font-family:"Fraunces", Georgia, serif;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--line);
+        }
+
+        @media(max-width:980px) {
+
+            .toc-toggle {
+                display: flex;
+                align-items: center;
+                gap: 9px;
+                position: fixed;
+                top: 16px;
+                left:16px;
+                z-index: 60;
+                background: var(--ink);
+                color: var(--paper);
+                border: none;
+                font-family:"JetBrains Mono", ui-monospace, monospace;
+                font-size: 13px;
+                font-weight: 600;
+                padding: 11px 16px;
+                border-radius: 10px;
+                cursor: pointer;
+                box-shadow: 0 6px 18px var(--shadow);
+            }
+
+            .method-top .props {
+                margin-left:0;
+                width:100%;
+            }}
+
+        @media(max-width:560px) {
+            body {
+                font-size: 16px;
+            }}
+
+        ::selection {
+            background: var(--rust);
+            color: #fff;
+        }</style>
+<style>
+.chapter-nav{position:fixed;bottom:0;left:0;right:0;z-index:9998;display:flex;align-items:center;justify-content:space-between;padding:14px clamp(16px,4vw,48px);background:rgba(243,237,226,.88);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1.5px solid #c7bca6;box-shadow:0 -8px 32px -16px rgba(40,30,20,.18);font-family:"JetBrains Mono", ui-monospace, monospace;}
+.nav-chapter-link{display:flex;align-items:center;gap:12px;text-decoration:none;color:#5b5347;padding:10px 18px;border-radius:10px;transition:all .2s ease;max-width:38%;}
+.nav-chapter-link:hover{background:rgba(184,64,46,.08);color:#b8402e;transform:translateY(-1px);}
+.nav-chapter-link.nav-next{text-align:right;flex-direction:row;}
+.nav-arrow{font-size:22px;color:#b8402e;font-weight:700;flex:none;}
+.nav-label{display:flex;flex-direction:column;gap:2px;font-size:13.5px;line-height:1.3;}
+.nav-small{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#8d8475;font-weight:600;}
+.nav-indicator{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#b8402e;font-weight:700;text-decoration:none;padding:8px 16px;border:1.5px solid #c7bca6;border-radius:40px;background:rgba(255,255,255,.5);transition:all .2s;white-space:nowrap;}
+.nav-indicator:hover{background:#b8402e;color:#fff;border-color:#b8402e;}
+.nav-dot{display:inline-block;width:7px;height:7px;background:#b8402e;border-radius:50%;margin-right:4px;vertical-align:middle;}
+.nav-sep{color:#c7bca6;margin:0 2px;}
+.nav-disabled{visibility:hidden;pointer-events:none;}
+@media(max-width:700px){.nav-label{font-size:11.5px;}.nav-chapter-link{padding:8px 10px;max-width:38%;}.chapter-nav{padding:10px 12px;}.nav-small{font-size:9px;letter-spacing:.16em;}}
+@media(max-width:520px){.nav-label{display:none;}.nav-chapter-link{max-width:none;padding:8px 12px;}.nav-arrow{font-size:20px;}.nav-indicator{font-size:11px;padding:7px 13px;letter-spacing:.12em;}}
+body{padding-bottom:80px;}
+</style>
+  <link rel="stylesheet" href="../../assets/copy-button.css">
+  <link rel="stylesheet" href="../../assets/enhancements.css">
+  <link rel="stylesheet" href="../../assets/shell.css">
+  <link rel="stylesheet" href="../../assets/theme.css">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="../../assets/theme.js"></script>
+</head>
+
+<body>
+<button class="bfp-toc-toggle" id="bfpTocToggle" aria-controls="bfpToc" aria-expanded="false"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/></svg>Contents</button>
+<div class="bfp-toc-scrim" id="bfpTocScrim"></div>
+<div class="bfp-shell">
+    <aside class="bfp-toc" id="bfpToc">
+      <div class="bfp-brand"><span class="bfp-brand-name">gRPC</span><span class="bfp-brand-slash">/</span><span class="bfp-brand-lens">the backend lens</span></div>
+      <div class="bfp-brand-sub">Chapter 13 / Field Manual</div>
+      <div class="bfp-toc-rule"></div>
+      <nav class="bfp-toc-nav">
+        <a class="bfp-toc-link" href="#s1"><span class="bfp-toc-num">01</span><span class="bfp-toc-text">What gRPC Actually Is</span></a>
+        <a class="bfp-toc-link" href="#s2"><span class="bfp-toc-num">02</span><span class="bfp-toc-text">Why gRPC Exists</span></a>
+        <a class="bfp-toc-link" href="#s3"><span class="bfp-toc-num">03</span><span class="bfp-toc-text">The RPC Mental Model</span></a>
+        <a class="bfp-toc-link" href="#s4"><span class="bfp-toc-num">04</span><span class="bfp-toc-text">Protocol Buffers, the Contract</span></a>
+        <a class="bfp-toc-link" href="#s5"><span class="bfp-toc-num">05</span><span class="bfp-toc-text">How Protobuf Encodes</span></a>
+        <a class="bfp-toc-link" href="#s6"><span class="bfp-toc-num">06</span><span class="bfp-toc-text">HTTP/2, the Transport</span></a>
+        <a class="bfp-toc-link" href="#s7"><span class="bfp-toc-num">07</span><span class="bfp-toc-text">Unary RPC</span></a>
+        <a class="bfp-toc-link" href="#s8"><span class="bfp-toc-num">08</span><span class="bfp-toc-text">Server Streaming</span></a>
+        <a class="bfp-toc-link" href="#s9"><span class="bfp-toc-num">09</span><span class="bfp-toc-text">Client Streaming</span></a>
+        <a class="bfp-toc-link" href="#s10"><span class="bfp-toc-num">10</span><span class="bfp-toc-text">Bidirectional Streaming</span></a>
+        <a class="bfp-toc-link" href="#s11"><span class="bfp-toc-num">11</span><span class="bfp-toc-text">The .proto -&gt; Code Workflow</span></a>
+        <a class="bfp-toc-link" href="#s12"><span class="bfp-toc-num">12</span><span class="bfp-toc-text">Channels, Stubs &amp; a Call</span></a>
+        <a class="bfp-toc-link" href="#s13"><span class="bfp-toc-num">13</span><span class="bfp-toc-text">Metadata, Deadlines &amp; Cancellation</span></a>
+        <a class="bfp-toc-link" href="#s14"><span class="bfp-toc-num">14</span><span class="bfp-toc-text">Status Codes &amp; Errors</span></a>
+        <a class="bfp-toc-link" href="#s15"><span class="bfp-toc-num">15</span><span class="bfp-toc-text">Interceptors</span></a>
+        <a class="bfp-toc-link" href="#s16"><span class="bfp-toc-num">16</span><span class="bfp-toc-text">Authentication &amp; Security</span></a>
+        <a class="bfp-toc-link" href="#s17"><span class="bfp-toc-num">17</span><span class="bfp-toc-text">Resilience &amp; Load Balancing</span></a>
+        <a class="bfp-toc-link" href="#s18"><span class="bfp-toc-num">18</span><span class="bfp-toc-text">gRPC vs REST</span></a>
+        <a class="bfp-toc-link" href="#s19"><span class="bfp-toc-num">19</span><span class="bfp-toc-text">gRPC-Web &amp; Browser Interop</span></a>
+        <a class="bfp-toc-link" href="#s20"><span class="bfp-toc-num">20</span><span class="bfp-toc-text">Observability &amp; Debugging</span></a>
+        <a class="bfp-toc-link" href="#s21"><span class="bfp-toc-num">21</span><span class="bfp-toc-text">Debug Cheat-Sheet</span></a>
+      </nav>
+    </aside>
+    <main class="bfp-content">
+
+            <header class="hero">
+                <div class="kicker">A detailed backend reference</div>
+                <h1>gRPC, memanggil <em>fungsi jarak jauh seperti fungsi lokal</em>.</h1>
+                <p class="lede">Penelusuran dari prinsip dasar tentang framework RPC yang menggerakkan internal Google, Netflix, Uber, dan kebanyakan armada microservice modern: dari <em>kontrak</em> (Protocol Buffers) dan <em>format wire</em> biner, lewat <em>transport HTTP/2</em> dan empat bentuk streaming, sampai deadline, interceptor, mTLS, dan ketahanan produksi. Ditulis bukan hanya menyebut <em>apa</em> fungsi tiap bagian, tapi <em>kenapa</em> ia ada dan <em>bagaimana</em> ia bekerja di dalamnya. Ada implementasi Go dan Python.</p>
+                <div class="meta">
+                    <span>RPC over HTTP/2</span>
+                    <span>Protocol Buffers</span>
+                    <span>Go 1.22+ / Python 3.11+</span>
+                    <span>21 sections</span>
+                </div>
+                <div class="rule"></div>
+            </header>
+
+            <div class="part-label">Part I / Foundations</div>
+
+            <!-- 1 -->
+            <section id="s1">
+                <div class="sec-head">
+                    <div class="sec-num">01</div>
+                    <h2>Apa Sebenarnya gRPC Itu</h2>
+                </div>
+                <p><strong>gRPC adalah framework untuk memanggil fungsi yang hidup di mesin lain seolah-olah fungsi lokal di proses Anda sendiri.</strong> Namanya adalah kepanjangan dari <em>gRPC Remote Procedure Call</em> (akronim rekursif; huruf "g"-nya diberi backronym kata yang berbeda di tiap rilis sekadar untuk seru). Frasa yang penting yang tengah, <strong>Remote Procedure Call</strong>. Anda menulis <code>user, err := client.GetUser(ctx, &amp;pb.GetUserRequest{Id: 42})</code> dan ia <em>tampak</em> seperti panggilan method biasa, tapi di bawah kap argumennya diserialkan, dikirim melewati jaringan ke server, dieksekusi di sana, dan nilai kembaliannya dikirim kembali, semua tersembunyi di balik satu baris itu.</p>
+
+                <p>Tiga hal benar tentang gRPC dan Anda perlu ketiganya di kepala sekaligus. Ia (1) <strong>framework RPC kontrak-pertama</strong>: Anda mendeskripsikan API di file <code>.proto</code> dan kode dibuat darinya; (2) men-serialize data dengan <strong>Protocol Buffers</strong>, format biner ringkas, alih-alih teks seperti JSON; dan (3) mengangkut byte itu lewat <strong>HTTP/2</strong>, yang memberinya multiplexing dan streaming dua arah sungguhan. Semua hal lain di manual ini adalah konsekuensi dari tiga fakta itu.</p>
+
+                <div class="analogy">REST hands you a building with addressable rooms (<em>resources</em>) and a fixed
+                    set of
+                    things you may do to each room (GET, POST, ...). gRPC hands you a remote control with labelled
+                    buttons
+                    (<em>methods</em>), you don't think about rooms, you press <code>GetUser</code> or
+                    <code>SendPayment</code>
+                    and the work happens elsewhere. One models <em>nouns</em>; the other models <em>verbs</em>.</div>
+
+                <div class="viz">
+                    <div class="viz-cap">Where gRPC sits</div>
+                    <div class="viz-title">gRPC is three layers stacked: your generated API, Protobuf, and HTTP/2</div>
+                    <svg viewBox="0 0 720 270" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="The gRPC stack: generated stubs on top, Protocol Buffers serialization in the middle, HTTP/2 transport below, TCP/TLS underneath">
+                        <defs>
+                            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="0">
+                                <stop offset="0" stop-color="#b8402e" />
+                                <stop offset="1" stop-color="#8f2f20" />
+                            </linearGradient>
+                        </defs>
+                        <text x="14" y="46" class="mono" font-size="11" font-weight="700" fill="#b8402e"
+                            transform="rotate(-90 14 46)" text-anchor="middle">YOU WORK HERE</text>
+                        <path d="M30 16 H38 V76 H30" fill="none" stroke="#b8402e" stroke-width="2" />
+                        <g>
+                            <rect x="52" y="16" width="640" height="60" rx="9" fill="url(#g1)" />
+                            <text x="74" y="42" font-size="15" font-weight="700" fill="#fff">Your service, generated stubs &amp; servers</text>
+                            <text x="74" y="62" class="mono" font-size="11" fill="#f4d9cf">client.GetUser(ctx, req)
+                                / func (s) GetUser(ctx, req) / the methods you call &amp; implement</text>
+                        </g>
+                        <g>
+                            <rect x="92" y="90" width="600" height="48" rx="9" fill="#ece3d4" stroke="#d8cfbe" />
+                            <text x="114" y="111" font-size="14" font-weight="700" fill="#3f6f4e">Protocol Buffers, the contract + binary serialization</text>
+                            <text x="114" y="128" class="mono" font-size="10.5" fill="#5b5347">messages -&gt; compact
+                                bytes / sec 04-05</text>
+                        </g>
+                        <g>
+                            <rect x="92" y="152" width="600" height="48" rx="9" fill="#ece3d4" stroke="#d8cfbe" />
+                            <text x="114" y="173" font-size="14" font-weight="700" fill="#211e1a">HTTP/2, multiplexed, bidirectional framed transport</text>
+                            <text x="114" y="190" class="mono" font-size="10.5" fill="#5b5347">streams carry the bytes
+                                / enables all 4 call types / sec 06</text>
+                        </g>
+                        <g>
+                            <rect x="92" y="214" width="600" height="40" rx="9" fill="#e6ddcc" stroke="#d8cfbe" />
+                            <text x="114" y="239" font-size="13.5" font-weight="600" fill="#5b5347">TCP + TLS, the reliable, encrypted pipe</text>
+                        </g>
+                    </svg>
+                    <div class="viz-note">The top layer is the only part you hand-write. gRPC generates the glue that
+                        turns your
+                        method calls into Protobuf bytes flowing over HTTP/2 streams.</div>
+                </div>
+
+                <h3>"Procedure call" adalah seluruh gagasannya</h3>
+                <p>Dalam kode biasa, memanggil fungsi adalah pipa yang tak terlihat: Anda meneruskan argumen, CPU melompat ke fungsi, ia mengembalikan nilai. RPC mengajukan pertanyaan sederhana, <em>bagaimana jika fungsi itu hidup di komputer berbeda?</em> Impian RPC (yang berakar di 1980-an) adalah membuat jaringan <strong>menghilang</strong>, sehingga sistem terdistribusi terasa seperti satu program. gRPC adalah realisasi modern kelas produksi dari impian itu: Anda tidak pernah menulis kode socket, tidak pernah mem-parse respons manual, tidak pernah membangun URL. Anda memanggil method bertipe dan menangani hasil bertipe atau error bertipe.</p>
+
+                <div class="box key"><span class="tag">The one-sentence definition</span>
+                    <p>gRPC = <strong>panggilan method jarak jauh yang bertipe</strong>, didefinisikan <strong>kontrak Protobuf</strong>, diserialkan sebagai <strong>biner ringkas</strong>, diangkut lewat <strong>stream HTTP/2</strong>: jadi klien dalam bahasa apa pun bisa memanggil server bahasa lain seolah lokal.</p>
+                </div>
+            </section>
+
+            <!-- 2 -->
+            <section id="s2">
+                <div class="sec-head">
+                    <div class="sec-num">02</div>
+                    <h2>Kenapa gRPC Ada</h2>
+                </div>
+                <p>gRPC bukan pengganti REST di mana-mana, ia dibangun untuk memecahkan rasa sakit spesifik yang muncul saat banyak layanan (sering dalam bahasa berbeda) terus-menerus bicara satu sama lain, volume tinggi, <em>di dalam</em> satu sistem. Google membangunnya (open source 2015, berevolusi dari sistem internal bernama Stubby) justru karena REST-over-JSON terlalu lambat, terlalu longgar, dan terlalu terbatas untuk lalu lintas antar-layanan di skala mereka. Lima masalah konkret menggerakkan desainnya.</p>
+
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Masalah dengan REST/JSON</th>
+                                <th>Yang gRPC lakukan sebagai gantinya</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>JSON besar &amp; lambat.</strong> Teks, dengan nama field berulang di tiap objek; parsingnya berat CPU.</td>
+                                <td>Biner Protobuf: field diwakili <em>nomor</em> bukan nama, dikemas varint. Sering 3-10x lebih kecil dan jauh lebih cepat di-(de)serialisasi.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tanpa kontrak yang dipaksakan.</strong> Bentuk payload JSON hidup di dokumen (atau kepala seseorang); penyimpangan menyebabkan kerusakan runtime.</td>
+                                <td>File <code>.proto</code> <em>adalah</em> kontraknya. Klien &amp; server membuat kode dari sumber yang sama, ketidakcocokan gagal saat kompilasi.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Streaming lemah.</strong> REST HTTP/1.1 polos request-&gt;response; streaming butuh tempelan (SSE, polling, WebSocket mentah).</td>
+                                <td>Empat jenis panggilan termasuk streaming dua arah penuh, natif di framework lewat HTTP/2.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Gesekan poliglot.</strong> Tiap bahasa menulis klien &amp; serialisasi sendiri-sendiri, tidak konsisten.</td>
+                                <td>Satu <code>.proto</code> membuat klien/server idiomatis untuk Go, Python, Java, C++, Rust, dan lainnya.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Overhead koneksi HTTP/1.1.</strong> Satu request per koneksi (atau head-of-line blocking), handshake berulang.</td>
+                                <td>HTTP/2 memultipleks banyak panggilan serentak di atas <em>satu</em> koneksi berumur panjang.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h4>Cakupan yang jujur</h4>
+                <p>Kekuatan-kekuatan itu ditujukan untuk komunikasi <strong>internal, machine-to-machine</strong>: microservice, backend-ke-backend, mobile-ke-backend tempat Anda mengendalikan kedua ujung. gRPC <em>lebih lemah</em> daripada REST untuk API publik yang menghadap browser (browser tidak bisa bicara gRPC mentah, lihat bagian 19) dan untuk endpoint yang bisa di-debug manusia, ramah cache, dan kompatibel luas. Perbandingan lengkapnya bagian 18; untuk sekarang, pegang kerangkanya: <strong>gRPC adalah sistem saraf internal; REST adalah pintu depan publik.</strong></p>
+
+                <div class="box note"><span class="tag">Where you'll meet it</span>
+                    <p>Service mesh (Istio, Linkerd), mesin API Kubernetes sendiri, etcd, CockroachDB, xDS Envoy, dan grafik panggilan internal kebanyakan platform fintech/konsumen besar. Jika Anda pernah mengirim pembayaran atau streaming video, hampir pasti gRPC membawa salah satu hop request itu antar layanan backend.</p>
+                </div>
+            </section>
+
+            <!-- 3 -->
+            <section id="s3">
+                <div class="sec-head">
+                    <div class="sec-num">03</div>
+                    <h2>Model Mental RPC</h2>
+                </div>
+                <p>Sebelum sintaks apa pun, internalisasi mesin yang membuat panggilan jarak jauh <em>tampak</em> lokal, karena setiap konsep gRPC belakangan hanyalah bagian bernama dari gambar ini. Panggilan fungsi lokal dan jarak jauh berbeda tepat di satu tempat: antara "panggil" dan "eksekusi", argumennya harus menyeberangi jaringan. RPC menyisipkan dua bagian kode hasil generasi, <strong>stub</strong> di klien dan <strong>skeleton/handler</strong> di server, untuk menyembunyikan penyeberangan itu.</p>
+
+                <div class="viz">
+                    <div class="viz-cap">The anatomy of a remote call</div>
+                    <div class="viz-title">Stub and skeleton hide the network between "call" and "execute"</div>
+                    <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="A client calls a stub which serializes the request, sends it over the network to the server skeleton which deserializes, runs the real method, and the response travels back the reverse way">
+                        <defs>
+                            <marker id="rar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#b8402e" />
+                            </marker>
+                            <marker id="tar" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#3f6f4e" />
+                            </marker>
+                        </defs>
+                        <!-- client column -->
+                        <text x="120" y="22" class="mono" font-size="12" font-weight="700" fill="#b8402e"
+                            text-anchor="middle">CLIENT PROCESS</text>
+                        <rect x="30" y="34" width="180" height="44" rx="8" fill="#b8402e" />
+                        <text x="120" y="54" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">your
+                            code</text>
+                        <text x="120" y="70" class="mono" font-size="9.5" fill="#f4d9cf"
+                            text-anchor="middle">client.GetUser(req)</text>
+                        <rect x="30" y="92" width="180" height="56" rx="8" fill="#ece3d4" stroke="#b8402e" />
+                        <text x="120" y="113" font-size="12.5" font-weight="700" fill="#8f2f20"
+                            text-anchor="middle">STUB (generated)</text>
+                        <text x="120" y="130" class="mono" font-size="9" fill="#5b5347" text-anchor="middle">serialize
+                            args -&gt; bytes</text>
+                        <text x="120" y="143" class="mono" font-size="9" fill="#5b5347" text-anchor="middle">send over
+                            HTTP/2</text>
+                        <!-- server column -->
+                        <text x="600" y="22" class="mono" font-size="12" font-weight="700" fill="#3f6f4e"
+                            text-anchor="middle">SERVER PROCESS</text>
+                        <rect x="510" y="34" width="180" height="44" rx="8" fill="#3f6f4e" />
+                        <text x="600" y="54" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">real
+                            method runs</text>
+                        <text x="600" y="70" class="mono" font-size="9.5" fill="#dceeea" text-anchor="middle">query DB,
+                            compute...</text>
+                        <rect x="510" y="92" width="180" height="56" rx="8" fill="#e0e9dd" stroke="#3f6f4e" />
+                        <text x="600" y="113" font-size="12.5" font-weight="700" fill="#3f6f4e"
+                            text-anchor="middle">SKELETON (generated)</text>
+                        <text x="600" y="130" class="mono" font-size="9" fill="#5b5347" text-anchor="middle">deserialize
+                            bytes -&gt; args</text>
+                        <text x="600" y="143" class="mono" font-size="9" fill="#5b5347" text-anchor="middle">dispatch to
+                            handler</text>
+                        <!-- the wire -->
+                        <rect x="250" y="170" width="220" height="40" rx="20" fill="#232019" />
+                        <text x="360" y="194" class="mono" font-size="11" fill="#7fd1c4" text-anchor="middle">network, Protobuf over HTTP/2</text>
+                        <!-- request arrow down-across -->
+                        <path d="M150 148 C150 210 220 250 250 232" fill="none" stroke="#b8402e" stroke-width="1.8"
+                            marker-end="url(#rar)" />
+                        <text x="170" y="250" class="mono" font-size="10" fill="#8f2f20">request bytes -&gt;</text>
+                        <path d="M470 232 C500 250 560 210 580 150" fill="none" stroke="#b8402e" stroke-width="1.8"
+                            marker-end="url(#rar)" />
+                        <!-- response arrow back -->
+                        <path d="M580 90 C560 60 360 60 360 168" fill="none" stroke="#3f6f4e" stroke-width="1.8"
+                            stroke-dasharray="5 3" marker-end="url(#tar)" />
+                        <text x="360" y="285" class="serif" font-size="12.5" font-style="italic" fill="#5b5347"
+                            text-anchor="middle">&lt;- response bytes travel the reverse path, deserialized back into a
+                            typed return value</text>
+                    </svg>
+                    <div class="viz-note">"Marshalling" = turning a language object into bytes; "unmarshalling" = the
+                        reverse. The
+                        stub marshals the request and unmarshals the reply; the skeleton does the mirror image. You
+                        write neither.</div>
+                </div>
+
+                <h4>Peringatan abstraksi yang bocor</h4>
+                <p>RPC mencoba membuat jaringan tak terlihat, tapi jaringan <em>tidak pernah</em> benar-benar tak terlihat, dan berpura-pura sebaliknya adalah jebakan RPC klasik. Panggilan lokal tidak bisa timeout, hilang, atau tertukar urutan; panggilan jarak jauh bisa ketiganya. Itulah kenapa gRPC memberi tool kelas satu untuk hal yang tidak pernah dibutuhkan panggilan lokal: <strong>deadline</strong> (bagian 13), <strong>status code</strong> untuk kegagalan parsial (bagian 14), <strong>retry</strong> (bagian 17), dan <strong>pembatalan</strong>. Perlakukan setiap panggilan jarak jauh sebagai "panggilan lokal yang bisa gagal dengan cara-cara bentuk jaringan", dan Anda akan merancang sistem yang tangguh alih-alih rapuh.</p>
+
+                <div class="box gotcha"><span class="tag">Don't pretend the wire isn't there</span>
+                    <p>Kesalahan tunggal terbesar dengan RPC adalah menulis panggilan jarak jauh seolah gratis dan tidak pernah gagal, tanpa timeout, tanpa penanganan error untuk <code>UNAVAILABLE</code>, tanpa memikirkan latensi dalam loop. Abstraksinya kenyamanan, bukan jaminan. Selalu teruskan context/deadline dan selalu tangani error-nya.</p>
+                </div>
+            </section>
+
+            <div class="part-label">Part II / The Two Pillars</div>
+
+            <!-- 4 -->
+            <section id="s4">
+                <div class="sec-head">
+                    <div class="sec-num">04</div>
+                    <h2>Protocol Buffers: Kontraknya</h2>
+                </div>
+                <p>Protocol Buffers ("protobuf") adalah dua hal yang memakai satu nama: <strong>IDL</strong> (Interface Definition Language) untuk <em>mendeskripsikan</em> message dan service Anda, dan <strong>format serialisasi biner</strong> untuk <em>meng-encode</em>-nya di kabel. Bagian ini paruh IDL-nya, file <code>.proto</code> yang menjadi sumber kebenaran tunggal yang dipakai kedua sisi membuat kode. Dapatkan kontraknya benar dan klien serta server secara harfiah tidak bisa berselisih soal bentuk data.</p>
+
+                <p>File <code>.proto</code> mendefinisikan <strong>message</strong> (struktur data) dan <strong>service</strong> (koleksi method RPC). Ini contoh lengkap dan realistis, service pengguna, dengan anotasi untuk setiap aturan yang penting:</p>
+
+                <div class="codeblock single">
+                    <div class="code-bar">
+                        <div class="dots"><i></i><i></i><i></i></div><span class="filename">user.proto</span>
+                    </div>
+                    <pre><code class="language-protobuf">syntax = "proto3";              // always declare the syntax; proto3 is current
+
+package user.v1;                // namespace + a versioning convention (v1, v2...)
+
+option go_package = "example.com/gen/userv1;userv1";  // where generated Go lands
+
+// A message is a typed record. Each FIELD has a type, a name, and a NUMBER.
+message User {
+  string id          = 1;       // the "= 1" is the FIELD NUMBER, not a value
+  string email       = 2;
+  string full_name   = 3;
+  Role   role        = 4;       // a nested enum (declared below)
+  repeated string tags = 5;     // "repeated" = a list/array of strings
+  int64  created_at  = 6;       // unix seconds; proto3 has no native date
+}
+
+// An enum is a fixed set of named values. The first MUST be 0 (the default).
+enum Role {
+  ROLE_UNSPECIFIED = 0;         // 0 is the implicit default, reserve it
+  ROLE_MEMBER      = 1;
+  ROLE_ADMIN       = 2;
+}
+
+message GetUserRequest  { string id = 1; }
+message GetUserResponse { User user = 1; }   // messages nest inside messages
+
+message CreateUserRequest {
+  string email     = 1;
+  string full_name = 2;
+  optional string phone = 3;    // "optional" tracks presence: set vs unset vs ""
+}
+
+// A SERVICE is a set of methods. Each takes one message and returns one message.
+service UserService {
+  rpc GetUser    (GetUserRequest)    returns (GetUserResponse);
+  rpc CreateUser (CreateUserRequest) returns (User);
+}</code></pre>
+                </div>
+
+                <h3>Aturan yang benar-benar menggigit</h3>
+                <ul>
+                    <li><strong>Nomor field adalah identitas sebenarnya, bukan nama.</strong> Di kabel, <code>email</code> dikirim sebagai field <code>2</code>, tidak pernah sebagai string "email" (inilah kenapa protobuf ringkas, bagian 05). Namanya untuk <em>kode Anda</em>; nomornya kontraknya.</li>
+                    <li><strong>Jangan pernah mengubah atau memakai ulang nomor field.</strong> Ini aturan kardinal evolusi skema. Mengganti nama field aman (nama tidak ada di kabel); mengubah <em>nomor</em> atau <em>tipenya</em> diam-diam merusak data bagi peer mana pun yang masih memakai definisi lama. Untuk menghapus field, tandai <code>reserved</code> supaya nomornya tidak pernah dipakai ulang tanpa sengaja.</li>
+                    <li><strong>Menambah field kompatibel ke belakang.</strong> Beri field baru nomor segar; klien lama tidak melihatnya, server baru memperlakukannya sebagai tidak di-set saat klien lama mengabaikannya. Beginilah API gRPC berevolusi tanpa memecah konsumen yang ter-deploy, disiplin perubahan aditif yang sama dengan versioning REST.</li>
+                    <li><strong>proto3 punya default, bukan null.</strong> <code>string</code> yang tidak di-set adalah <code>""</code>, <code>int</code> yang tidak di-set <code>0</code>, <code>bool</code> yang tidak di-set <code>false</code>. Jika Anda harus membedakan "tidak ada" dari "nol", pakai <code>optional</code> (yang menambah pelacakan keberadaan), jebakan yang sama dengan zero value Go, diselesaikan dengan cara yang sama.</li>
+                </ul>
+
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Konstruk</th>
+                                <th>Artinya</th>
+                                <th>Catatan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="mono-cell">scalar</td>
+                                <td><code>int32 int64 uint32 sint32 fixed64 float double bool string bytes</code></td>
+                                <td>Pilih <code>sint*</code> untuk angka yang sering negatif; <code>bytes</code> untuk biner mentah.</td>
+                            </tr>
+                            <tr>
+                                <td class="mono-cell">repeated</td>
+                                <td>Daftar terurut dari tipe field</td>
+                                <td>Padanan protobuf dari larik/irisan.</td>
+                            </tr>
+                            <tr>
+                                <td class="mono-cell">enum</td>
+                                <td>Set nilai tetap; entri pertama harus <code>0</code></td>
+                                <td>Integritas + dokumentasi diri, seperti enum Postgres.</td>
+                            </tr>
+                            <tr>
+                                <td class="mono-cell">oneof</td>
+                                <td>Paling banyak satu dari beberapa field di-set</td>
+                                <td>Union bertag, mis. hasil yang <em>entah</em> nilai <em>atau</em> error.</td>
+                            </tr>
+                            <tr>
+                                <td class="mono-cell">map&lt;k,v&gt;</td>
+                                <td>Larik asosiatif</td>
+                                <td>Gula di atas message key/value ber-ulang.</td>
+                            </tr>
+                            <tr>
+                                <td class="mono-cell">optional</td>
+                                <td>Menambah pelacakan keberadaan eksplisit ke scalar</td>
+                                <td>Membedakan "tidak di-set" dari nilai nol.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="box key"><span class="tag">The contract is the API</span>
+                    <p>Di REST kontraknya prosa di dokumen Swagger yang mungkin cocok atau tidak dengan kode. Di gRPC <code>.proto</code> <em>adalah</em> kebenaran yang bisa dieksekusi: kedua sisi membuat kode darinya, jadi field yang Anda tambah atau tipe yang Anda ubah tercermin di klien dan server begitu mereka regenerasi. Skema tidak bisa diam-diam menyimpang dari implementasi.</p>
+                </div>
+            </section>
+
+            <!-- 5 -->
+            <section id="s5">
+                <div class="sec-head">
+                    <div class="sec-num">05</div>
+                    <h2>Cara Protobuf Meng-encode: Format Wire</h2>
+                </div>
+                <p>Alasan gRPC cepat dan kecil bermuara pada <em>bagaimana</em> protobuf mengubah message menjadi byte. Anda tidak menulis ini manual, tapi memahaminya menjelaskan setiap klaim performa dan setiap jebakan. Trik intinya: tiap field ditulis sebagai <strong>tag</strong> mungil (yang meng-encode <em>nomor field</em> dan <em>wire type</em>) diikuti nilainya, dan integer dikemas memakai <strong>varint</strong> yang memakai byte lebih sedikit untuk angka lebih kecil. Tanpa nama field, tanpa kutip, tanpa koma, tanpa spasi.</p>
+
+                <div class="viz">
+                    <div class="viz-cap">JSON vs Protobuf, same data</div>
+                    <div class="viz-title">Why the binary form is dramatically smaller</div>
+                    <svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="A comparison showing a JSON object of about 52 bytes versus the equivalent protobuf encoding of about 20 bytes">
+                        <text x="20" y="24" class="mono" font-size="12" font-weight="700" fill="#b8402e">JSON, text, names repeated every time</text>
+                        <rect x="20" y="34" width="680" height="58" rx="8" fill="#232019" />
+                        <text x="34" y="58" class="mono" font-size="12"
+                            fill="#7fd1c4">{"id":"u42","role":2,"created_at":1717</text>
+                        <text x="34" y="78" class="mono" font-size="12" fill="#7fd1c4">careful: every key, quote, brace
+                            and comma is bytes on the wire</text>
+                        <text x="640" y="58" class="mono" font-size="13" font-weight="700" fill="#d05a47"
+                            text-anchor="end">~52 B</text>
+
+                        <text x="20" y="124" class="mono" font-size="12" font-weight="700" fill="#3f6f4e">Protobuf, field numbers + varints, no names</text>
+                        <rect x="20" y="134" width="680" height="58" rx="8" fill="#232019" />
+                        <!-- byte cells -->
+                        <g class="mono" font-size="11" fill="#fff">
+                            <rect x="34" y="148" width="58" height="30" rx="4" fill="#3f6f4e" /><text x="63" y="168"
+                                text-anchor="middle">0A 03</text>
+                            <rect x="96" y="148" width="64" height="30" rx="4" fill="#3f6f4e" /><text x="128" y="168"
+                                text-anchor="middle">u 4 2</text>
+                            <rect x="164" y="148" width="44" height="30" rx="4" fill="#b07d2b" /><text x="186" y="168"
+                                text-anchor="middle">20 02</text>
+                            <rect x="212" y="148" width="92" height="30" rx="4" fill="#8f2f20" /><text x="258" y="168"
+                                text-anchor="middle">30 ...varint</text>
+                        </g>
+                        <text x="640" y="158" class="mono" font-size="13" font-weight="700" fill="#5a9a5f"
+                            text-anchor="end">~20 B</text>
+                        <text x="320" y="176" class="mono" font-size="9" fill="#dceeea">tag len value / tag
+                            value</text>
+                        <text x="360" y="218" class="serif" font-size="13" font-style="italic" fill="#5b5347"
+                            text-anchor="middle">Same information, well under half the size, and no text parsing
+                            to decode it.</text>
+                    </svg>
+                    <div class="viz-note">Multiply this saving across millions of messages per second and you see why
+                        high-traffic
+                        internal systems reach for protobuf over JSON.</div>
+                </div>
+
+                <h3>Tag: nomor field + wire type dalam satu byte (biasanya)</h3>
+                <p>Setiap field di kabel dimulai dengan tag yang dihitung sebagai <code>(field<em>number &lt;&lt; 3) | wire</em>type</code>. Tiga bit rendah adalah <strong>wire type</strong> (cara membaca byte yang menyusul: varint, 64-bit, length-delimited, 32-bit); sisanya <strong>nomor field</strong>. Jadi decoder membaca tag, tahu "ini field 2, dan length-delimited," dan tahu persis cara mengonsumsi yang datang berikutnya, bahkan jika ia belum pernah melihat field itu sebelumnya (ia bisa melewati field tak dikenal, itulah yang membuat kompatibilitas ke depan bekerja).</p>
+
+                <div class="viz">
+                    <div class="viz-cap">Decoding one field</div>
+                    <div class="viz-title">How a tag byte tells the reader what to do next</div>
+                    <svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="A tag byte split into a field number portion and a 3-bit wire type portion, driving how the following bytes are interpreted">
+                        <text x="20" y="28" class="mono" font-size="12" font-weight="700" fill="#b8402e">tag byte =
+                            (field_number &lt;&lt; 3) | wire_type</text>
+                        <rect x="20" y="42" width="300" height="46" rx="8" fill="#b8402e" />
+                        <text x="120" y="62" font-size="12" font-weight="700" fill="#fff" text-anchor="middle">field
+                            number</text>
+                        <text x="120" y="79" class="mono" font-size="10" fill="#f4d9cf" text-anchor="middle">upper
+                            bits</text>
+                        <rect x="240" y="42" width="80" height="46" rx="8" fill="#b07d2b" />
+                        <text x="280" y="62" font-size="11.5" font-weight="700" fill="#fff" text-anchor="middle">wire
+                            type</text>
+                        <text x="280" y="79" class="mono" font-size="10" fill="#fff" text-anchor="middle">3 bits</text>
+                        <path d="M360 65 H470" stroke="#5b5347" stroke-width="1.6" marker-end="url(#war)" />
+                        <defs>
+                            <marker id="war" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#5b5347" />
+                            </marker>
+                        </defs>
+                        <g class="mono" font-size="10.5" fill="#211e1a">
+                            <text x="486" y="40">0 = VARINT, int32/64, bool, enum</text>
+                            <text x="486" y="60">1 = I64, fixed64, double</text>
+                            <text x="486" y="80">2 = LEN, string, bytes, messages</text>
+                            <text x="486" y="100">5 = I32, fixed32, float</text>
+                        </g>
+                        <text x="20" y="124" class="mono" font-size="11" font-weight="700" fill="#3f6f4e">varint: small
+                            numbers cost fewer bytes</text>
+                        <g class="mono" font-size="10.5" fill="#5b5347">
+                            <text x="20" y="146">1 -&gt; 1 byte &nbsp;/&nbsp; 300 -&gt; 2 bytes
+                                &nbsp;/&nbsp; 70000 -&gt; 3 bytes</text>
+                            <text x="20" y="166">each byte uses 7 bits for data + 1 "continue" bit, so
+                                values grow their encoding only as needed</text>
+                        </g>
+                    </svg>
+                    <div class="viz-note">Because the reader can identify and <em>skip</em> a field it doesn't
+                        recognize, a new
+                        server can add fields without breaking old clients, the wire format is self-describing
+                        enough to step over the unknown.</div>
+                </div>
+
+                <div class="box gotcha"><span class="tag">The cost of binary: it isn't human-readable</span>
+                    <p>Anda tidak bisa <code>curl</code> endpoint gRPC dan melirik JSON-nya. Debugging butuh tool yang memahami skemanya (<code>grpcurl</code>, reflection, bagian 20). Opasitas itu harga dari kecepatan dan ukurannya; ia alasan utama API publik/ter-debug sering tetap di REST.</p>
+                </div>
+            </section>
+
+            <!-- 6 -->
+            <section id="s6">
+                <div class="sec-head">
+                    <div class="sec-num">06</div>
+                    <h2>HTTP/2: Transport di Bawahnya</h2>
+                </div>
+                <p>gRPC tidak menciptakan transport sendiri, ia menumpang <strong>HTTP/2</strong>, dan hampir setiap keunggulan gRPC (konkurensi, keempat bentuk streaming, overhead rendah) sebenarnya fitur HTTP/2. Yang harus dipahami gagasan sentral HTTP/2: satu koneksi TCP dibagi menjadi banyak <strong>stream</strong> independen yang disisipkan, masing-masing membawa rangkaian <strong>frame</strong> biner. Itulah yang membuat satu koneksi bisa membawa ratusan RPC serentak, dan data mengalir dua arah bersamaan.</p>
+
+                <div class="viz">
+                    <div class="viz-cap">Multiplexing</div>
+                    <div class="viz-title">One connection, many concurrent RPCs interleaved as frames</div>
+                    <svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="HTTP/1.1 needing many connections versus HTTP/2 interleaving four streams of frames over one connection">
+                        <text x="20" y="22" class="mono" font-size="12" font-weight="700" fill="#b8402e">HTTP/1.1, one call blocks the line (or needs many connections)</text>
+                        <rect x="20" y="32" width="120" height="22" rx="4" fill="#d05a47" /><text x="80" y="48"
+                            font-size="10" fill="#fff" text-anchor="middle">call A</text>
+                        <rect x="148" y="32" width="120" height="22" rx="4" fill="#cfcfcf" /><text x="208" y="48"
+                            font-size="10" fill="#555" text-anchor="middle">call B waits</text>
+                        <rect x="276" y="32" width="120" height="22" rx="4" fill="#cfcfcf" /><text x="336" y="48"
+                            font-size="10" fill="#555" text-anchor="middle">call C waits</text>
+
+                        <text x="20" y="92" class="mono" font-size="12" font-weight="700" fill="#3f6f4e">HTTP/2, one connection, 4 streams interleaved</text>
+                        <line x1="20" y1="104" x2="700" y2="104" stroke="#d8cfbe" />
+                        <g class="mono" font-size="9.5" fill="#5b5347">
+                            <text x="22" y="128">A</text><text x="22" y="154">B</text><text x="22" y="180">C</text><text
+                                x="22" y="206">D</text>
+                        </g>
+                        <rect x="44" y="116" width="38" height="18" rx="3" fill="#3f6f4e" />
+                        <rect x="150" y="116" width="38" height="18" rx="3" fill="#3f6f4e" />
+                        <rect x="44" y="142" width="34" height="18" rx="3" fill="#b8402e" />
+                        <rect x="210" y="142" width="34" height="18" rx="3" fill="#b8402e" />
+                        <rect x="380" y="142" width="34" height="18" rx="3" fill="#b8402e" />
+                        <rect x="92" y="168" width="38" height="18" rx="3" fill="#3f6f4e" />
+                        <rect x="250" y="168" width="38" height="18" rx="3" fill="#3f6f4e" />
+                        <rect x="120" y="194" width="38" height="18" rx="3" fill="#b07d2b" />
+                        <rect x="300" y="194" width="38" height="18" rx="3" fill="#b07d2b" />
+                        <text x="430" y="160" font-size="11" font-style="italic" fill="#3f6f4e">frames from different
+                            calls share the wire, in any order</text>
+                        <text x="360" y="236" class="serif" font-size="12.5" font-style="italic" fill="#5b5347"
+                            text-anchor="middle">No head-of-line blocking at the HTTP layer: a slow call never freezes
+                            the others on the connection.</text>
+                    </svg>
+                    <div class="viz-note">A gRPC <em>call</em> maps to one HTTP/2 <em>stream</em>. Many calls -&gt;
+                        many streams
+                        -&gt; one connection. This is why a gRPC client keeps a long-lived connection and reuses it.
+                    </div>
+                </div>
+
+                <h4>Cara panggilan gRPC memetakan ke HTTP/2</h4>
+                <p>Secara konkret, RPC adalah <code>POST</code> HTTP/2 ke path berbentuk <code>/package.Service/Method</code> (mis. <code>/user.v1.UserService/GetUser</code>). Metadata gRPC bepergian sebagai <strong>header</strong> HTTP/2; protobuf terserialisasi bepergian di <strong>frame DATA</strong> sebagai body; dan status akhir (status code gRPC, bagian 14) tiba di <strong>trailer</strong> HTTP/2 setelah body. Streaming berarti lebih dari satu message mengalir di satu atau kedua arah pada stream itu sebelum ditutup.</p>
+
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Konsep gRPC</th>
+                                <th>Mekanisme HTTP/2</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Satu panggilan RPC</td>
+                                <td>Satu stream HTTP/2 (request + response)</td>
+                            </tr>
+                            <tr>
+                                <td>Method yang dipanggil</td>
+                                <td>Header <code>:path</code> = <code>/pkg.Service/Method</code></td>
+                            </tr>
+                            <tr>
+                                <td>Metadata (token auth, trace ID)</td>
+                                <td><strong>Header</strong> request &amp; response HTTP/2</td>
+                            </tr>
+                            <tr>
+                                <td>Message request/response</td>
+                                <td>protobuf ber-awalan panjang di <strong>frame DATA</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Status akhir + pesan</td>
+                                <td><strong>Trailer</strong> <code>grpc-status</code> / <code>grpc-message</code></td>
+                            </tr>
+                            <tr>
+                                <td>Streaming</td>
+                                <td>beberapa frame DATA sebelum stream setengah-menutup</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="box note"><span class="tag">Why this matters for you</span>
+                    <p>Karena gRPC butuh HTTP/2 <em>end to end</em>, proxy/load balancer mana pun di jalurnya harus bicara HTTP/2 dan melakukan balancing <em>L7</em> (sadar-request), balancer TCP L4 naif akan mem-pin setiap panggilan ke satu backend, karena semuanya berbagi satu koneksi (bagian 17). Dan karena browser tidak bisa mengekspos pembingkaian HTTP/2 mentah ke JS, browser sama sekali tidak bisa bicara gRPC natif (bagian 19). Pilihan transport membentuk seluruh kisah deployment.</p>
+                </div>
+            </section>
+
+            <div class="part-label">Part III / The Four Call Types</div>
+
+            <section id="s7">
+                <div class="sec-head">
+                    <div class="sec-num">07</div>
+                    <h2>RPC Unary</h2>
+                </div>
+                <p>Bentuk paling sederhana dan paling umum: <strong>satu request, satu response</strong>: persis seperti panggilan fungsi normal. Klien mengirim satu message, server melakukan kerjanya dan mengembalikan satu message. ±90% RPC dunia nyata berbentuk unary. Kita akan membangun method <code>GetUser</code> dari <code>user.proto</code> di bagian 04, lengkap, dua bahasa.</p>
+
+                <div class="viz">
+                    <div class="viz-cap">Unary</div>
+                    <div class="viz-title">One message each way</div>
+                    <svg viewBox="0 0 720 130" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="Client sends one request, server returns one response">
+                        <rect x="40" y="20" width="150" height="40" rx="8" fill="#b8402e" /><text x="115" y="45"
+                            font-size="13" font-weight="700" fill="#fff" text-anchor="middle">Client</text>
+                        <rect x="530" y="20" width="150" height="40" rx="8" fill="#3f6f4e" /><text x="605" y="45"
+                            font-size="13" font-weight="700" fill="#fff" text-anchor="middle">Server</text>
+                        <defs>
+                            <marker id="u1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#b8402e" />
+                            </marker>
+                            <marker id="u2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#3f6f4e" />
+                            </marker>
+                        </defs>
+                        <path d="M195 40 H525" stroke="#b8402e" stroke-width="2" marker-end="url(#u1)" /><text x="360"
+                            y="32" class="mono" font-size="11" fill="#8f2f20" text-anchor="middle">1 request</text>
+                        <path d="M525 75 H195" stroke="#3f6f4e" stroke-width="2" stroke-dasharray="5 3"
+                            marker-end="url(#u2)" /><text x="360" y="98" class="mono" font-size="11" fill="#3f6f4e"
+                            text-anchor="middle">1 response</text>
+                    </svg>
+                </div>
+
+                <div class="codeblock" data-cb>
+                    <div class="code-bar">
+                        <div class="dots"><i></i><i></i><i></i></div>
+                        <div class="code-tabs"><button class="on" data-lang="go"><span class="lang-go">&#9679;</span>
+                                Go</button><button data-lang="py"><span class="lang-py">&#9679;</span> Python</button>
+                        </div>
+                    </div>
+                    <div class="code-panel on" data-panel="go">
+                        <pre><code class="language-go">// ===== SERVER =====
+package main
+
+import (
+    "context"
+    "log"
+    "net"
+
+    "google.golang.org/grpc"
+    "google.golang.org/grpc/codes"
+    "google.golang.org/grpc/status"
+    userv1 "example.com/gen/userv1" // generated from user.proto
+)
+
+// Embed the generated UnimplementedUserServiceServer for forward-compat.
+type server struct {
+    userv1.UnimplementedUserServiceServer
+}
+
+// The method signature is generated FROM the proto: ctx, *Request -> *Response, error
+func (s *server) GetUser(ctx context.Context, req *userv1.GetUserRequest) (*userv1.GetUserResponse, error) {
+    if req.GetId() == "" {
+        return nil, status.Error(codes.InvalidArgument, "id is required") // typed error, sec 14
+    }
+    // ...real work: query the DB by req.GetId()...
+    u := &userv1.User{Id: req.GetId(), Email: "ada@example.com", FullName: "Ada", Role: userv1.Role_ROLE_ADMIN}
+    return &userv1.GetUserResponse{User: u}, nil
+}
+
+func main() {
+    lis, _ := net.Listen("tcp", ":50051")
+    s := grpc.NewServer()
+    userv1.RegisterUserServiceServer(s, &server{}) // wire the impl to the service
+    log.Println("gRPC on :50051")
+    s.Serve(lis)
+}
+
+// ===== CLIENT =====
+func callGetUser() {
+    // NewClient replaces the deprecated grpc.Dial; insecure creds for local dev only
+    conn, _ := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+    defer conn.Close()
+
+    client := userv1.NewUserServiceClient(conn) // the generated STUB
+    ctx, cancel := context.WithTimeout(context.Background(), time.Second) // always a deadline, sec 13
+    defer cancel()
+
+    resp, err := client.GetUser(ctx, &userv1.GetUserRequest{Id: "u42"}) // looks local, runs remote
+    if err != nil {
+        log.Fatalf("GetUser failed: %v", err) // err carries the gRPC status code
+    }
+    log.Printf("got user: %s", resp.GetUser().GetFullName())
+}</code></pre>
+                    </div>
+                    <div class="code-panel" data-panel="py">
+                        <pre><code class="language-python"># ===== SERVER =====
+from concurrent import futures
+import grpc
+import user_pb2 as pb          # generated: messages
+import user_pb2_grpc as pb_grpc  # generated: service base classes
+
+class UserService(pb_grpc.UserServiceServicer):
+    # Method signature generated FROM the proto: (self, request, context) -> response
+    def GetUser(self, request, context):
+        if not request.id:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "id is required")  # typed error, sec 14
+        # ...real work: query the DB by request.id...
+        user = pb.User(id=request.id, email="ada@example.com",
+                       full_name="Ada", role=pb.ROLE_ADMIN)
+        return pb.GetUserResponse(user=user)
+
+def serve():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    pb_grpc.add_UserServiceServicer_to_server(UserService(), server)  # wire impl to service
+    server.add_insecure_port("[::]:50051")  # insecure = local dev only
+    server.start()
+    print("gRPC on :50051")
+    server.wait_for_termination()
+
+# ===== CLIENT =====
+def call_get_user():
+    with grpc.insecure_channel("localhost:50051") as channel:
+        stub = pb_grpc.UserServiceStub(channel)        # the generated STUB
+        try:
+            # timeout= is the deadline, sec 13; looks local, runs remote
+            resp = stub.GetUser(pb.GetUserRequest(id="u42"), timeout=1.0)
+            print("got user:", resp.user.full_name)
+        except grpc.RpcError as e:
+            print("failed:", e.code(), e.details())     # carries the gRPC status code
+
+if __name__ == "__main__":
+    serve()</code></pre>
+                    </div>
+                </div>
+                <p class="code-cap">Perhatikan simetrinya lintas bahasa: <em>stub</em> hasil generasi di klien, base class <em>servicer/server</em> hasil generasi di server, dan method yang tanda tangannya persis berasal dari proto.</p>
+            </section>
+
+            <section id="s8">
+                <div class="sec-head">
+                    <div class="sec-num">08</div>
+                    <h2>Server Streaming</h2>
+                </div>
+                <p><strong>Satu request, aliran respons.</strong> Klien bertanya sekali; server mengirim banyak message seiring waktu, lalu menutup stream. Pas untuk: mengembalikan set hasil besar dalam potongan, umpan event langsung, update progres pada pekerjaan panjang, atau paginasi tanpa round trip berulang. Proto menandai <em>response</em>-nya sebagai <code>stream</code>.</p>
+
+                <div class="viz">
+                    <div class="viz-cap">Server streaming</div>
+                    <div class="viz-title">Ask once, receive many</div>
+                    <svg viewBox="0 0 720 150" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="Client sends one request and the server streams back several responses">
+                        <rect x="40" y="55" width="150" height="40" rx="8" fill="#b8402e" /><text x="115" y="80"
+                            font-size="13" font-weight="700" fill="#fff" text-anchor="middle">Client</text>
+                        <rect x="530" y="55" width="150" height="40" rx="8" fill="#3f6f4e" /><text x="605" y="80"
+                            font-size="13" font-weight="700" fill="#fff" text-anchor="middle">Server</text>
+                        <defs>
+                            <marker id="ss1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#b8402e" />
+                            </marker>
+                            <marker id="ss2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#3f6f4e" />
+                            </marker>
+                        </defs>
+                        <path d="M195 60 H525" stroke="#b8402e" stroke-width="2" marker-end="url(#ss1)" /><text x="360"
+                            y="52" class="mono" font-size="11" fill="#8f2f20" text-anchor="middle">1 request</text>
+                        <path d="M525 80 H195" stroke="#3f6f4e" stroke-width="2" stroke-dasharray="5 3"
+                            marker-end="url(#ss2)" />
+                        <path d="M525 100 H195" stroke="#3f6f4e" stroke-width="2" stroke-dasharray="5 3"
+                            marker-end="url(#ss2)" />
+                        <path d="M525 120 H195" stroke="#3f6f4e" stroke-width="2" stroke-dasharray="5 3"
+                            marker-end="url(#ss2)" />
+                        <text x="360" y="140" class="mono" font-size="11" fill="#3f6f4e" text-anchor="middle">many
+                            responses, then close</text>
+                    </svg>
+                </div>
+
+                <div class="codeblock" data-cb>
+                    <div class="code-bar">
+                        <div class="dots"><i></i><i></i><i></i></div>
+                        <div class="code-tabs"><button class="on" data-lang="go"><span class="lang-go">&#9679;</span>
+                                Go</button><button data-lang="py"><span class="lang-py">&#9679;</span> Python</button>
+                        </div>
+                    </div>
+                    <div class="code-panel on" data-panel="go">
+                        <pre><code class="language-go">// proto:  rpc ListUsers(ListUsersRequest) returns (stream User);
+
+// ===== SERVER: receive one req, call stream.Send(...) repeatedly =====
+func (s *server) ListUsers(req *userv1.ListUsersRequest, stream userv1.UserService_ListUsersServer) error {
+    for _, u := range queryUsers(req.GetFilter()) { // imagine this yields a big result set
+        if err := stream.Send(u); err != nil {       // push one message down the stream
+            return err                                // client gone / cancelled
+        }
+    }
+    return nil // returning nil closes the stream cleanly (sends OK trailer)
+}
+
+// ===== CLIENT: call once, then Recv() in a loop until io.EOF =====
+func listUsers(client userv1.UserServiceClient) {
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+    stream, _ := client.ListUsers(ctx, &userv1.ListUsersRequest{Filter: "active"})
+    for {
+        u, err := stream.Recv()
+        if err == io.EOF { break } // server closed the stream, we're done
+        if err != nil { log.Fatal(err) }
+        log.Printf("user: %s", u.GetFullName())
+    }
+}</code></pre>
+                    </div>
+                    <div class="code-panel" data-panel="py">
+                        <pre><code class="language-python"># proto:  rpc ListUsers(ListUsersRequest) returns (stream User);
+
+# ===== SERVER: a generator, every `yield` sends one message =====
+class UserService(pb_grpc.UserServiceServicer):
+    def ListUsers(self, request, context):
+        for u in query_users(request.filter):  # big result set
+            yield u                             # yielding pushes one message down the stream
+        # function returning ends the stream cleanly
+
+# ===== CLIENT: the call returns an ITERABLE of responses =====
+def list_users(stub):
+    responses = stub.ListUsers(pb.ListUsersRequest(filter="active"), timeout=10.0)
+    for u in responses:        # iterate until the server closes the stream
+        print("user:", u.full_name)</code></pre>
+                    </div>
+                </div>
+                <p class="code-cap">Go memakai pasangan <code>stream.Send</code>/<code>stream.Recv</code> eksplisit; Python mengekspresikan sisi server sebagai <em>generator</em> (<code>yield</code>) dan sisi klien sebagai <em>iterable</em> polos, idiomatis tiap bahasa, perilaku kabel sama.</p>
+            </section>
+
+            <section id="s9">
+                <div class="sec-head">
+                    <div class="sec-num">09</div>
+                    <h2>Client Streaming</h2>
+                </div>
+                <p><strong>Aliran request, satu respons.</strong> Klien mengirim banyak message, lalu server membalas sekali dengan ringkasan/hasil. Ideal untuk upload, ingestion batch, atau menggabungkan serangkaian pembacaan menjadi satu jawaban terhitung. Proto menandai <em>request</em>-nya sebagai <code>stream</code>.</p>
+
+                <div class="viz">
+                    <div class="viz-cap">Client streaming</div>
+                    <div class="viz-title">Send many, get one back</div>
+                    <svg viewBox="0 0 720 150" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="Client streams several requests and the server returns one response">
+                        <rect x="40" y="55" width="150" height="40" rx="8" fill="#b8402e" /><text x="115" y="80"
+                            font-size="13" font-weight="700" fill="#fff" text-anchor="middle">Client</text>
+                        <rect x="530" y="55" width="150" height="40" rx="8" fill="#3f6f4e" /><text x="605" y="80"
+                            font-size="13" font-weight="700" fill="#fff" text-anchor="middle">Server</text>
+                        <defs>
+                            <marker id="cs1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#b8402e" />
+                            </marker>
+                            <marker id="cs2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#3f6f4e" />
+                            </marker>
+                        </defs>
+                        <path d="M195 50 H525" stroke="#b8402e" stroke-width="2" marker-end="url(#cs1)" />
+                        <path d="M195 70 H525" stroke="#b8402e" stroke-width="2" marker-end="url(#cs1)" />
+                        <path d="M195 90 H525" stroke="#b8402e" stroke-width="2" marker-end="url(#cs1)" />
+                        <text x="360" y="44" class="mono" font-size="11" fill="#8f2f20" text-anchor="middle">many
+                            requests, then close</text>
+                        <path d="M525 115 H195" stroke="#3f6f4e" stroke-width="2" stroke-dasharray="5 3"
+                            marker-end="url(#cs2)" /><text x="360" y="135" class="mono" font-size="11" fill="#3f6f4e"
+                            text-anchor="middle">1 response</text>
+                    </svg>
+                </div>
+
+                <div class="codeblock" data-cb>
+                    <div class="code-bar">
+                        <div class="dots"><i></i><i></i><i></i></div>
+                        <div class="code-tabs"><button class="on" data-lang="go"><span class="lang-go">&#9679;</span>
+                                Go</button><button data-lang="py"><span class="lang-py">&#9679;</span> Python</button>
+                        </div>
+                    </div>
+                    <div class="code-panel on" data-panel="go">
+                        <pre><code class="language-go">// proto:  rpc UploadEvents(stream Event) returns (UploadSummary);
+
+// ===== SERVER: Recv() in a loop, then SendAndClose() once at the end =====
+func (s *server) UploadEvents(stream userv1.UserService_UploadEventsServer) error {
+    count := 0
+    for {
+        ev, err := stream.Recv()
+        if err == io.EOF { // client finished sending, now reply once
+            return stream.SendAndClose(&userv1.UploadSummary{Received: int32(count)})
+        }
+        if err != nil { return err }
+        store(ev)
+        count++
+    }
+}
+
+// ===== CLIENT: Send() many, then CloseAndRecv() for the single reply =====
+func uploadEvents(client userv1.UserServiceClient, events []*userv1.Event) {
+    ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+    defer cancel()
+    stream, _ := client.UploadEvents(ctx)
+    for _, ev := range events {
+        stream.Send(ev) // push each one up
+    }
+    summary, err := stream.CloseAndRecv() // close our side, await the summary
+    if err != nil { log.Fatal(err) }
+    log.Printf("server received %d events", summary.GetReceived())
+}</code></pre>
+                    </div>
+                    <div class="code-panel" data-panel="py">
+                        <pre><code class="language-python"># proto:  rpc UploadEvents(stream Event) returns (UploadSummary);
+
+# ===== SERVER: request_iterator yields incoming messages; return once =====
+class UserService(pb_grpc.UserServiceServicer):
+    def UploadEvents(self, request_iterator, context):
+        count = 0
+        for ev in request_iterator:   # iterate the client's stream
+            store(ev)
+            count += 1
+        return pb.UploadSummary(received=count)  # single reply after client closes
+
+# ===== CLIENT: pass an iterable/generator of requests; get one response =====
+def upload_events(stub, events):
+    def gen():
+        for ev in events:
+            yield ev
+    summary = stub.UploadEvents(gen(), timeout=30.0)  # returns the single summary
+    print("server received", summary.received, "events")</code></pre>
+                    </div>
+                </div>
+                <p class="code-cap">Asimetrinya justru intinya: <code>SendAndClose</code>/<code>CloseAndRecv</code> di Go, <code>request<em>iterator</code> plus <code>return</code> normal di Python, server mengonsumsi seluruh stream request </em>sebelum_ memproduksi satu jawabannya.</p>
+            </section>
+
+            <section id="s10">
+                <div class="sec-head">
+                    <div class="sec-num">10</div>
+                    <h2>Streaming Dua Arah (Bidirectional)</h2>
+                </div>
+                <p><strong>Aliran request dan aliran respons, serentak dan independen.</strong> Kedua sisi membaca dan menulis di stream yang sama pada waktu yang sama, urutan apa pun, inilah yang dibelikan pembingkaian full-duplex HTTP/2 (bagian 06). Ia bentuk di balik chat, kolaborasi real-time, telemetri langsung dengan pesan kontrol, dan sesi interaktif. Request dan response sama-sama <code>stream</code> di proto.</p>
+
+                <div class="viz">
+                    <div class="viz-cap">Bidirectional streaming</div>
+                    <div class="viz-title">Both sides send and receive at once</div>
+                    <svg viewBox="0 0 720 160" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="Client and server both stream messages to each other concurrently over one stream">
+                        <rect x="40" y="60" width="150" height="40" rx="8" fill="#b8402e" /><text x="115" y="85"
+                            font-size="13" font-weight="700" fill="#fff" text-anchor="middle">Client</text>
+                        <rect x="530" y="60" width="150" height="40" rx="8" fill="#3f6f4e" /><text x="605" y="85"
+                            font-size="13" font-weight="700" fill="#fff" text-anchor="middle">Server</text>
+                        <defs>
+                            <marker id="bd1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#b8402e" />
+                            </marker>
+                            <marker id="bd2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#3f6f4e" />
+                            </marker>
+                        </defs>
+                        <path d="M195 50 H525" stroke="#b8402e" stroke-width="2" marker-end="url(#bd1)" />
+                        <path d="M195 72 H525" stroke="#b8402e" stroke-width="2" marker-end="url(#bd1)" />
+                        <path d="M525 92 H195" stroke="#3f6f4e" stroke-width="2" stroke-dasharray="5 3"
+                            marker-end="url(#bd2)" />
+                        <path d="M525 114 H195" stroke="#3f6f4e" stroke-width="2" stroke-dasharray="5 3"
+                            marker-end="url(#bd2)" />
+                        <text x="360" y="150" class="serif" font-size="12.5" font-style="italic" fill="#5b5347"
+                            text-anchor="middle">interleaved &amp; independent, neither side waits its
+                            turn</text>
+                    </svg>
+                </div>
+
+                <div class="codeblock" data-cb>
+                    <div class="code-bar">
+                        <div class="dots"><i></i><i></i><i></i></div>
+                        <div class="code-tabs"><button class="on" data-lang="go"><span class="lang-go">&#9679;</span>
+                                Go</button><button data-lang="py"><span class="lang-py">&#9679;</span> Python</button>
+                        </div>
+                    </div>
+                    <div class="code-panel on" data-panel="go">
+                        <pre><code class="language-go">// proto:  rpc Chat(stream ChatMessage) returns (stream ChatMessage);
+
+// ===== SERVER: loop Recv() and Send() on the same stream =====
+func (s *server) Chat(stream userv1.UserService_ChatServer) error {
+    for {
+        msg, err := stream.Recv()
+        if err == io.EOF { return nil } // client closed its send side
+        if err != nil { return err }
+        // echo back (or broadcast to a room, etc.), can Send anytime, any number
+        reply := &userv1.ChatMessage{User: "server", Text: "ack: " + msg.GetText()}
+        if err := stream.Send(reply); err != nil { return err }
+    }
+}
+
+// ===== CLIENT: typically Send in one goroutine, Recv in another =====
+func chat(client userv1.UserServiceClient) {
+    stream, _ := client.Chat(context.Background())
+    go func() { // concurrent receiver
+        for {
+            in, err := stream.Recv()
+            if err != nil { return }
+            log.Printf("&lt;&lt; %s", in.GetText())
+        }
+    }()
+    for _, t := range []string{"hi", "how are you", "bye"} {
+        stream.Send(&userv1.ChatMessage{User: "ada", Text: t}) // send concurrently
+    }
+    stream.CloseSend() // signal we're done sending; receiver drains the rest
+}</code></pre>
+                    </div>
+                    <div class="code-panel" data-panel="py">
+                        <pre><code class="language-python"># proto:  rpc Chat(stream ChatMessage) returns (stream ChatMessage);
+
+# ===== SERVER: iterate incoming, yield outgoing, interleaved =====
+class UserService(pb_grpc.UserServiceServicer):
+    def Chat(self, request_iterator, context):
+        for msg in request_iterator:          # read the client's stream
+            yield pb.ChatMessage(user="server", text="ack: " + msg.text)  # write back
+
+# ===== CLIENT: pass a request generator; iterate the response stream =====
+def chat(stub):
+    def outgoing():
+        for t in ["hi", "how are you", "bye"]:
+            yield pb.ChatMessage(user="ada", text=t)
+    responses = stub.Chat(outgoing())   # both directions live at once
+    for reply in responses:
+        print("<<", reply.text)
+
+# (for true concurrency under load, prefer the async API: grpc.aio)</code></pre>
+                    </div>
+                </div>
+
+                <div class="box gotcha"><span class="tag">Streaming gotchas to respect</span>
+                    <p>Stream berumur panjang, jadi ia mengonsumsi koneksi/goroutine selama hidupnya, selalu set deadline atau batas idle, dan tangani klien menghilang di tengah stream. Tidak ada kenop back-pressure otomatis selain flow control HTTP/2, jadi producer cepat bisa menguasai consumer lambat jika Anda tidak mengatur iramanya. Dan satu stream terurut tapi <em>bukan</em> transaksi, jika putus di tengah, Anda telah mengirimkan prefix, jadi rancang message agar bisa dilanjutkan atau idempotent.</p>
+                </div>
+
+                <div class="viz">
+                    <div class="viz-cap">The four shapes at a glance</div>
+                    <div class="viz-title">Pick by how many messages flow each way</div>
+                    <svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="Summary grid of unary, server streaming, client streaming, and bidirectional streaming">
+                        <g font-family="JetBrains Mono">
+                            <rect x="20" y="20" width="160" height="70" rx="10" fill="#f7e9e2" stroke="#b8402e" />
+                            <text x="100" y="44" font-size="12.5" font-weight="700" fill="#8f2f20"
+                                text-anchor="middle">Unary</text>
+                            <text x="100" y="64" font-size="10" fill="#5b5347" text-anchor="middle">1 -&gt; 1</text>
+                            <text x="100" y="80" font-size="9" fill="#5b5347" text-anchor="middle">normal call</text>
+
+                            <rect x="195" y="20" width="160" height="70" rx="10" fill="#e0e9dd" stroke="#3f6f4e" />
+                            <text x="275" y="44" font-size="12.5" font-weight="700" fill="#3f6f4e"
+                                text-anchor="middle">Server stream</text>
+                            <text x="275" y="64" font-size="10" fill="#5b5347" text-anchor="middle">1 -&gt; many</text>
+                            <text x="275" y="80" font-size="9" fill="#5b5347" text-anchor="middle">feeds, large
+                                results</text>
+
+                            <rect x="370" y="20" width="160" height="70" rx="10" fill="#f0e5c9" stroke="#b07d2b" />
+                            <text x="450" y="44" font-size="12.5" font-weight="700" fill="#b07d2b"
+                                text-anchor="middle">Client stream</text>
+                            <text x="450" y="64" font-size="10" fill="#5b5347" text-anchor="middle">many -&gt; 1</text>
+                            <text x="450" y="80" font-size="9" fill="#5b5347" text-anchor="middle">uploads, batch</text>
+
+                            <rect x="545" y="20" width="160" height="70" rx="10" fill="#efe7f5" stroke="#5b5347" />
+                            <text x="625" y="44" font-size="12.5" font-weight="700" fill="#5b5347"
+                                text-anchor="middle">Bidirectional</text>
+                            <text x="625" y="64" font-size="10" fill="#5b5347" text-anchor="middle">many &lt;-&gt;
+                                many</text>
+                            <text x="625" y="80" font-size="9" fill="#5b5347" text-anchor="middle">chat, realtime</text>
+                        </g>
+                        <text x="360" y="140" class="serif" font-size="13" font-style="italic" fill="#5b5347"
+                            text-anchor="middle">All four ride the same HTTP/2 stream machinery; the proto's two <tspan
+                                font-style="normal" class="mono" font-size="11">stream</tspan> keywords decide the
+                            shape.</text>
+                        <text x="360" y="172" class="mono" font-size="10.5" fill="#8f2f20" text-anchor="middle">rpc
+                            M(Req) returns (Res) | (stream Req) | returns (stream Res) | both</text>
+                    </svg>
+                </div>
+            </section>
+
+            <div class="part-label">Part IV / The Machinery</div>
+
+            <section id="s11">
+                <div class="sec-head">
+                    <div class="sec-num">11</div>
+                    <h2>Alur Kerja .proto -&gt; Kode</h2>
+                </div>
+                <p>Anda tidak pernah menulis stub dan skeleton manual, kompiler, <code>protoc</code> (atau toolchain buf), membaca <code>.proto</code> Anda dan memancarkan source idiomatis untuk tiap bahasa target lewat <strong>plugin</strong> spesifik bahasa. Inilah langkah yang mengubah kontrak menjadi kode yang bisa dipanggil, dan alasan klien Go dan server Python bisa saling beroperasi mulus: keduanya dibuat dari file yang sama.</p>
+
+                <div class="viz">
+                    <div class="viz-cap">Code generation</div>
+                    <div class="viz-title">One contract, many generated clients and servers</div>
+                    <svg viewBox="0 0 720 240" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="A proto file fed into protoc with language plugins, producing Go and Python generated code that both client and server import">
+                        <rect x="40" y="95" width="150" height="56" rx="10" fill="#b8402e" />
+                        <text x="115" y="120" font-size="13" font-weight="700" fill="#fff"
+                            text-anchor="middle">user.proto</text>
+                        <text x="115" y="138" class="mono" font-size="9.5" fill="#f4d9cf" text-anchor="middle">the
+                            contract</text>
+                        <defs>
+                            <marker id="ga" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#5b5347" />
+                            </marker>
+                        </defs>
+                        <path d="M192 123 H262" stroke="#5b5347" stroke-width="1.8" marker-end="url(#ga)" />
+                        <rect x="264" y="92" width="150" height="62" rx="10" fill="#211e1a" />
+                        <text x="339" y="116" font-size="12.5" font-weight="700" fill="#fff"
+                            text-anchor="middle">protoc</text>
+                        <text x="339" y="133" class="mono" font-size="9" fill="#e9e2d3" text-anchor="middle">+ lang
+                            plugins</text>
+                        <text x="339" y="146" class="mono" font-size="9" fill="#e9e2d3"
+                            text-anchor="middle">(protoc-gen-go, grpc_tools)</text>
+                        <path d="M416 110 C460 90 480 70 520 64" stroke="#3f6f4e" stroke-width="1.8" fill="none"
+                            marker-end="url(#ga)" />
+                        <path d="M416 138 C460 158 480 178 520 184" stroke="#3f6f4e" stroke-width="1.8" fill="none"
+                            marker-end="url(#ga)" />
+                        <rect x="522" y="36" width="178" height="56" rx="10" fill="#e0e9dd" stroke="#3f6f4e" />
+                        <text x="611" y="58" font-size="12" font-weight="700" fill="#3f6f4e" text-anchor="middle">Go:
+                            *.pb.go</text>
+                        <text x="611" y="76" class="mono" font-size="9" fill="#5b5347" text-anchor="middle">messages +
+                            stub + server base</text>
+                        <rect x="522" y="156" width="178" height="56" rx="10" fill="#e0e9dd" stroke="#3f6f4e" />
+                        <text x="611" y="178" font-size="12" font-weight="700" fill="#3f6f4e" text-anchor="middle">Py:
+                            *_pb2*.py</text>
+                        <text x="611" y="196" class="mono" font-size="9" fill="#5b5347" text-anchor="middle">messages +
+                            stub + servicer</text>
+                        <text x="360" y="228" class="serif" font-size="12.5" font-style="italic" fill="#5b5347"
+                            text-anchor="middle">Regenerate after every proto change, the generated files are
+                            build artifacts, committed or generated in CI.</text>
+                    </svg>
+                </div>
+
+                <div class="codeblock" data-cb>
+                    <div class="code-bar">
+                        <div class="dots"><i></i><i></i><i></i></div>
+                        <div class="code-tabs"><button class="on" data-lang="go"><span class="lang-go">&#9679;</span>
+                                Go</button><button data-lang="py"><span class="lang-py">&#9679;</span> Python</button>
+                        </div>
+                    </div>
+                    <div class="code-panel on" data-panel="go">
+                        <pre><code class="language-go">// Install the two plugins once (they sit on your PATH):
+//   go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+//   go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+// Generate messages (--go_out) AND the service stubs/skeleton (--go-grpc_out):
+//   protoc \
+//     --go_out=. --go_opt=paths=source_relative \
+//     --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+//     user.proto
+
+// Produces:
+//   user.pb.go, structs for each message (+ getters)
+//   user_grpc.pb.go, UserServiceClient (stub) + UserServiceServer (to implement)
+
+// Then in code you simply import the generated package:
+//   import userv1 "example.com/gen/userv1"</code></pre>
+                    </div>
+                    <div class="code-panel" data-panel="py">
+                        <pre><code class="language-python"># Install the tooling once:
+#   pip install grpcio grpcio-tools
+
+# Generate messages AND service stubs in one command:
+#   python -m grpc_tools.protoc \
+#       -I. \
+#       --python_out=. \
+#       --grpc_python_out=. \
+#       user.proto
+
+# Produces:
+#   user_pb2.py, message classes
+#   user_pb2_grpc.py, UserServiceStub (client) + UserServiceServicer (to implement)
+
+# Then import both in your code:
+#   import user_pb2 as pb
+#   import user_pb2_grpc as pb_grpc</code></pre>
+                    </div>
+                </div>
+
+                <div class="box note"><span class="tag">Use buf in real projects</span>
+                    <p>Invocations <code>protoc</code> mentah cepat tak terkendali. Toolchain <strong>buf</strong> membungkusnya dengan file konfigurasi, manajemen dependensi, <em>deteksi perubahan yang memecah</em> (ia menggagalkan CI jika Anda melanggar aturan jangan-pernah-pakai-ulang-nomor-field), dan linter. Untuk apa pun di luar mainan, pilih buf, ia mengubah disiplin evolusi skema dari bagian 04 menjadi gerbang otomatis.</p>
+                </div>
+            </section>
+
+            <section id="s12">
+                <div class="sec-head">
+                    <div class="sec-num">12</div>
+                    <h2>Channel, Stub &amp; Satu Panggilan End-to-End</h2>
+                </div>
+                <p>Dua objek sisi klien penting, dan orang sering mencampurnya. <strong>Channel</strong> (Go menyebutnya <code>ClientConn</code>) adalah koneksi berumur panjang yang bisa dipakai ulang ke server; ia mengelola koneksi HTTP/2 yang mendasari, koneksi ulang, dan state load-balancing. <strong>Stub</strong> adalah objek hasil generasi yang murah yang Anda buat <em>di atas</em> channel untuk benar-benar memanggil method. Aturannya: <strong>buat channel sekali dan bagikan; buat stub dengan bebas.</strong> Membuka channel per request menghancurkan performa, Anda membuang pemakaian-ulang koneksi yang merupakan seluruh tujuan HTTP/2.</p>
+
+                <div class="viz">
+                    <div class="viz-cap">A unary call, end to end</div>
+                    <div class="viz-title">Every step from your method call to the typed reply</div>
+                    <svg viewBox="0 0 720 290" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="Eight-step lifecycle of a gRPC call from stub call through serialization, HTTP2 stream, server interceptors, handler, and back">
+                        <defs>
+                            <marker id="la" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                                <path d="M0 0 L6 3 L0 6 Z" fill="#8f2f20" />
+                            </marker>
+                        </defs>
+                        <g font-family="JetBrains Mono" font-size="10">
+                            <rect x="20" y="20" width="200" height="34" rx="7" fill="#b8402e" /><text x="120" y="42"
+                                fill="#fff" text-anchor="middle" font-weight="700">1 / you call stub.GetUser(ctx,
+                                req)</text>
+                            <rect x="20" y="62" width="200" height="34" rx="7" fill="#ece3d4" stroke="#b8402e" /><text
+                                x="120" y="84" fill="#8f2f20" text-anchor="middle">2 / stub serializes req -&gt;
+                                protobuf</text>
+                            <rect x="20" y="104" width="200" height="34" rx="7" fill="#ece3d4" stroke="#b8402e" /><text
+                                x="120" y="126" fill="#8f2f20" text-anchor="middle">3 / client interceptors
+                                run</text>
+                            <rect x="20" y="146" width="200" height="34" rx="7" fill="#232019" /><text x="120" y="168"
+                                fill="#7fd1c4" text-anchor="middle">4 / HTTP/2 stream -&gt; :path, DATA</text>
+                            <path d="M120 96 V104" stroke="#8f2f20" marker-end="url(#la)" />
+                            <path d="M120 138 V146" stroke="#8f2f20" marker-end="url(#la)" />
+                            <path d="M220 163 H300" stroke="#8f2f20" stroke-width="1.6" marker-end="url(#la)" />
+
+                            <rect x="500" y="146" width="200" height="34" rx="7" fill="#232019" /><text x="600" y="168"
+                                fill="#7fd1c4" text-anchor="middle">5 / server reads frames</text>
+                            <rect x="500" y="104" width="200" height="34" rx="7" fill="#e0e9dd" stroke="#3f6f4e" /><text
+                                x="600" y="126" fill="#3f6f4e" text-anchor="middle">6 / deserialize +
+                                interceptors</text>
+                            <rect x="500" y="62" width="200" height="34" rx="7" fill="#3f6f4e" /><text x="600" y="84"
+                                fill="#fff" text-anchor="middle" font-weight="700">7 / YOUR handler runs</text>
+                            <rect x="500" y="20" width="200" height="34" rx="7" fill="#e0e9dd" stroke="#3f6f4e" /><text
+                                x="600" y="42" fill="#3f6f4e" text-anchor="middle">8 / serialize reply +
+                                status</text>
+                            <path d="M600 146 V138" stroke="#3f6f4e" marker-end="url(#la)" />
+                            <path d="M600 104 V96" stroke="#3f6f4e" marker-end="url(#la)" />
+                            <path d="M600 62 V54" stroke="#3f6f4e" marker-end="url(#la)" />
+                        </g>
+                        <path d="M500 37 C420 37 300 100 220 79" stroke="#3f6f4e" stroke-width="1.6"
+                            stroke-dasharray="5 3" fill="none" marker-end="url(#la)" />
+                        <text x="360" y="225" class="serif" font-size="13" font-style="italic" fill="#5b5347"
+                            text-anchor="middle">The reply retraces the path: serialized on the server, framed over the
+                            same stream, deserialized by the stub,</text>
+                        <text x="360" y="247" class="serif" font-size="13" font-style="italic" fill="#5b5347"
+                            text-anchor="middle">and handed back to you as a typed value, or a typed error
+                            carrying a status code.</text>
+                        <text x="360" y="278" class="mono" font-size="10" fill="#8f2f20" text-anchor="middle">channel =
+                            the reused connection / stub = the cheap per-call caller on top of it</text>
+                    </svg>
+                </div>
+
+                <div class="box key"><span class="tag">The performance rule</span>
+                    <p>Satu channel per server, dibagikan di seluruh aplikasi Anda, seumur hidupnya. Stub sekali pakai. Jika latensi Anda misterius jelek, hal pertama yang diperiksa apakah Anda membuat channel (dan karenanya handshake HTTP/2 + TLS baru) di setiap panggilan.</p>
+                </div>
+            </section>
+
+            <section id="s13">
+                <div class="sec-head">
+                    <div class="sec-num">13</div>
+                    <h2>Metadata, Deadline &amp; Pembatalan</h2>
+                </div>
+                <p>Ini tool yang mengakui jaringan itu nyata (peringatan bagian 03, dibuat konkret). <strong>Metadata</strong> adalah kanal sampingan key-value gRPC, padanan header HTTP, untuk hal yang bukan message itu sendiri: token auth, trace/request ID, versi API. <strong>Deadline</strong> memberi batas waktu absolut pada sebuah panggilan dan, yang krusial, <strong>menyebar</strong> lintas hop. <strong>Pembatalan</strong> membuat pemanggil (atau koneksi yang putus) membatalkan kerja yang sedang berjalan supaya server tidak bersusah payah untuk hasil yang tidak diinginkan siapa pun.</p>
+
+                <h4>Deadline mengalahkan timeout: dan ia menyebar</h4>
+                <p>Deadline gRPC adalah titik waktu <em>absolut</em>, bukan durasi per-hop. Saat service A memanggil B dengan deadline 1 detik dan B memanggil C, budget yang tersisa ikut bepergian, jadi C tahu ia punya, katakanlah, 600ms tersisa, bukan satu detik baru. Ini mencegah kaskade klasik tempat setiap lapisan menunggu timeout penuhnya sendiri dan total latensi menggembung. <strong>Selalu set deadline di setiap panggilan.</strong> Panggilan tanpa deadline bisa menggantung selamanya, mengunci resource.</p>
+
+                <div class="codeblock" data-cb>
+                    <div class="code-bar">
+                        <div class="dots"><i></i><i></i><i></i></div>
+                        <div class="code-tabs"><button class="on" data-lang="go"><span class="lang-go">&#9679;</span>
+                                Go</button><button data-lang="py"><span class="lang-py">&#9679;</span> Python</button>
+                        </div>
+                    </div>
+                    <div class="code-panel on" data-panel="go">
+                        <pre><code class="language-go">// ===== CLIENT: attach a deadline + metadata =====
+ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second) // absolute deadline
+defer cancel() // cancel frees resources whether we time out or finish early
+
+ctx = metadata.AppendToOutgoingContext(ctx,
+    "authorization", "Bearer "+token,   // auth travels as metadata, sec 16
+    "x-request-id", reqID)              // trace id for correlation, like sec 15 of the layers manual
+
+resp, err := client.GetUser(ctx, &userv1.GetUserRequest{Id: "u42"})
+if status.Code(err) == codes.DeadlineExceeded {
+    log.Println("call timed out") // a network-shaped failure a local call never had
+}
+
+// ===== SERVER: read metadata, respect the inherited deadline =====
+func (s *server) GetUser(ctx context.Context, req *userv1.GetUserRequest) (*userv1.GetUserResponse, error) {
+    md, _ := metadata.FromIncomingContext(ctx)
+    auth := md.Get("authorization") // verify token here (or in an interceptor, sec 15)
+
+    // ctx already carries the client's remaining deadline + cancellation, // pass it straight to the DB driver so slow work is abandoned automatically.
+    if ctx.Err() != nil { return nil, status.FromContextError(ctx.Err()).Err() }
+    _ = auth
+    return s.lookup(ctx, req.GetId())
+}</code></pre>
+                    </div>
+                    <div class="code-panel" data-panel="py">
+                        <pre><code class="language-python"># ===== CLIENT: attach a deadline (timeout=) + metadata =====
+metadata = (
+    ("authorization", f"Bearer {token}"),  # auth as metadata, sec 16
+    ("x-request-id", req_id),               # trace id for correlation
+)
+try:
+    resp = stub.GetUser(pb.GetUserRequest(id="u42"),
+                        timeout=1.0,         # the deadline, in seconds
+                        metadata=metadata)
+except grpc.RpcError as e:
+    if e.code() == grpc.StatusCode.DEADLINE_EXCEEDED:
+        print("call timed out")             # a network-shaped failure
+
+# ===== SERVER: read metadata, check for cancellation =====
+class UserService(pb_grpc.UserServiceServicer):
+    def GetUser(self, request, context):
+        md = dict(context.invocation_metadata())
+        auth = md.get("authorization")       # verify token (or in an interceptor, sec 15)
+
+        if not context.is_active():          # client gone / deadline passed?
+            return pb.GetUserResponse()      # abandon the work
+        return self.lookup(request.id)</code></pre>
+                    </div>
+                </div>
+
+                <div class="box gotcha"><span class="tag">Pass the context down, always</span>
+                    <p>Di Go, alirkan <code>ctx</code> yang masuk ke <em>setiap</em> panggilan hilir (query DB, RPC keluar). Itulah yang membuat deadline dan pembatalan benar-benar bekerja; jika klien menutup telepon, pembatalannya merambat ke bawah dan membebaskan semuanya. Handler yang mengabaikan <code>ctx</code> terus menggiling kerja yang ditinggalkan.</p>
+                </div>
+            </section>
+
+            <section id="s14">
+                <div class="sec-head">
+                    <div class="sec-num">14</div>
+                    <h2>Status Code &amp; Penanganan Error</h2>
+                </div>
+                <p>gRPC tidak memakai status code HTTP. Ia punya set tetap <strong>status code</strong> sendiri: enum ±16 nilai, dikirim di trailer <code>grpc-status</code> (bagian 06). Setiap panggilan berakhir dengan tepat satu: <code>OK</code> untuk sukses, atau salah satu kode error dengan pesan opsional. Mengembalikan kode yang <em>benar</em> bagian dari kontrak Anda, karena klien (dan kebijakan retry, bagian 17) bercabang padanya.</p>
+
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Kode</th>
+                                <th>Artinya</th>
+                                <th>Padanan HTTP terdekat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>OK</td>
+                                <td>Sukses</td>
+                                <td>200</td>
+                            </tr>
+                            <tr>
+                                <td>INVALID_ARGUMENT</td>
+                                <td>Klien mengirim input buruk (independen dari state sistem)</td>
+                                <td>400</td>
+                            </tr>
+                            <tr>
+                                <td>UNAUTHENTICATED</td>
+                                <td>Tanpa / kredensial tidak valid</td>
+                                <td>401</td>
+                            </tr>
+                            <tr>
+                                <td>PERMISSION_DENIED</td>
+                                <td>Terautentikasi tapi tidak diizinkan</td>
+                                <td>403</td>
+                            </tr>
+                            <tr>
+                                <td>NOT_FOUND</td>
+                                <td>Entitas yang diminta tidak ada</td>
+                                <td>404</td>
+                            </tr>
+                            <tr>
+                                <td>ALREADY_EXISTS</td>
+                                <td>Create bentrok dengan entitas yang ada</td>
+                                <td>409</td>
+                            </tr>
+                            <tr>
+                                <td>FAILED_PRECONDITION</td>
+                                <td>Sistem tidak dalam state untuk operasi itu</td>
+                                <td>400/409</td>
+                            </tr>
+                            <tr>
+                                <td>RESOURCE_EXHAUSTED</td>
+                                <td>Kuota / rate limit tercapai</td>
+                                <td>429</td>
+                            </tr>
+                            <tr>
+                                <td>DEADLINE_EXCEEDED</td>
+                                <td>Panggilan melewati deadline-nya</td>
+                                <td>504</td>
+                            </tr>
+                            <tr>
+                                <td>UNAVAILABLE</td>
+                                <td>Sementara, server mati/kelebihan beban; <strong>aman untuk retry</strong></td>
+                                <td>503</td>
+                            </tr>
+                            <tr>
+                                <td>INTERNAL</td>
+                                <td>Bug sungguhan / invariant rusak</td>
+                                <td>500</td>
+                            </tr>
+                            <tr>
+                                <td>UNIMPLEMENTED</td>
+                                <td>Method tidak diimplementasikan di server ini</td>
+                                <td>501</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="codeblock" data-cb>
+                    <div class="code-bar">
+                        <div class="dots"><i></i><i></i><i></i></div>
+                        <div class="code-tabs"><button class="on" data-lang="go"><span class="lang-go">&#9679;</span>
+                                Go</button><button data-lang="py"><span class="lang-py">&#9679;</span> Python</button>
+                        </div>
+                    </div>
+                    <div class="code-panel on" data-panel="go">
+                        <pre><code class="language-go">import (
+    "google.golang.org/grpc/codes"
+    "google.golang.org/grpc/status"
+)
+
+// SERVER: return a typed status, not a bare error string.
+func (s *server) GetUser(ctx context.Context, req *userv1.GetUserRequest) (*userv1.GetUserResponse, error) {
+    if req.GetId() == "" {
+        return nil, status.Error(codes.InvalidArgument, "id is required")
+    }
+    u, found := s.db.Find(req.GetId())
+    if !found {
+        return nil, status.Errorf(codes.NotFound, "no user with id %q", req.GetId())
+    }
+    return &userv1.GetUserResponse{User: u}, nil
+}
+
+// CLIENT: inspect the code to decide what to do.
+resp, err := client.GetUser(ctx, req)
+if err != nil {
+    st := status.Convert(err)        // pull the status out of the error
+    switch st.Code() {
+    case codes.NotFound:        // expected, show "not found" in UI
+    case codes.Unavailable:     // transient, retry with backoff, sec 17
+    default:                    log.Printf("unexpected: %v: %s", st.Code(), st.Message())
+    }
+}</code></pre>
+                    </div>
+                    <div class="code-panel" data-panel="py">
+                        <pre><code class="language-python">import grpc
+
+# SERVER: abort with a code + message (or set_code/set_details then return).
+class UserService(pb_grpc.UserServiceServicer):
+    def GetUser(self, request, context):
+        if not request.id:
+            context.abort(grpc.StatusCode.INVALID_ARGUMENT, "id is required")
+        user = self.db.find(request.id)
+        if user is None:
+            context.abort(grpc.StatusCode.NOT_FOUND, f"no user with id {request.id!r}")
+        return pb.GetUserResponse(user=user)
+
+# CLIENT: catch RpcError and switch on .code()
+try:
+    resp = stub.GetUser(req, timeout=1.0)
+except grpc.RpcError as e:
+    if e.code() == grpc.StatusCode.NOT_FOUND:
+        ...   # expected, show "not found"
+    elif e.code() == grpc.StatusCode.UNAVAILABLE:
+        ...   # transient, retry with backoff, sec 17
+    else:
+        print("unexpected:", e.code(), e.details())</code></pre>
+                    </div>
+                </div>
+
+                <div class="box note"><span class="tag">Rich, structured errors</span>
+                    <p>Saat kode + pesan tidak cukup (mis. detail validasi per field, seperti amplop error REST), gRPC mendukung <strong>error details</strong>: message protobuf bertipe yang ditempel ke status (tipe <code>google.rpc</code>: <code>BadRequest</code>, <code>QuotaFailure</code>, <code>RetryInfo</code>...). Klien men-deserialize-nya sebagai data terstruktur, tidak pernah dengan mem-parse string manusia, prinsip yang sama dengan field <code>code</code> yang bisa dibaca mesin di amplop error manual REST.</p>
+                </div>
+            </section>
+
+            <section id="s15">
+                <div class="sec-head">
+                    <div class="sec-num">15</div>
+                    <h2>Interceptor: Middleware-nya gRPC</h2>
+                </div>
+                <p>Jika Anda membaca bab handlers/services/middleware, ini gagasan yang sama persis dengan nama berbeda. <strong>Interceptor</strong> adalah fungsi yang membungkus setiap RPC, berjalan sebelum dan/atau setelah handler Anda, tempat memusatkan urusan lintas-pemotongan supaya Anda tidak mengulanginya di tiap method: autentikasi, logging, metrik, tracing, pemulihan panic, rate limiting. Ia punya dua rasa: <strong>interceptor unary</strong> (membungkus panggilan sekali jalan) dan <strong>interceptor stream</strong> (membungkus panggilan streaming), di sisi klien dan server.</p>
+
+                <div class="viz">
+                    <div class="viz-cap">The interceptor chain</div>
+                    <div class="viz-title">Cross-cutting logic wraps the handler, just like HTTP middleware</div>
+                    <svg viewBox="0 0 720 150" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="An incoming RPC passing through recovery, logging, and auth interceptors before reaching the handler and returning back out">
+                        <defs>
+                            <marker id="ia" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                                <path d="M0 0 L6 3 L0 6 Z" fill="#8f2f20" />
+                            </marker>
+                        </defs>
+                        <text x="20" y="22" class="mono" font-size="11" fill="#b8402e">incoming RPC -&gt;</text>
+                        <rect x="20" y="34" width="120" height="50" rx="9" fill="#f7e9e2" stroke="#b8402e" /><text
+                            x="80" y="56" font-size="11" font-weight="700" fill="#8f2f20"
+                            text-anchor="middle">recover</text><text x="80" y="72" font-size="9" fill="#5b5347"
+                            text-anchor="middle">catch panics</text>
+                        <rect x="160" y="34" width="120" height="50" rx="9" fill="#f7e9e2" stroke="#b8402e" /><text
+                            x="220" y="56" font-size="11" font-weight="700" fill="#8f2f20"
+                            text-anchor="middle">logging</text><text x="220" y="72" font-size="9" fill="#5b5347"
+                            text-anchor="middle">+ metrics, trace</text>
+                        <rect x="300" y="34" width="120" height="50" rx="9" fill="#f7e9e2" stroke="#b8402e" /><text
+                            x="360" y="56" font-size="11" font-weight="700" fill="#8f2f20"
+                            text-anchor="middle">auth</text><text x="360" y="72" font-size="9" fill="#5b5347"
+                            text-anchor="middle">verify token</text>
+                        <rect x="450" y="34" width="150" height="50" rx="9" fill="#3f6f4e" /><text x="525" y="56"
+                            font-size="12" font-weight="700" fill="#fff" text-anchor="middle">your handler</text><text
+                            x="525" y="72" font-size="9" fill="#dceeea" text-anchor="middle">business logic</text>
+                        <path d="M140 59 H160" stroke="#8f2f20" marker-end="url(#ia)" />
+                        <path d="M280 59 H300" stroke="#8f2f20" marker-end="url(#ia)" />
+                        <path d="M420 59 H450" stroke="#8f2f20" marker-end="url(#ia)" />
+                        <text x="360" y="118" class="serif" font-size="12.5" font-style="italic" fill="#5b5347"
+                            text-anchor="middle">Order matters (recover outermost, auth nearest the handler), the
+                            same ordering discipline as HTTP middleware.</text>
+                        <text x="360" y="138" class="mono" font-size="10" fill="#3f6f4e" text-anchor="middle">&lt;-
+                            response unwinds back through each interceptor (logging records status, recover guards the
+                            return)</text>
+                    </svg>
+                </div>
+
+                <div class="codeblock" data-cb>
+                    <div class="code-bar">
+                        <div class="dots"><i></i><i></i><i></i></div>
+                        <div class="code-tabs"><button class="on" data-lang="go"><span class="lang-go">&#9679;</span>
+                                Go</button><button data-lang="py"><span class="lang-py">&#9679;</span> Python</button>
+                        </div>
+                    </div>
+                    <div class="code-panel on" data-panel="go">
+                        <pre><code class="language-go">// A unary server interceptor: signature is fixed by the framework.
+func authInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo,
+    handler grpc.UnaryHandler) (any, error) {
+
+    md, _ := metadata.FromIncomingContext(ctx)
+    tokens := md.Get("authorization")
+    if len(tokens) == 0 || !valid(tokens[0]) {
+        return nil, status.Error(codes.Unauthenticated, "missing or invalid token")
+    }
+    // attach the verified identity for the handler to read from ctx
+    ctx = context.WithValue(ctx, userKey{}, parse(tokens[0]))
+    return handler(ctx, req) // call the next link / the real handler
+}
+
+func loggingInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo,
+    handler grpc.UnaryHandler) (any, error) {
+    start := time.Now()
+    resp, err := handler(ctx, req)
+    log.Printf("%s took %s -> %s", info.FullMethod, time.Since(start), status.Code(err))
+    return resp, err
+}
+
+// Register the chain when building the server (outermost listed first):
+s := grpc.NewServer(
+    grpc.ChainUnaryInterceptor(loggingInterceptor, authInterceptor),
+)</code></pre>
+                    </div>
+                    <div class="code-panel" data-panel="py">
+                        <pre><code class="language-python">import grpc
+
+class AuthInterceptor(grpc.ServerInterceptor):
+    def intercept_service(self, continuation, handler_call_details):
+        md = dict(handler_call_details.invocation_metadata)
+        token = md.get("authorization", "")
+        if not valid(token):
+            # short-circuit: abort before the handler ever runs
+            def deny(request, context):
+                context.abort(grpc.StatusCode.UNAUTHENTICATED, "missing or invalid token")
+            return grpc.unary_unary_rpc_method_handler(deny)
+        return continuation(handler_call_details)  # proceed to next / handler
+
+# Register interceptors when building the server (applied in order):
+server = grpc.server(
+    futures.ThreadPoolExecutor(max_workers=10),
+    interceptors=[AuthInterceptor()],
+)
+
+# Client-side interceptors also exist (e.g. to inject auth on every call):
+#   channel = grpc.intercept_channel(base_channel, MyClientInterceptor())</code></pre>
+                    </div>
+                </div>
+                <p class="code-cap">Ini rumah gRPC untuk semua yang manual lapisan taruh di middleware: auth, logging, tracing, rate limiting, pemulihan panic, ditulis sekali, diterapkan ke setiap method.</p>
+            </section>
+
+            <div class="part-label">Part V / Production &amp; Interop</div>
+
+            <section id="s16">
+                <div class="sec-head">
+                    <div class="sec-num">16</div>
+                    <h2>Autentikasi &amp; Keamanan</h2>
+                </div>
+                <p>Keamanan gRPC terpecah menjadi dua pertanyaan ortogonal: <strong>keamanan kanal</strong> (apakah koneksinya terenkripsi dan peer-nya benar-benar yang ia klaim? -&gt; TLS / mTLS) dan <strong>kredensial panggilan</strong> (siapa pemanggil untuk request <em>ini</em>? -&gt; token di metadata). Anda gabungkan keduanya: TLS melindungi pipa, token per-panggilan mengidentifikasi pengguna. Kredensial <code>insecure</code> yang dipakai di contoh awal hanya untuk pengembangan lokal, jangan pernah dibawa ke produksi.</p>
+
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Lapisan</th>
+                                <th>Mekanisme</th>
+                                <th>Menjawab</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Transport</td>
+                                <td><strong>TLS</strong>: server menyajikan sertifikat</td>
+                                <td>terenkripsi? + apakah <em>server</em>-nya asli?</td>
+                            </tr>
+                            <tr>
+                                <td>Transport</td>
+                                <td><strong>mTLS</strong>: kedua sisi menyajikan sertifikat</td>
+                                <td>+ apakah layanan <em>klien</em>-nya asli? (identitas service-to-service)</td>
+                            </tr>
+                            <tr>
+                                <td>Per-panggilan</td>
+                                <td><strong>token di metadata</strong> (JWT / OAuth bearer)</td>
+                                <td><em>user mana</em> yang membuat panggilan ini? (authn/authz, diverifikasi di interceptor bagian 15)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="codeblock" data-cb>
+                    <div class="code-bar">
+                        <div class="dots"><i></i><i></i><i></i></div>
+                        <div class="code-tabs"><button class="on" data-lang="go"><span class="lang-go">&#9679;</span>
+                                Go</button><button data-lang="py"><span class="lang-py">&#9679;</span> Python</button>
+                        </div>
+                    </div>
+                    <div class="code-panel on" data-panel="go">
+                        <pre><code class="language-go">import "google.golang.org/grpc/credentials"
+
+// ===== SERVER over TLS =====
+creds, _ := credentials.NewServerTLSFromFile("server.crt", "server.key")
+s := grpc.NewServer(grpc.Creds(creds)) // every connection is now encrypted
+
+// ===== CLIENT over TLS =====
+tlsCreds := credentials.NewTLS(&tls.Config{RootCAs: pool}) // trust this CA
+conn, _ := grpc.NewClient("api.example.com:443", grpc.WithTransportCredentials(tlsCreds))
+
+// ===== Per-call token (combine with TLS) =====
+// Implement credentials.PerRPCCredentials so a fresh token rides on every call:
+type tokenCreds struct{ token string }
+func (t tokenCreds) GetRequestMetadata(ctx context.Context, _ ...string) (map[string]string, error) {
+    return map[string]string{"authorization": "Bearer " + t.token}, nil
+}
+func (t tokenCreds) RequireTransportSecurity() bool { return true } // refuse to send token in cleartext
+
+conn, _ = grpc.NewClient("api.example.com:443",
+    grpc.WithTransportCredentials(tlsCreds),
+    grpc.WithPerRPCCredentials(tokenCreds{token}),
+)</code></pre>
+                    </div>
+                    <div class="code-panel" data-panel="py">
+                        <pre><code class="language-python"># ===== SERVER over TLS =====
+with open("server.key", "rb") as k, open("server.crt", "rb") as c:
+    creds = grpc.ssl_server_credentials([(k.read(), c.read())])
+server.add_secure_port("[::]:443", creds)   # encrypted port
+
+# ===== CLIENT over TLS =====
+with open("ca.crt", "rb") as f:
+    channel_creds = grpc.ssl_channel_credentials(root_certificates=f.read())
+
+# ===== Per-call token, composed with the channel credentials =====
+class TokenAuth(grpc.AuthMetadataPlugin):
+    def __init__(self, token): self.token = token
+    def __call__(self, context, callback):
+        callback((("authorization", f"Bearer {self.token}"),), None)  # adds metadata per call
+
+call_creds = grpc.metadata_call_credentials(TokenAuth(token))
+composite  = grpc.composite_channel_credentials(channel_creds, call_creds)
+channel    = grpc.secure_channel("api.example.com:443", composite)</code></pre>
+                    </div>
+                </div>
+
+                <div class="box gotcha"><span class="tag">Never send tokens over plaintext</span>
+                    <p>Bearer token seperti kata sandi, siapa pun yang memegangnya bisa menyamar sebagai pemanggil (menggema peringatan pencurian JWT dari manual auth). Selalu wajibkan keamanan transport sebelum menempelkan kredensial. mTLS standar untuk identitas service-to-service di dalam mesh; authz tingkat pengguna tetap menumpang token per-panggilan yang diverifikasi interceptor.</p>
+                </div>
+            </section>
+
+            <section id="s17">
+                <div class="sec-head">
+                    <div class="sec-num">17</div>
+                    <h2>Ketahanan &amp; Load Balancing</h2>
+                </div>
+                <p>Karena setiap panggilan jarak jauh bisa gagal dengan cara bentuk jaringan, gRPC produksi bersandar pada beberapa fitur ketahanan, kebanyakan dikonfigurasi, bukan ditulis tangan. Yang tidak jelas adalah <strong>load balancing</strong>: koneksi gRPC yang berumur panjang dan termultipleks (bagian 06) <em>memecah</em> load balancer naif, dan memahami kenapa esensial untuk men-deploy-nya.</p>
+
+                <div class="viz">
+                    <div class="viz-cap">The load-balancing pitfall</div>
+                    <div class="viz-title">An L4 balancer pins every call to one backend</div>
+                    <svg viewBox="0 0 720 230" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="An L4 TCP balancer sends one connection to a single backend so all multiplexed calls hit it, versus L7 or client-side balancing spreading calls across backends">
+                        <defs>
+                            <marker id="ra1" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#d05a47" />
+                            </marker>
+                            <marker id="ra2" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#3f6f4e" />
+                            </marker>
+                        </defs>
+                        <text x="20" y="20" class="mono" font-size="11" font-weight="700" fill="#d05a47">L4 (TCP)
+                            balancer, WRONG for gRPC</text>
+                        <rect x="20" y="34" width="90" height="40" rx="8" fill="#b8402e" /><text x="65" y="58"
+                            font-size="11" fill="#fff" text-anchor="middle">client</text>
+                        <rect x="140" y="34" width="80" height="40" rx="8" fill="#211e1a" /><text x="180" y="54"
+                            font-size="10" fill="#fff" text-anchor="middle">L4 LB</text><text x="180" y="68"
+                            font-size="8" fill="#e9e2d3" text-anchor="middle">per-conn</text>
+                        <path d="M110 54 H140" stroke="#d05a47" stroke-width="1.6" marker-end="url(#ra1)" />
+                        <path d="M220 54 H290" stroke="#d05a47" stroke-width="2.4" marker-end="url(#ra1)" />
+                        <rect x="292" y="32" width="80" height="26" rx="6" fill="#f7d9d0" stroke="#b8402e" /><text
+                            x="332" y="49" font-size="9.5" fill="#8f2f20" text-anchor="middle">backend 1 (hot)</text>
+                        <rect x="292" y="64" width="80" height="22" rx="6" fill="#eee" stroke="#d8cfbe" /><text x="332"
+                            y="79" font-size="9" fill="#999" text-anchor="middle">backend 2 idle</text>
+                        <text x="392" y="58" font-size="10" font-style="italic" fill="#b8402e">all multiplexed calls
+                            land on one box</text>
+
+                        <text x="20" y="128" class="mono" font-size="11" font-weight="700" fill="#3f6f4e">L7 /
+                            client-side balancing, RIGHT</text>
+                        <rect x="20" y="142" width="90" height="40" rx="8" fill="#b8402e" /><text x="65" y="166"
+                            font-size="11" fill="#fff" text-anchor="middle">client</text>
+                        <rect x="140" y="142" width="80" height="40" rx="8" fill="#3f6f4e" /><text x="180" y="162"
+                            font-size="10" fill="#fff" text-anchor="middle">L7 / mesh</text><text x="180" y="176"
+                            font-size="8" fill="#dceeea" text-anchor="middle">per-RPC</text>
+                        <path d="M110 162 H140" stroke="#3f6f4e" stroke-width="1.6" marker-end="url(#ra2)" />
+                        <path d="M220 150 C250 140 270 132 300 130" stroke="#3f6f4e" stroke-width="1.6" fill="none"
+                            marker-end="url(#ra2)" />
+                        <path d="M220 162 H300" stroke="#3f6f4e" stroke-width="1.6" marker-end="url(#ra2)" />
+                        <path d="M220 174 C250 184 270 192 300 194" stroke="#3f6f4e" stroke-width="1.6" fill="none"
+                            marker-end="url(#ra2)" />
+                        <rect x="302" y="118" width="80" height="24" rx="6" fill="#e0e9dd" stroke="#3f6f4e" /><text
+                            x="342" y="134" font-size="9" fill="#3f6f4e" text-anchor="middle">backend 1</text>
+                        <rect x="302" y="150" width="80" height="24" rx="6" fill="#e0e9dd" stroke="#3f6f4e" /><text
+                            x="342" y="166" font-size="9" fill="#3f6f4e" text-anchor="middle">backend 2</text>
+                        <rect x="302" y="182" width="80" height="24" rx="6" fill="#e0e9dd" stroke="#3f6f4e" /><text
+                            x="342" y="198" font-size="9" fill="#3f6f4e" text-anchor="middle">backend 3</text>
+                        <text x="400" y="166" font-size="10" font-style="italic" fill="#3f6f4e">individual RPCs spread
+                            across backends</text>
+                    </svg>
+                    <div class="viz-note">Fixes: an L7 proxy that balances per-<em>request</em> (Envoy/Linkerd), or
+                        client-side
+                        balancing where the client resolves all backends and round-robins RPCs itself. A plain TCP
+                        balancer will
+                        funnel an entire connection's traffic to one pod.</div>
+                </div>
+
+                <h4>Retry, keepalive, health</h4>
+                <p>gRPC mendukung <strong>retry deklaratif</strong> via <em>service config</em> (kebijakan JSON yang ditempel ke channel): status code mana yang bisa di-retry (biasanya <code>UNAVAILABLE</code>), berapa percobaan, dan exponential backoff, tanpa loop retry di kode Anda. <strong>Keepalive</strong> ping mendeteksi koneksi mati dan menjaga yang idle tetap hidup lewat NAT/proxy. <strong>Layanan health-checking</strong> standar membuat load balancer dan probe Kubernetes bisa bertanya "kamu siap?" Bersama-sama ini baseline ketahanannya.</p>
+
+                <div class="codeblock single">
+                    <div class="code-bar">
+                        <div class="dots"><i></i><i></i><i></i></div><span class="filename">service-config.json / declarative retry policy (language-agnostic)</span>
+                    </div>
+                    <pre><code class="language-protobuf">{
+  "methodConfig": [{
+    "name": [{ "service": "user.v1.UserService" }],
+    "retryPolicy": {
+      "maxAttempts": 4,
+      "initialBackoff": "0.1s",
+      "maxBackoff": "2s",
+      "backoffMultiplier": 2,
+      "retryableStatusCodes": [ "UNAVAILABLE" ]
+    }
+  }]
+}
+// Attach to the channel (Go: grpc.WithDefaultServiceConfig(json);
+// Python: grpc.insecure_channel(target, options=[("grpc.service_config", json)]))
+// Only retry IDEMPOTENT methods automatically, retrying a non-idempotent
+// "charge card" can double-charge (same lesson as POST idempotency keys in REST).</code></pre>
+                </div>
+
+                <div class="box gotcha"><span class="tag">Retries need idempotency</span>
+                    <p>Retry otomatis hanya aman untuk method idempotent. Me-retry "buat pembayaran" saat timeout bisa menagih dua kali, persis bahaya yang manual REST pecahkan dengan idempotency key. Tandai method mana yang aman, dan untuk sisanya, pakai idempotency key atau terima bahwa mereka tidak di-retry otomatis.</p>
+                </div>
+            </section>
+
+            <section id="s18">
+                <div class="sec-head">
+                    <div class="sec-num">18</div>
+                    <h2>gRPC vs REST: Memilih</h2>
+                </div>
+                <p>Bukan rivalitas, tool berbeda. Aturan keputusan yang jujur: <strong>gRPC untuk lalu lintas internal, throughput tinggi, bertipe, antar-layanan; REST/JSON untuk API publik, menghadap browser, bisa di-debug manusia, ramah cache.</strong> Kebanyakan sistem nyata menjalankan keduanya: gRPC antar layanan backend, edge REST (atau GraphQL) untuk dunia luar.</p>
+
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Dimensi</th>
+                                <th>gRPC</th>
+                                <th>REST / JSON</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Payload</td>
+                                <td>Biner protobuf, ringkas, cepat</td>
+                                <td>Teks JSON, besar, bisa dibaca manusia</td>
+                            </tr>
+                            <tr>
+                                <td>Kontrak</td>
+                                <td>Dipaksakan <code>.proto</code>; codegen</td>
+                                <td>Konvensi + dokumen (OpenAPI opsional)</td>
+                            </tr>
+                            <tr>
+                                <td>Transport</td>
+                                <td>Hanya HTTP/2 (termultipleks)</td>
+                                <td>HTTP apa pun, termasuk 1.1</td>
+                            </tr>
+                            <tr>
+                                <td>Streaming</td>
+                                <td>Kelas satu, dua arah</td>
+                                <td>Tempelan (SSE, polling, WebSocket)</td>
+                            </tr>
+                            <tr>
+                                <td>Dukungan browser</td>
+                                <td>Tidak natif, butuh gRPC-Web (bagian 19)</td>
+                                <td>Universal</td>
+                            </tr>
+                            <tr>
+                                <td>Bisa di-debug manusia</td>
+                                <td>Butuh tool (grpcurl)</td>
+                                <td>curl, browser, devtools</td>
+                            </tr>
+                            <tr>
+                                <td>Caching HTTP</td>
+                                <td>Tidak benar-benar</td>
+                                <td>Matang (ETag, Cache-Control)</td>
+                            </tr>
+                            <tr>
+                                <td>Cocok untuk</td>
+                                <td>Microservice, internal, latensi rendah, poliglot</td>
+                                <td>API publik, pintu depan web/mobile, pihak ketiga</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="box note"><span class="tag">The pragmatic architecture</span>
+                    <p>Bentuk yang sangat umum: klien memukul <strong>gateway REST/JSON</strong> lewat HTTP/1.1; di belakangnya, gateway itu dan semua layanan internal bicara <strong>gRPC</strong> satu sama lain. Anda dapat keramahan publik REST di tepi dan kecepatan/ketikan gRPC di inti, dan tool seperti grpc-gateway (bagian 19) bahkan bisa membuat edge REST dari proto yang sama.</p>
+                </div>
+            </section>
+
+            <section id="s19">
+                <div class="sec-head">
+                    <div class="sec-num">19</div>
+                    <h2>gRPC-Web &amp; Interop Browser</h2>
+                </div>
+                <p>Batasan keras, dan kejutan yang sering: <strong>browser tidak bisa bicara gRPC natif.</strong> Alasannya dari bagian 06, gRPC butuh kendali halus atas frame dan trailer HTTP/2, dan <code>fetch</code>/XHR browser tidak mengekspos itu. Jadi bicara ke gRPC dari frontend web butuh lapisan penerjemah.</p>
+
+                <div class="viz">
+                    <div class="viz-cap">Bridging to the browser</div>
+                    <div class="viz-title">A proxy translates between browser-friendly and native gRPC</div>
+                    <svg viewBox="0 0 720 170" xmlns="http://www.w3.org/2000/svg" role="img"
+                        aria-label="Browser speaks gRPC-Web to a proxy like Envoy which translates to native gRPC for backend services">
+                        <defs>
+                            <marker id="wa" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+                                <path d="M0 0 L7 3 L0 6 Z" fill="#8f2f20" />
+                            </marker>
+                        </defs>
+                        <rect x="20" y="55" width="150" height="56" rx="10" fill="#b8402e" /><text x="95" y="80"
+                            font-size="13" font-weight="700" fill="#fff" text-anchor="middle">Browser</text><text x="95"
+                            y="98" class="mono" font-size="9" fill="#f4d9cf" text-anchor="middle">gRPC-Web client</text>
+                        <rect x="285" y="50" width="150" height="66" rx="10" fill="#211e1a" /><text x="360" y="78"
+                            font-size="12.5" font-weight="700" fill="#fff" text-anchor="middle">Proxy</text><text
+                            x="360" y="96" class="mono" font-size="9" fill="#e9e2d3" text-anchor="middle">Envoy /
+                            gateway</text>
+                        <rect x="550" y="55" width="150" height="56" rx="10" fill="#3f6f4e" /><text x="625" y="80"
+                            font-size="13" font-weight="700" fill="#fff" text-anchor="middle">gRPC service</text><text
+                            x="625" y="98" class="mono" font-size="9" fill="#dceeea" text-anchor="middle">native
+                            gRPC</text>
+                        <path d="M172 83 H283" stroke="#8f2f20" stroke-width="1.8" marker-end="url(#wa)" /><text x="227"
+                            y="74" class="mono" font-size="9.5" fill="#8f2f20" text-anchor="middle">gRPC-Web</text><text
+                            x="227" y="103" font-size="9" font-style="italic" fill="#5b5347"
+                            text-anchor="middle">HTTP/1.1-friendly</text>
+                        <path d="M437 83 H548" stroke="#8f2f20" stroke-width="1.8" marker-end="url(#wa)" /><text x="492"
+                            y="74" class="mono" font-size="9.5" fill="#8f2f20" text-anchor="middle">native
+                            gRPC</text><text x="492" y="103" font-size="9" font-style="italic" fill="#5b5347"
+                            text-anchor="middle">HTTP/2 + trailers</text>
+                    </svg>
+                </div>
+
+                <p>Pilihan Anda, kira-kira dalam urutan seberapa banyak gRPC yang Anda mau di frontend:</p>
+                <ul>
+                    <li><strong>gRPC-Web</strong>: varian protokol plus klien JS/TS hasil generasi; proxy (Envoy punya filter bawaan) menerjemahkannya ke gRPC sungguhan. Streaming terbatas (server-streaming jalan; dua arah penuh umumnya tidak).</li>
+                    <li><strong>Connect</strong> (connectrpc), keluarga protokol modern yang berbicara gRPC, gRPC-Web, <em>dan</em> HTTP/JSON miliknya sendiri, sering tanpa proxy terpisah, dari handler yang sama. Makin sering jadi jalur paling ramah.</li>
+                    <li><strong>grpc-gateway / transcoding</strong>: buat fasad <em>REST+JSON</em> dari <code>.proto</code> Anda (lewat anotasi HTTP). Browser memakai REST polos; gateway mentranscode ke gRPC. Inilah pola "edge REST dari satu proto" yang dirujuk di bagian 18.</li>
+                </ul>
+
+                <div class="box gotcha"><span class="tag">Plan the edge before committing</span>
+                    <p>Jika browser harus memanggil layanan Anda langsung, putuskan strategi jembatannya di awal, Anda tidak bisa sekadar mengarahkan <code>fetch</code> ke port gRPC. Untuk layanan internal saja ini tak pernah masalah; untuk apa pun yang menghadap web ini keputusan desain kelas satu.</p>
+                </div>
+            </section>
+
+            <section id="s20">
+                <div class="sec-head">
+                    <div class="sec-num">20</div>
+                    <h2>Observabilitas &amp; Debugging</h2>
+                </div>
+                <p>Payload biner berarti Anda tidak bisa melirik lalu lintas seperti JSON (bagian 05), jadi gRPC mengirim ekosistem untuk mengintip ke dalam. Mengetahuinya mengubah service gRPC dari kotak hitam menjadi sesuatu yang bisa Anda congkel, telusuri, dan probe.</p>
+
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tool / fitur</th>
+                                <th>Yang ia berikan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>grpcurl</code></td>
+                                <td><code>curl</code>-nya gRPC, panggil method dari CLI dengan JSON masuk/keluar, daftar service dan method.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Server reflection</strong></td>
+                                <td>Membuat klien/tool menemukan service &amp; skema message server saat runtime, jadi <code>grpcurl</code> bekerja tanpa <code>.proto</code> di tangan.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Health checking</strong></td>
+                                <td>Service <code>grpc.health.v1.Health</code> standar untuk probe readiness/liveness (K8s, load balancer).</td>
+                            </tr>
+                            <tr>
+                                <td><strong>channelz</strong></td>
+                                <td>Introspeksi bawaan channel hidup, koneksi, dan statistik per-RPC untuk debugging konektivitas.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Interceptor</strong> (bagian 15)</td>
+                                <td>Kait untuk metrik (Prometheus), log terstruktur, dan distributed tracing (OpenTelemetry) di setiap panggilan.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Propagasi trace</strong></td>
+                                <td>Teruskan trace/request ID lewat metadata (bagian 13) supaya satu request bisa diikuti melewati setiap layanan yang disentuhnya.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="codeblock single">
+                    <div class="code-bar">
+                        <div class="dots"><i></i><i></i><i></i></div><span class="filename">grpcurl / debugging
+                            from the shell</span>
+                    </div>
+                    <pre><code class="language-protobuf"># List every service the server exposes (needs reflection enabled):
+grpcurl localhost:50051 list
+
+# List the methods of one service:
+grpcurl localhost:50051 list user.v1.UserService
+
+# Call a unary method with a JSON request, grpcurl turns it into protobuf for you:
+grpcurl -d '{"id": "u42"}' localhost:50051 user.v1.UserService/GetUser
+
+# Against a TLS server, drop -plaintext; for local insecure servers, add it:
+grpcurl -plaintext -d '{"id":"u42"}' localhost:50051 user.v1.UserService/GetUser</code></pre>
+                </div>
+
+                <div class="box key"><span class="tag">Enable reflection in non-prod</span>
+                    <p>Nyalakan server reflection di dev/staging supaya <code>grpcurl</code> dan tool GUI (seperti mode gRPC Postman atau grpcui) bisa menjelajahi API Anda tanpa Anda mengirim <code>.proto</code> ke mana-mana. Banyak tim menonaktifkannya di produksi untuk menghindari mengiklankan skema, keputusan kecil permukaan serangan.</p>
+                </div>
+            </section>
+
+            <section id="s21">
+                <div class="sec-head">
+                    <div class="sec-num">21</div>
+                    <h2>Crib-Sheet Debug</h2>
+                </div>
+                <p>Seluruh manual dipadatkan menjadi yang Anda raih saat tertekan.</p>
+                <div class="tbl-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Konsep</th>
+                                <th>Satu baris</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>gRPC</td>
+                                <td>Panggilan method jarak jauh bertipe, kontrak Protobuf, serialisasi biner, transport HTTP/2.</td>
+                            </tr>
+                            <tr>
+                                <td>Protobuf (IDL)</td>
+                                <td><code>.proto</code> adalah kontraknya; kedua sisi membuat kode darinya.</td>
+                            </tr>
+                            <tr>
+                                <td>Nomor field</td>
+                                <td>Identitas wire sebenarnya, jangan pernah mengubah atau memakai ulang satu pun; menambah field aman.</td>
+                            </tr>
+                            <tr>
+                                <td>Format wire</td>
+                                <td>tag = <code>(field&#171;3)|wiretype</code>, dikemas varint; kecil + cepat, tidak bisa dibaca manusia.</td>
+                            </tr>
+                            <tr>
+                                <td>HTTP/2</td>
+                                <td>Satu koneksi, banyak stream tersisip; satu RPC = satu stream.</td>
+                            </tr>
+                            <tr>
+                                <td>Unary</td>
+                                <td>1-&gt;1, panggilan normal (±90% RPC).</td>
+                            </tr>
+                            <tr>
+                                <td>Server stream</td>
+                                <td>1-&gt;banyak, umpan, set hasil besar.</td>
+                            </tr>
+                            <tr>
+                                <td>Client stream</td>
+                                <td>banyak-&gt;1, upload, agregasi batch.</td>
+                            </tr>
+                            <tr>
+                                <td>Bidi stream</td>
+                                <td>banyak&lt;-&gt;banyak, chat, realtime, full-duplex.</td>
+                            </tr>
+                            <tr>
+                                <td>Channel vs stub</td>
+                                <td>Channel = koneksi dipakai ulang (satu, dibagikan); stub = pemanggil murah per-panggilan.</td>
+                            </tr>
+                            <tr>
+                                <td>Metadata</td>
+                                <td>Kanel sampingan key-value = header HTTP; membawa token &amp; trace ID.</td>
+                            </tr>
+                            <tr>
+                                <td>Deadline</td>
+                                <td>Batas waktu absolut, menyebar lintas hop, set satu di <em>setiap</em> panggilan.</td>
+                            </tr>
+                            <tr>
+                                <td>Status code</td>
+                                <td>Enum milik gRPC sendiri (OK, NOT_FOUND, UNAVAILABLE...), di trailer, bukan kode HTTP.</td>
+                            </tr>
+                            <tr>
+                                <td>Interceptor</td>
+                                <td>Middleware gRPC: auth, logging, tracing, pemulihan; unary &amp; stream.</td>
+                            </tr>
+                            <tr>
+                                <td>Keamanan</td>
+                                <td>TLS/mTLS untuk pipa + token-di-metadata untuk pengguna; jangan pernah <code>insecure</code> di produksi.</td>
+                            </tr>
+                            <tr>
+                                <td>Load balancing</td>
+                                <td>Pakai L7 / sisi klien, balancer TCP L4 mem-pin semuanya ke satu backend.</td>
+                            </tr>
+                            <tr>
+                                <td>Retry</td>
+                                <td>Deklaratif via service config; hanya auto-retry method idempotent.</td>
+                            </tr>
+                            <tr>
+                                <td>Browser</td>
+                                <td>Tanpa gRPC natif, pakai gRPC-Web, Connect, atau gateway REST.</td>
+                            </tr>
+                            <tr>
+                                <td>Debug</td>
+                                <td><code>grpcurl</code> + reflection; channelz untuk koneksi; health service untuk probe.</td>
+                            </tr>
+                            <tr>
+                                <td>vs REST</td>
+                                <td>gRPC = internal/bertipe/cepat; REST = publik/ter-debug/cacheable. Jalankan keduanya.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="foot">
+                    <p><strong>Seluruh topik dalam satu tarikan napas:</strong> gRPC membuat klien memanggil method server seolah lokal. Anda mendefinisikan API sekali di <code>.proto</code> (bagian 04), <code>protoc</code> membuat stub dan skeleton server bertipe (bagian 11), argumen diserialkan sebagai protobuf ringkas (bagian 05) dan diangkut lewat stream HTTP/2 termultipleks (bagian 06) dalam satu dari empat bentuk, unary, server-, client-, atau bidirectional-streaming (bagian 07-10). Channel berumur panjang menaungi stub murah per-panggilan (bagian 12); metadata membawa konteks auth dan trace, deadline membatasi dan menyebarkan panggilan, pembatalan merebut kembali kerja (bagian 13); setiap panggilan berakhir dengan status code gRPC (bagian 14); interceptor memusatkan logika lintas-pemotongan (bagian 15); TLS/mTLS plus token per-panggilan mengamankannya (bagian 16); retry deklaratif dan balancing L7/sisi-klien membuatnya tangguh (bagian 17). Rengkuh gRPC di dalam sistem Anda dan REST di tepi publik (bagian 18-19), dan andalkan grpcurl, reflection, dan interceptor untuk mengintip ke dalam (bagian 20).</p>
+                    <p
+                        style="margin-top:14px;font-family:'JetBrains Mono', ui-monospace, monospace;font-size:12px;letter-spacing:.05em;">Berpijak pada dokumen grpc.io &amp; protobuf.dev / MDN untuk latar HTTP/2 / contoh Go 1.22+ (google.golang.org/grpc) / Python 3.11+ (grpcio).</p>
+                </div>
+            </section>
+
+        
+      <footer class="bfp-footer">Belajar Prinsip-Prinsip Backend / Chapter 13 / gRPC. Code targets Go 1.22+ and Python 3.11+.</footer>
+</main>
+</div>
+<button class="toc-toggle" onclick="document.querySelector('.toc').classList.toggle('open')"> Contents</button>
+
+    
+
+    <script>
+        hljs.highlightAll();
+        document.querySelectorAll('[data-cb]').forEach(block => {
+            const btns = block.querySelectorAll('.code-tabs button');
+            const panels = block.querySelectorAll('.code-panel');
+            btns.forEach(btn => btn.addEventListener('click', () => {
+                const lang = btn.dataset.lang;
+                btns.forEach(b => b.classList.toggle('on', b === btn));
+                panels.forEach(p => p.classList.toggle('on', p.dataset.panel === lang));
+            }));
+        });
+</script>
+<!-- CHAPTER NAVIGATION -->
+<nav class="chapter-nav" id="chapterNav">
+  <a href="../../12. Error Handling and Building Fault Tolerant Systems/html_notes/notes.html" class="nav-chapter-link"><span class="nav-arrow"><svg class="ico-arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="13.5" y1="8" x2="3.5" y2="8"/><polyline points="7.5,4 3.5,8 7.5,12"/></svg></span><span class="nav-label"><span class="nav-small">Chapter 12</span>Error Handling & Fault Tolerance</span></a>
+  <a href="../../index.html" class="nav-indicator"><span class="nav-dot"></span> Chapter 13 <span class="nav-sep">/</span> 24</a>
+  <a href="../../14.Production-grade Configuration Management/html_notes/notes.html" class="nav-chapter-link nav-next"><span class="nav-label"><span class="nav-small">Chapter 14</span>Configuration Management</span><span class="nav-arrow"><svg class="ico-arrow" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="2.5" y1="8" x2="12.5" y2="8"/><polyline points="8.5,4 12.5,8 8.5,12"/></svg></span></a>
+</nav>
+  <script src="../../assets/copy-button.js"></script>
+  <script src="../../assets/enhancements.js"></script>
+<script src="../../assets/shell.js"></script>
+</body>
+
+</html>
