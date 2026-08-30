@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Siapa kamu, dan boleh kamu masuk? / Bab 4 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 4 tentang autentikasi dan otorisasi untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 4 / VERSI SEDERHANA</p>
+      <h1>Siapa kamu, dan boleh kamu masuk?</h1>
+      <p class="lede">Gedung mengenali Kuka lewat kartu identitas. Setelah identitas sah, gelang bertanda menentukan pintu mana yang boleh terbuka.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Pintu gedung tidak lagi terbuka untuk semua orang. Kuka perlu membuktikan siapa dirinya lewat <strong>autentikasi</strong>, lalu gedung memeriksa ruangan mana yang boleh ia masuki lewat <strong>otorisasi</strong>.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka datang membawa request. Ia punya tujuan, tetapi pintunya terkunci. Gedung perlu mengenali tamu itu sebelum memilih pintu yang boleh dibuka.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka tiba di gedung kantor dari bab sebelumnya. Kali ini, pintu-pintunya terkunci dan ada mesin pembaca di dekat pintu.</p>
+        <p>Kuka menempelkan kartu identitas ke mesin. Setelah kartu sah, ia memakai gelang bertanda. Motif gelang menunjukkan pintu mana yang boleh ia masuki.</p>
+        <details class="istilah">
+          <summary>Peta sederhananya</summary>
+          <p>Kartu identitas menjawab siapa Kuka. Mesin pemeriksa membaca kartu itu. Buku tamu adalah session. Kartu bersegel membawa identitas sendiri sebagai JWT. Gelang bermotif menunjukkan peran dalam RBAC dan menentukan pintu yang terbuka.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/04-auth/01-pintu.png" width="1672" height="941" alt="Kuka menempelkan kartu bertanda ke mesin pembaca di pintu berpalang, palang mulai naik.">
+          <figcaption>Kartu dibaca di pintu.</figcaption>
+        </figure>
+        <p>Urutannya dimulai dari identitas. Mesin memeriksa kartu, lalu gelang membantu gedung menentukan pintu yang sesuai.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Autentikasi memeriksa identitas. Otorisasi memeriksa izin. Jika identitas tidak ada, server dapat mengirim <code>401</code>. Jika identitas sah tetapi izin kurang, server dapat mengirim <code>403</code>.</p>
+        <p>Tiga komponen inti bekerja bersama. Kartu membawa identitas, mesin pemeriksa memvalidasi bukti, dan catatan akses mencatat siapa yang boleh membuka apa.</p>
+        <p>Dengan <strong>session</strong>, server menyimpan penanda di buku tamu. Kuka cukup membawa penanda itu pada request berikutnya, lalu server mencari catatan yang cocok.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/04-auth/02-buku-tamu.png" width="1672" height="941" loading="lazy" alt="Resepsionis mesin menulis di buku tamu tebal sementara Kuka memegang penanda kecil.">
+          <figcaption>Buku tamu menyimpan penanda.</figcaption>
+        </figure>
+        <p>Dengan <strong>JWT</strong>, identitas dan klaim ditulis pada kartu bersegel. Server tidak perlu mencari catatan tamu. Server cukup memeriksa tanda tangan dan masa berlaku kartu.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/04-auth/03-kartu-segel.png" width="1672" height="941" loading="lazy" alt="Kuka menunjukkan kartu bersegel lilin di depan meja yang kosong tanpa buku.">
+          <figcaption>Kartu membawa identitas sendiri.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Cookie</summary>
+          <p>Cookie adalah saku kecil di browser untuk menyimpan penanda atau kartu. Browser dapat mengirim isinya kembali pada request ke gedung yang sesuai.</p>
+        </details>
+        <details class="istilah">
+          <summary>Autentikasi ber-state</summary>
+          <p>Autentikasi ber-state memakai cara buku tamu. Server menyimpan catatan session, sedangkan tamu cukup membawa penanda.</p>
+        </details>
+        <details class="istilah">
+          <summary>Autentikasi stateless</summary>
+          <p>Autentikasi stateless memakai cara kartu bersegel. Server tidak menyimpan catatan session karena informasi ada di token.</p>
+        </details>
+        <details class="istilah">
+          <summary>Ber-state vs stateless: memilih</summary>
+          <p>Buku tamu mudah dicoret saat tamu diusir. Kartu bersegel praktis saat request melewati banyak gedung.</p>
+        </details>
+        <details class="istilah">
+          <summary>Autentikasi API key</summary>
+          <p>API key adalah kartu khusus mesin, bukan kartu tamu. Client mengirimkannya agar server mengenali client yang memanggil API.</p>
+        </details>
+        <details class="istilah">
+          <summary>Memilih jenis auth</summary>
+          <p>Pilih buku tamu atau kartu bersegel sesuai kebutuhan gedung, cara mencabut akses, dan jumlah service yang harus bekerja bersama.</p>
+        </details>
+        <p>Setelah identitas sah, gedung masih perlu memeriksa peran. <strong>RBAC</strong> memberi gelang bermotif kepada setiap peran. Motif segitiga membuka pintu segitiga, sedangkan motif lingkaran membuka pintu lingkaran.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/04-auth/04-gelang.png" width="1672" height="941" loading="lazy" alt="Kuka memakai gelang bermotif segitiga, satu pintu bermotif segitiga terbuka, dua pintu bermotif lain tertutup.">
+          <figcaption>Gelang menentukan pintu.</figcaption>
+        </figure>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur autentikasi dan otorisasi</title>
+            <desc id="alur-svg-desc">Request tanpa identitas ditolak dengan 401. Request dengan kartu diperiksa mesin, gelang dibaca, pintu terbuka, lalu respons 200 keluar.</desc>
+            <defs>
+              <marker id="alur-arrow-auth" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <text x="130" y="34" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">tanpa kartu</text>
+            <rect x="30" y="52" width="200" height="92" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="130" y="91" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="22" font-weight="600">request</text>
+            <text x="130" y="120" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">tanpa identitas</text>
+            <rect x="330" y="52" width="180" height="92" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="420" y="91" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="22" font-weight="600">401</text>
+            <text x="420" y="120" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">ditolak</text>
+            <path d="M 238 98 L 322 98" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-auth)" />
+
+            <text x="130" y="224" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">dengan kartu</text>
+            <rect x="30" y="242" width="200" height="92" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="130" y="281" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="22" font-weight="600">request</text>
+            <text x="130" y="310" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">+ kartu</text>
+            <rect x="280" y="242" width="190" height="92" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="375" y="281" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">mesin</text>
+            <text x="375" y="310" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">diperiksa</text>
+            <rect x="520" y="242" width="170" height="92" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="605" y="281" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">gelang</text>
+            <text x="605" y="310" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">dibaca</text>
+            <rect x="740" y="242" width="190" height="92" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="835" y="281" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">pintu</text>
+            <text x="835" y="310" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">terbuka</text>
+            <rect x="980" y="242" width="180" height="92" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1070" y="281" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">respons</text>
+            <text x="1070" y="310" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">200 keluar</text>
+            <path d="M 238 288 L 272 288" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-auth)" />
+            <path d="M 478 288 L 512 288" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-auth)" />
+            <path d="M 698 288 L 732 288" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-auth)" />
+            <path d="M 938 288 L 972 288" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-auth)" />
+          </svg>
+        </div>
+        <p>Request tanpa identitas berhenti dengan <code>401</code>. Request dengan kartu diperiksa mesin, gelang dibaca, pintu terbuka, lalu respons <code>200</code> keluar.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Percobaan 1
+GET /ruang
+tanpa kartu
+401 Unauthorized
+Percobaan 2
+GET /ruang
+Authorization: Bearer kartu-kuka
+200 OK</pre>
+        </div>
+        <p>Seperti kartu pos, request pertama datang tanpa kartu dan ditolak. Request berikutnya membawa kartu identitas, sehingga pintu memberi respons <code>200</code>.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Autentikasi menjawab siapa yang datang.</li>
+          <li>Otorisasi menentukan ruangan yang boleh dimasuki.</li>
+          <li>Session menyimpan penanda di server seperti buku tamu.</li>
+          <li>JWT membawa identitas di kartu bersegel.</li>
+          <li>RBAC memakai peran untuk menentukan pintu.</li>
+          <li><code>401</code> berarti identitas belum sah, sedangkan <code>403</code> berarti izin tidak cukup.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Apa beda autentikasi dan otorisasi?</li>
+          <li>Kenapa session butuh buku tamu di server, dan JWT tidak?</li>
+          <li>Setelah identitasmu sah, apa yang menentukan ruangan mana yang boleh kamu masuki?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas cara autentikasi dan otorisasi berkembang dari kartu sederhana menjadi sistem dengan banyak jenis identitas dan peran.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Sejarah autentikasi</a></li>
+          <li><a href="../html_notes/notes.html">Masalah delegasi</a></li>
+          <li><a href="../html_notes/notes.html">OAuth 1.0</a></li>
+          <li><a href="../html_notes/notes.html">OAuth 2.0</a></li>
+          <li><a href="../html_notes/notes.html">OpenID Connect</a></li>
+          <li><a href="../html_notes/notes.html">Pesan error &amp; serangan timing</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Crib-sheet debug</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 4 / Autentikasi &amp; Otorisasi. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
