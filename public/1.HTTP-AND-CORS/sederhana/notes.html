@@ -19,7 +19,7 @@
     <header class="hero">
       <p class="kicker">BAB 1 / VERSI SEDERHANA</p>
       <h1>HTTP tanpa bikin kepala pusing.</h1>
-      <p class="lede">HTTP adalah cara browser dan server saling berkirim pesan. Halaman ini akan memecahnya menjadi langkah kecil yang mudah diikuti.</p>
+      <p class="lede">HTTP adalah cara browser dan server saling berkirim pesan. Halaman ini memecahnya jadi langkah kecil.</p>
       <div class="meta">
         <span>Untuk pemula</span>
         <span>9 bagian</span>
@@ -62,7 +62,7 @@
           <img src="../../assets/illustrations/01-http/01-request-respons.png" width="1672" height="941" alt="Arga menyerahkan surat ke loket dan menerima tanda terima dalam alur request dan respons HTTP.">
           <figcaption>Arga menyerahkan surat, loket mengembalikan tanda terima.</figcaption>
         </figure>
-        <p>Perhatikan hanya dua arah: surat masuk lewat celah atas, tanda terima keluar lewat celah bawah.</p>
+        <p>Perhatikan dua arahnya saja. Surat masuk lewat celah atas. Tanda terima keluar lewat celah bawah.</p>
       </section>
 
       <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
@@ -70,7 +70,7 @@
           <span class="sec-num" aria-hidden="true">04</span>
           <h2 id="konsep-title">Penjelasan konsep</h2>
         </div>
-        <p>Di loket pos, surat permintaan Arga adalah <strong>request</strong> dan tanda terima dari petugas adalah <strong>respons</strong>; dalam HTTP, browser menjadi <strong>client</strong> dan loket menjadi <strong>server</strong>.</p>
+        <p>Di loket pos, surat permintaan Arga adalah request. Tanda terimanya adalah respons. Di HTTP, browser jadi client dan loket jadi server.</p>
         <p>Surat punya tiga bagian: baris perintah untuk mengatakan apa yang diminta, label di sampul sebagai <strong>header</strong>, dan isi surat sebagai <strong>body</strong>.</p>
         <p><strong>Method</strong> adalah kata kerja pada kertas permintaan: <code>GET</code> untuk mengambil, <code>POST</code> untuk menitipkan, lalu <code>PUT</code>, <code>PATCH</code>, atau <code>DELETE</code> untuk mengganti atau menghapus.</p>
         <p><strong>Status code</strong> adalah cap pada tanda terima: <code>200</code> berarti berhasil, <code>404</code> berarti alamat tidak ditemukan, dan <code>500</code> berarti mesin server bermasalah.</p>
@@ -175,8 +175,8 @@ Berita hari ini.</pre>
           <li>HTTP adalah percakapan teratur antara client dan server melalui request dan respons.</li>
           <li>Request memiliki baris perintah, header, dan body, seperti surat dengan instruksi, label, dan isi.</li>
           <li>Method menyatakan tindakan yang diminta, sedangkan status code menyatakan hasilnya.</li>
-          <li>Server bersifat stateless, sehingga identitas atau salinan yang dibutuhkan perlu dibawa kembali oleh client.</li>
-          <li>HTTPS menyegel perjalanan pesan, sementara TCP membawa pesan di jalur yang menghubungkan client dan server.</li>
+          <li>Server bersifat stateless. Client perlu membawa lagi identitas atau salinan yang server butuhkan.</li>
+          <li>HTTPS menyegel isinya. TCP membawa pesan dari client ke server.</li>
         </ul>
       </section>
 
@@ -187,7 +187,7 @@ Berita hari ini.</pre>
         </div>
         <ol class="tanya">
           <li>Apa saja isi utama sebuah request dan respons HTTP?</li>
-          <li>Mengapa server tidak mengingat Anda antar request, dan apa akibatnya bagi setiap request berikutnya?</li>
+          <li>Mengapa server tidak mengingat Anda antar request? Apa yang harus Anda bawa setiap kali datang?</li>
           <li>Apa perbedaan arti status code <code>200</code>, <code>404</code>, dan <code>500</code>?</li>
         </ol>
       </section>

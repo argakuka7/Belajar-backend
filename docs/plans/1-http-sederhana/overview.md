@@ -44,10 +44,10 @@ Untuk siapa: pembaca pemula mendapat halaman masuk yang bisa dipahami tanpa isti
 
 ## Phases
 
-1. [phase-1-scaffold.md](phase-1-scaffold.md) — shell halaman sederhana, CSS bersama, link dua arah.
-2. [phase-2-konten.md](phase-2-konten.md) — isi 9 bagian sesuai manifest coverage.
-3. [phase-3-ilustrasi.md](phase-3-ilustrasi.md) — shot list, generate, QA, simpan ilustrasi Arga.
-4. [phase-4-integrasi.md](phase-4-integrasi.md) — pasang ilustrasi + diagram + istilah, link index.html, verifikasi penuh.
+1. [phase-1-scaffold.md](phase-1-scaffold.md): shell halaman sederhana, CSS bersama, link dua arah.
+2. [phase-2-konten.md](phase-2-konten.md): isi 9 bagian sesuai manifest coverage.
+3. [phase-3-ilustrasi.md](phase-3-ilustrasi.md): shot list, generate, QA, simpan ilustrasi Arga.
+4. [phase-4-integrasi.md](phase-4-integrasi.md): pasang ilustrasi + diagram + istilah, link index.html, verifikasi penuh.
 
 Urutan ini menaruh scaffold dan kontrak (yang dipakai semua fase berikutnya) lebih dulu. Ilustrasi sebelum integrasi supaya fase 4 hanya menyambung, tidak menunggu.
 

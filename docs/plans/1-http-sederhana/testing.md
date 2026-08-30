@@ -32,7 +32,7 @@ Drive `agent_browser` (bukan screenshot manual):
 
 ## Bukti lulus
 
-Tiap fase mencatat hasil check-nya di pesan balasan sesi, bukan hanya klaim. Fase 4 menutup dengan commit di root project:
+Tiap fase mencatat hasil check-nya di pesan balasan sesi. Klaim tanpa bukti tidak dihitung. Fase 4 menutup dengan commit di root project:
 
 ```
 git add public docs && git commit -m "bab 1: tambah halaman Versi Sederhana + ilustrasi Arga"
