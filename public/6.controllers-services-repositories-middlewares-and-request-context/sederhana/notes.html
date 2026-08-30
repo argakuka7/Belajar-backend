@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restoran di dalam server / Bab 6 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 6 tentang controller, service, repository, middleware, dan request context untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 6 / VERSI SEDERHANA</p>
+      <h1>Restoran di dalam server.</h1>
+      <p class="lede">Satu pesanan tamu melewati pintu, pelayan, dapur, dan gudang. Kuka mengikuti perjalanan itu untuk melihat bagaimana server membagi pekerjaan.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Seperti bab 1, percakapan dimulai dari tamu sebagai client yang mengirim request ke server, lalu server mengirim respons kembali.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka duduk di meja restoran. Ia menyerahkan pesanan kepada pelayan. Pesanan itu perlu dicatat, dimasak, dan dilayani tanpa membuat satu orang mengerjakan semuanya.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka menulis pesanan di selembar kertas. Pelayan menerima kertas itu dan membuat tiket yang rapi untuk dapur. Dapur membaca tiket, lalu gudang menyediakan bahan yang dibutuhkan.</p>
+        <p>Setelah makanan siap, pelayan membawa hasilnya ke meja Kuka. Setiap orang memegang satu jenis pekerjaan, jadi pesanan tidak hilang di antara meja.</p>
+        <details class="istilah">
+          <summary>Peta sederhananya</summary>
+          <p>Tamu adalah client. Kertas pesanan adalah request. Pelayan adalah <strong>controller</strong>. Juru masak adalah <strong>service</strong>. Petugas gudang adalah <strong>repository</strong>. Pintu pemeriksaan adalah <strong>middleware</strong>. Nota yang ikut bersama pesanan adalah <strong>request context</strong>.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/06-lapisan/01-restoran.png" width="1672" height="941" alt="Kuka di meja restoran menyerahkan kertas pesanan kepada pelayan mesin, dengan jendela dapur dan rak bahan di kejauhan.">
+          <figcaption>Pesanan masuk ke restoran.</figcaption>
+        </figure>
+        <p>Restoran terlihat seperti satu tempat, tetapi pekerjaan di dalamnya terbagi. Server juga begitu. Request melewati beberapa bagian sebelum respons kembali.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Jika satu orang menjadi pelayan, juru masak, dan petugas gudang sekaligus, ia cepat kewalahan. Tiga lapisan membagi tanggung jawab supaya setiap bagian punya pekerjaan yang jelas.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/06-lapisan/02-tiga-lapis.png" width="1672" height="941" loading="lazy" alt="Tiket pesanan berjalan melewati tiga meja bertanda pelayan, panci juru masak, dan rak gudang.">
+          <figcaption>Tiga meja, tiga tanggung jawab.</figcaption>
+        </figure>
+        <p>Pelayan disebut controller. Juru masak disebut service. Petugas gudang disebut repository. Ketiga lapisan ini boleh bekerja sama, tetapi masing-masing tetap berada di wilayahnya.</p>
+        <p>Controller menerima request, membaca isinya, dan menulis tiket untuk service. Ia tidak memasak. Service menjalankan aturan pesanan, seperti menghitung total atau memastikan bahan tersedia. Repository mengambil dan menyimpan data tanpa memutuskan aturan bisnis.</p>
+        <p>Dengan batas ini, resep dapat berubah tanpa mengubah cara pelayan menerima pesanan. Gudang juga dapat berpindah dari satu sistem ke sistem lain tanpa membuat dapur ikut berubah.</p>
+        <details class="istilah">
+          <summary>Routing dan titik masuk</summary>
+          <p>Alurnya dimulai dari titik masuk dan routing. Resepsionis mengarahkan tamu ke pelayan yang tepat, seperti routing pada bab sebelumnya. Setelah itu, request bergerak dari controller ke service, lalu ke repository.</p>
+        </details>
+        <details class="istilah">
+          <summary>Siklus lengkap end to end</summary>
+          <p>Lapisan tidak menghapus perjalanan request. Request masuk dari pintu, melewati middleware, menuju controller, service, dan repository, lalu kembali sebagai respons. Saat ada masalah, kita tahu meja mana yang perlu diperiksa.</p>
+        </details>
+        <p>Sebelum sampai ke controller, pesanan melewati middleware. Middleware adalah barisan pintu pemeriksaan di depan restoran. Setiap pintu boleh memeriksa, mencatat, mengubah sedikit, menolak, atau meneruskan pesanan.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/06-lapisan/03-middleware.png" width="1672" height="941" loading="lazy" alt="Kuka melewati barisan dua gerbang berbentuk berbeda sebelum sampai ke meja pelayan.">
+          <figcaption>Dua pintu sebelum pelayan.</figcaption>
+        </figure>
+        <p>Middleware memanggil <code>next()</code> untuk berkata, "selesai, teruskan ke petugas berikutnya". Jika ia lupa memanggilnya dan tidak mengirim respons, barisan berhenti di pintu itu.</p>
+        <details class="istilah">
+          <summary>Kenapa urutan penting</summary>
+          <p>Restoran memeriksa reservasi sebelum mengambil jaket tamu. Di server, middleware autentikasi sebaiknya berjalan sebelum handler memakai identitas tamu. Salah urutan dapat membuat pemeriksaan datang terlambat.</p>
+        </details>
+        <details class="istilah">
+          <summary>Request context</summary>
+          <p>Request context adalah nota kecil yang menempel pada pesanan. Nota ini dapat membawa identitas tamu, nomor meja, batas waktu, atau nomor untuk tracing. Ia ikut dari middleware ke controller, service, dan repository.</p>
+        </details>
+        <details class="istilah">
+          <summary>Meneruskan data autentikasi</summary>
+          <p>Data autentikasi yang diperiksa di pintu dapat dibaca dapur lewat nota itu. Dapur tidak perlu bertanya ulang kepada tamu.</p>
+        </details>
+        <details class="istilah">
+          <summary>Tracing dan pembatalan</summary>
+          <p>Nomor tracing membantu tim menemukan satu pesanan ketika ada keluhan. Context juga dapat membawa tanda pembatalan dan batas waktu. Jika Kuka membatalkan pesanan, dapur dapat berhenti memasak.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/06-lapisan/04-nota.png" width="1672" height="941" loading="lazy" alt="Tiket pesanan memiliki nota kecil yang terklip, lalu Kuka memasangkan klip itu pada tiket.">
+          <figcaption>Nota ikut bersama tiket.</figcaption>
+        </figure>
+        <p>Server tidak perlu terus mengerjakan request yang sudah tidak diperlukan.</p>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur request melalui lapisan server</title>
+            <desc id="alur-svg-desc">Request melewati dua middleware, controller, service, dan repository, lalu kembali sebagai respons.</desc>
+            <defs>
+              <marker id="alur-arrow-lapisan" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="22" y="150" width="150" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="97" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">request</text>
+            <text x="97" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">masuk</text>
+            <rect x="205" y="150" width="150" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="280" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">middleware</text>
+            <text x="280" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">cek</text>
+            <rect x="388" y="150" width="150" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="463" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">middleware</text>
+            <text x="463" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">teruskan</text>
+            <rect x="571" y="150" width="150" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="646" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">controller</text>
+            <text x="646" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">tiket</text>
+            <rect x="754" y="150" width="150" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="829" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">service</text>
+            <text x="829" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">proses</text>
+            <rect x="937" y="150" width="150" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1012" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">repository</text>
+            <text x="1012" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">gudang</text>
+            <path d="M 180 193 L 197 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-lapisan)" />
+            <path d="M 363 193 L 380 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-lapisan)" />
+            <path d="M 546 193 L 563 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-lapisan)" />
+            <path d="M 729 193 L 746 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-lapisan)" />
+            <path d="M 912 193 L 929 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-lapisan)" />
+            <text x="600" y="305" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">kembali jadi respons</text>
+            <path d="M 1012 248 C 1012 350 740 380 646 248" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-lapisan)" />
+          </svg>
+        </div>
+        <p>Request melewati dua middleware, lalu controller membuat tiket. Service memproses aturan dan repository membaca gudang. Hasilnya kembali sebagai respons.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Pesanan tamu: meja 4, sup hangat
+Controller: pesanan berubah jadi tiket
+Service: tiket diproses dapur
+Repository: catatan gudang, bahan tersedia
+Dapur: sup selesai dimasak
+Respons: pesanan siap diantar</pre>
+        </div>
+        <p>Seperti kartu pos, pesanan Kuka berubah menjadi tiket yang dapat dibaca setiap bagian. Catatan gudang membantu dapur, lalu restoran mengirim respons kepada tamu.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Server membagi pekerjaan request ke beberapa bagian dengan tanggung jawab yang jelas.</li>
+          <li>Controller menerima request dan mengubahnya menjadi tiket untuk lapisan berikutnya.</li>
+          <li>Service menjalankan aturan bisnis dan tidak menyerahkan keputusan itu kepada controller.</li>
+          <li>Repository menjadi satu-satunya pintu untuk membaca atau menyimpan data di gudang.</li>
+          <li>Middleware memeriksa atau meneruskan request sebelum controller bekerja.</li>
+          <li><code>next()</code> meneruskan request, sedangkan lupa memanggilnya dapat menghentikan barisan.</li>
+          <li>Request context membawa identitas, batas waktu, nomor tracing, dan tanda pembatalan bersama request.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Apa tugas controller, dan apa yang tidak boleh ia kerjakan?</li>
+          <li>Kenapa gudang atau database hanya boleh diakses lewat repository?</li>
+          <li>Apa fungsi <code>next()</code> dan apa yang terjadi jika satu middleware lupa memanggilnya?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membongkar implementasi setiap lapisan dan perjalanan request dengan kode yang bisa dijalankan.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Titik masuk dan routing</a></li>
+          <li><a href="../html_notes/notes.html">Siklus hidup end to end</a></li>
+          <li><a href="../html_notes/notes.html">Logging, autentikasi, parsing, compression, dan error handler</a></li>
+          <li><a href="../html_notes/notes.html">Tracing, deadline, dan pembatalan request</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <p>Implementasi kode penuh Go/Python ada di <a href="../html_notes/notes.html">versi teknis</a>.</p>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 6 / Controller, Service, Repository, Middleware, dan Request Context. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+</body>
+
+</html>
