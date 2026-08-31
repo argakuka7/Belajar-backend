@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Satu gedung tidak cukup, buka cabang / Bab 19 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 19 tentang scaling dan performance bagian 2 untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,0..144,400;1,0..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 19 / VERSI SEDERHANA</p>
+      <h1>Satu gedung tidak cukup, buka cabang.</h1>
+      <p class="lede">Saat tamu bertambah, satu gedung akan kewalahan. Kita membuka cabang, membagi pekerjaan, dan memindahkan ingatan ke tempat bersama agar cabang mana pun bisa melayani.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Satu gedung restoran bisa melayani banyak tamu. Pada jam makan siang, antrean memanjang dan kasir pertama tidak sanggup menerima semuanya. Menambah meja di gedung yang sama punya batas.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka membuka cabang baru. Tamu bisa masuk ke gedung mana pun. Cabang itu harus langsung bekerja tanpa menunggu catatan pribadi dari gedung lama.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka mengelola beberapa gedung restoran dengan papan tamu di kantor pusat. Tamu boleh masuk ke cabang mana pun. Kasir di tiap cabang melayani permintaan, lalu membaca dan menulis catatan pada papan pusat.</p>
+        <p>Kasir tidak menyimpan ingatan tamu di laci pribadinya. Jika satu gedung sakit, papan pusat mengarahkan tamu berikutnya ke gedung yang sehat.</p>
+        <details class="istilah">
+          <summary>Peta sederhananya</summary>
+          <p>Kasir tanpa ingatan adalah <strong>stateless</strong>. Papan tamu pusat adalah penyimpanan bersama. Cabang adalah instance server. Membuka lebih banyak cabang adalah scaling horizontal.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/19-scaling2/01-cabang.png" width="1672" height="941" alt="Tiga gedung restoran kembar berjajar dengan papan kecil yang sama dan Kuka berdiri di depan gedung tengah.">
+          <figcaption>Tiga cabang, satu papan.</figcaption>
+        </figure>
+        <p>Ketiga gedung terlihat terpisah, tetapi mereka memakai aturan dan catatan pusat yang sama. Tamu tidak perlu tahu cabang mana yang sedang bekerja.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Arsitektur stateless membuat semua cabang dapat menangani tamu yang sama. Sesi, file, cache, dan data tamu tinggal di penyimpanan bersama. Cabang tidak menyimpan keadaan penting hanya di dalam prosesnya.</p>
+        <p>Load balancer menerima tamu di pintu depan. Ia memilih cabang dengan algoritma tertentu. Round robin bergiliran. Least connections memilih cabang dengan antrean koneksi paling pendek. Pilihan algoritma mengikuti bentuk beban kerja.</p>
+        <p>Proses <strong>sharding</strong> memecah satu buku besar menjadi beberapa buku. Cabang A menjaga tamu dengan huruf awal A, cabang B menjaga tamu dengan huruf awal B. Permintaan yang tahu kuncinya dapat langsung menuju cabang yang benar.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/19-scaling2/02-sharding.png" width="1672" height="941" loading="lazy" alt="Satu buku besar tebal dipecah menjadi dua buku lebih tipis dan Kuka memegang salah satunya.">
+          <figcaption>Satu buku menjadi dua.</figcaption>
+        </figure>
+        <p>Model mental scaling dimulai dengan satu pertanyaan: bagian mana yang kewalahan dulu? Tambah cabang untuk kapasitas aplikasi, pecah buku untuk database, dekatkan salinan untuk jarak, atau antrekan pekerjaan berat.</p>
+        <details class="istilah">
+          <summary>Health check</summary>
+          <p>Load balancer mengirim pemeriksaan ringan ke setiap cabang. Cabang yang gagal menjawab dikeluarkan dari rotasi. Tamu baru menunggu sampai cabang itu sehat kembali.</p>
+        </details>
+        <details class="istilah">
+          <summary>Read replica</summary>
+          <p>Satu buku utama menyalin isinya ke beberapa buku <strong>replica</strong>. Permintaan baca dapat dibagi ke salinan. Perubahan baru tetap perlu waktu untuk sampai ke setiap replica.</p>
+        </details>
+        <details class="istilah">
+          <summary>CDN</summary>
+          <p><strong>CDN</strong> menaruh salinan menu di rak yang dekat dengan tamu. Tamu membaca salinan terdekat, jadi mereka tidak perlu berjalan ke kantor pusat setiap kali.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/19-scaling2/03-cdn.png" width="1672" height="941" loading="lazy" alt="Satu lemari pusat dan tiga rak kecil di sudut berbeda memiliki isi yang sama dengan garis putus-putus penghubung.">
+          <figcaption>Salinan dekat tamu.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Edge</summary>
+          <p>Edge menaruh meja kecil dekat tamu untuk pekerjaan singkat. Pemeriksaan sederhana selesai di sana. Pekerjaan berat tetap menuju gedung utama.</p>
+        </details>
+        <details class="istilah">
+          <summary>Pemrosesan asinkron</summary>
+          <p>Pekerjaan berat masuk antrean. Kasir memberi nomor tiket dan segera melayani tamu berikutnya. Dapur belakang menyelesaikan pekerjaan itu tanpa membuat kasir menunggu.</p>
+        </details>
+        <details class="istilah">
+          <summary>Monolit vs microservice</summary>
+          <p>Monolit memakai satu dapur besar untuk semua hidangan. Microservice memisahkan dapur menurut jenis pekerjaan. Pemisahan memberi ruang tumbuh, tetapi juga menambah koordinasi.</p>
+        </details>
+        <details class="istilah">
+          <summary>Serverless</summary>
+          <p>Serverless menyewa juru masak saat pesanan datang. Anda membayar pekerjaan yang berjalan tanpa merawat dapur yang selalu menyala.</p>
+        </details>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 960 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur tamu menuju cabang yang sehat</title>
+            <desc id="alur-svg-desc">Tamu datang ke gedung mana pun, kasir tanpa ingatan membaca buku tamu pusat, lalu memberi jawaban cepat. Gedung sakit mengalihkan tamu ke gedung sehat.</desc>
+            <defs>
+              <marker id="alur-arrow-scaling" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="28" y="130" width="150" height="80" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="103" y="165" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">tamu</text>
+            <text x="103" y="191" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">datang</text>
+            <rect x="236" y="105" width="180" height="130" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="326" y="145" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">gedung</text>
+            <text x="326" y="174" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">cabang A / B</text>
+            <text x="326" y="202" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">mana pun</text>
+            <rect x="474" y="105" width="180" height="130" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="564" y="145" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">kasir</text>
+            <text x="564" y="174" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">tanpa ingatan</text>
+            <text x="564" y="202" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">stateless</text>
+            <rect x="712" y="105" width="210" height="130" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="817" y="145" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">buku tamu</text>
+            <text x="817" y="174" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">pusat</text>
+            <text x="817" y="202" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">jawaban cepat</text>
+            <path d="M 184 170 L 228 170" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-scaling)" />
+            <path d="M 422 170 L 466 170" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-scaling)" />
+            <path d="M 660 170 L 704 170" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-scaling)" />
+            <rect x="300" y="288" width="180" height="58" rx="12" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="390" y="313" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="18" font-weight="600">gedung sakit</text>
+            <text x="390" y="334" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">dialihkan</text>
+            <rect x="568" y="288" width="180" height="58" rx="12" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="658" y="313" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="18" font-weight="600">gedung sehat</text>
+            <text x="658" y="334" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="13" font-weight="700">terima tamu</text>
+            <path d="M 326 240 C 326 270, 390 270, 390 280" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-scaling)" />
+            <path d="M 480 317 L 558 317" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-scaling)" />
+          </svg>
+        </div>
+        <p>Tamu tiba di cabang mana pun. Kasir membaca buku tamu pusat dan memberi jawaban cepat. Jika satu gedung sakit, sistem mengalihkan tamu ke gedung sehat.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Tamu "A" datang
+Buku besar: A -&gt; cabang A
+Buku A: layani tamu "A"
+Tamu "B" datang
+Buku besar: B -&gt; cabang B
+Buku B: layani tamu "B"
+</pre>
+        </div>
+        <p>Seperti kartu pos, buku besar sudah dipecah per huruf awal. Tamu A langsung menuju cabang A. Tamu B menuju cabang B.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Stateless membuat setiap cabang bisa menangani tamu tanpa ingatan lokal yang penting.</li>
+          <li>Load balancer membagi tamu memakai algoritma yang sesuai dengan beban kerja.</li>
+          <li>Health check mengeluarkan cabang sakit dari rotasi.</li>
+          <li>Read replica membagi pekerjaan baca ke beberapa salinan buku.</li>
+          <li>Sharding memecah buku besar agar tiap cabang menjaga bagian tertentu.</li>
+          <li>CDN dan edge mendekatkan salinan atau pekerjaan ringan kepada tamu.</li>
+          <li>Antrean asinkron memindahkan pekerjaan berat ke belakang.</li>
+          <li>Monolit, microservice, dan serverless menawarkan cara berbeda untuk membagi tempat kerja.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Kenapa kasir tanpa ingatan (stateless) membuat membuka cabang jadi mudah?</li>
+          <li>Apa itu memecah buku besar per huruf awal (sharding)?</li>
+          <li>Apa pertanyaan yang dijawab oleh semua strategi scaling?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas pilihan infrastruktur dan arsitektur yang membantu sistem melayani lebih banyak tamu.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Database terdistribusi</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 19 / Scaling &amp; Performance bagian 2. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
