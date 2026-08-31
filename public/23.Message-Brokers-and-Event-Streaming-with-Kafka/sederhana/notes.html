@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Papan tiket yang tidak pernah dihapus / Bab 23 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 23 tentang Message Brokers dan Event Streaming dengan Kafka untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 23 / VERSI SEDERHANA</p>
+      <h1>Papan tiket yang tidak pernah dihapus.</h1>
+      <p class="lede">Kuka masuk ke dapur yang menerima banyak pesanan sekaligus. Ia melihat papan tiket besar yang menyimpan setiap pesanan, bahkan setelah juru masak selesai membacanya.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Satu restoran bisa menerima ratusan pesanan. Dapur perlu membagikan kabar yang sama kepada kasir, juru masak, dan bagian pengantaran. Jika satu tiket langsung diambil lalu dibuang, orang yang datang terlambat tidak tahu apa yang terjadi.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka menempelkan pesanan baru di papan. Juru masak membaca tiket itu. Tiketnya tetap ada, sehingga juru masak lain dapat melihat riwayat pesanan tanpa meminta Kuka mengulang cerita.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka menemukan papan tiket raksasa di antara banyak dapur. Setiap tiket menempel berurutan dari atas ke bawah. Tiket baru selalu masuk di ujung. Tiket lama tidak dicabut ketika sudah dibaca.</p>
+        <p>Setiap dapur punya pembatas bukunya sendiri. Pembatas itu menandai tiket terakhir yang sudah dibaca. Satu dapur boleh mengulang dari nomor lama, sementara dapur lain terus membaca tiket baru.</p>
+        <details class="istilah">
+          <summary>Peta istilah papan tiket</summary>
+          <p>Papan tiket adalah Kafka. Jalur tiket adalah topic dan partition. Orang yang menempelkan tiket adalah producer. Juru masak yang membaca tiket adalah consumer. Pembatas buku adalah offset. Penjaga papan disebut broker.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/23-kafka/01-papan-log.png" width="1672" height="941" alt="Kuka membaca papan tiket raksasa yang penuh tiket bernomor dan tersusun panjang tanpa ada tiket yang dicabut.">
+          <figcaption>Papan log Kuka</figcaption>
+        </figure>
+        <p>Papan ini bukan tempat untuk menghapus pekerjaan setelah selesai. Ia menyimpan urutan kejadian. Banyak bagian dapur dapat memakai urutan yang sama untuk pekerjaan mereka.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p><strong>Kafka</strong> adalah sistem untuk mengirim dan menyimpan event dalam jumlah besar. Bayangkan papan tiket raksasa yang dipakai banyak dapur. Setiap event masuk berurutan dan dapat dibaca oleh bagian yang membutuhkannya.</p>
+        <p>Pada antrean biasa, tiket diambil oleh satu pekerja lalu hilang dari papan. Dalam Kafka, <strong>log</strong> menyimpan tiket setelah dibaca. Banyak consumer dapat membaca tiket yang sama dari posisi mereka masing-masing.</p>
+        <p>Commit log adalah catatan yang hanya bergerak maju. Event baru ditambahkan di ujung. Nomor urut membantu sistem tahu posisi setiap event tanpa harus memindahkan catatan lama.</p>
+        <p><strong>topic</strong> mengelompokkan event berdasarkan jenisnya, seperti pesanan atau pembayaran. Satu topic dapat dibagi menjadi beberapa <strong>partition</strong>. Tiap partition punya urutan sendiri dan membantu banyak pekerjaan berjalan bersamaan.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/23-kafka/03-jalur.png" width="1672" height="941" loading="lazy" alt="Papan tiket terbagi menjadi tiga jalur terpisah dengan tiket bernomor yang mengalir berurutan di tiap jalur.">
+          <figcaption>Tiga jalur tiket</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Broker dan replikasi</summary>
+          <p>Broker adalah penjaga yang menerima, menyimpan, dan mengirim tiket. Salinan papan dapat disimpan di broker lain. Jika satu broker rusak, salinan membantu catatan tetap tersedia.</p>
+        </details>
+        <details class="istilah">
+          <summary>Producer</summary>
+          <p>Producer membuat event lalu menempelkannya di ujung topic. Ia dapat memilih partition berdasarkan kunci tertentu. Producer tidak menghapus event yang sudah dikirim.</p>
+        </details>
+        <details class="istilah">
+          <summary>Consumer dan consumer group</summary>
+          <p>Consumer membaca event dari partition. Dalam satu consumer group, beberapa consumer membagi pekerjaan. Satu event dibaca satu consumer dalam group itu, tetapi group lain dapat membacanya lagi.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/23-kafka/02-offset.png" width="1672" height="941" loading="lazy" alt="Tiga juru masak mesin berdiri di depan papan yang sama dan memegang pembatas buku pada tingkat tiket yang berbeda.">
+          <figcaption>Pembatas tiap juru masak</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Offset dan manajemen offset</summary>
+          <p><strong>offset</strong> adalah nomor posisi terakhir yang sudah dibaca consumer. Pembatas ini disimpan agar consumer dapat melanjutkan pekerjaan setelah berhenti. Consumer juga dapat kembali membaca dari offset yang lebih lama.</p>
+        </details>
+        <details class="istilah">
+          <summary>Semantik pengiriman</summary>
+          <p>Dalam keadaan sibuk, satu event bisa terbaca dua kali. Consumer sebaiknya aman ketika menerima event yang sama. Sistem juga bisa mengatur kapan event dianggap sudah diproses.</p>
+        </details>
+        <details class="istilah">
+          <summary>Jaminan urutan</summary>
+          <p>Kafka menjaga urutan di dalam satu partition. Urutan antarpartition tidak otomatis terjamin. Jika urutan global penting, desain pembagian jalurnya dengan hati-hati.</p>
+        </details>
+        <details class="istilah">
+          <summary>Retensi dan kompaksi log</summary>
+          <p>Retensi menentukan berapa lama event lama disimpan. Kompaksi dapat menyisakan nilai terbaru untuk setiap kunci. Jadi papan bisa tetap berguna tanpa tumbuh selamanya.</p>
+        </details>
+        <details class="istilah">
+          <summary>Skema dan schema registry</summary>
+          <p>Skema menjelaskan bentuk event. Schema registry menyimpan aturan bentuk itu agar producer dan consumer membaca data dengan cara yang sama.</p>
+        </details>
+        <details class="istilah">
+          <summary>Pola event-driven</summary>
+          <p>Pada pola event-driven, bagian lain bereaksi ketika event baru muncul. Producer tidak perlu memanggil semua bagian itu satu per satu.</p>
+        </details>
+        <details class="istilah">
+          <summary>Stream processing</summary>
+          <p>Stream processing membaca event sambil terus mengalir. Sistem dapat menyaring, menghitung, dan merangkum event tanpa menunggu seluruh data terkumpul.</p>
+        </details>
+        <details class="istilah">
+          <summary>Kafka vs antrean tradisional</summary>
+          <p>Antrean cocok ketika satu pekerjaan harus diambil sekali lalu selesai. Kafka cocok ketika beberapa bagian perlu membaca riwayat event, memprosesnya ulang, atau mengikuti aliran baru.</p>
+        </details>
+        <details class="istilah">
+          <summary>Jebakan consumer</summary>
+          <p>Jika consumer berhenti menggeser pembatas, event yang belum dibaca akan menumpuk. Pantau jarak antara event terbaru dan offset consumer. Jarak itu disebut lag.</p>
+        </details>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur tiket di papan Kafka</title>
+            <desc id="alur-svg-desc">Pesanan baru menempel di ujung papan, tiga juru masak membaca dengan pembatas masing-masing, tiket lama tetap menempel, dan tiket dapat dibaca ulang kapan pun.</desc>
+            <defs>
+              <marker id="alur-arrow-kafka" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="20" y="205" width="215" height="90" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="127" y="243" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">pesanan baru</text>
+            <text x="127" y="270" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">menempel di ujung</text>
+            <rect x="285" y="55" width="365" height="390" rx="18" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="467" y="90" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="22" font-weight="600">papan log</text>
+            <rect x="320" y="120" width="295" height="42" rx="8" fill="#f3ede2" stroke="#1A1A1A" stroke-width="2" />
+            <text x="342" y="147" fill="#1A1A1A" font-family="JetBrains Mono, monospace" font-size="16">tiket 39</text>
+            <rect x="320" y="175" width="295" height="42" rx="8" fill="#f3ede2" stroke="#1A1A1A" stroke-width="2" />
+            <text x="342" y="202" fill="#1A1A1A" font-family="JetBrains Mono, monospace" font-size="16">tiket 40</text>
+            <rect x="320" y="230" width="295" height="42" rx="8" fill="#f3ede2" stroke="#1A1A1A" stroke-width="2" />
+            <text x="342" y="257" fill="#1A1A1A" font-family="JetBrains Mono, monospace" font-size="16">tiket 41</text>
+            <rect x="320" y="285" width="295" height="42" rx="8" fill="#f3ede2" stroke="#1A1A1A" stroke-width="2" />
+            <text x="342" y="312" fill="#1A1A1A" font-family="JetBrains Mono, monospace" font-size="16">tiket 42</text>
+            <rect x="320" y="350" width="295" height="55" rx="8" fill="#E68A3C" stroke="#1A1A1A" stroke-width="2" />
+            <text x="467" y="383" text-anchor="middle" fill="#1A1A1A" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">tiket baru</text>
+            <text x="467" y="430" text-anchor="middle" fill="#E68A3C" font-family="Spline Sans, sans-serif" font-size="15" font-weight="600">tiket lama tetap menempel</text>
+            <rect x="710" y="35" width="215" height="100" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="817" y="73" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">juru masak A</text>
+            <text x="817" y="101" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">pembatas 40</text>
+            <rect x="710" y="200" width="215" height="100" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="817" y="238" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">juru masak B</text>
+            <text x="817" y="266" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">pembatas 41</text>
+            <rect x="710" y="365" width="215" height="100" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="817" y="403" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">juru masak C</text>
+            <text x="817" y="431" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">pembatas 39</text>
+            <rect x="970" y="195" width="210" height="110" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1075" y="237" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">baca ulang</text>
+            <text x="1075" y="268" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">kapan pun</text>
+            <path d="M 245 250 L 277 250" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-kafka)" />
+            <path d="M 655 130 C 680 110 680 100 700 95" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-kafka)" />
+            <path d="M 655 250 L 700 250" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-kafka)" />
+            <path d="M 655 380 C 680 405 680 415 700 415" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-kafka)" />
+            <path d="M 935 95 C 955 120 955 215 960 230" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-kafka)" />
+            <path d="M 935 250 L 960 250" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-kafka)" />
+            <path d="M 935 415 C 955 385 955 285 960 275" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-kafka)" />
+          </svg>
+        </div>
+        <p>Pesanan baru menempel di ujung papan. Tiga juru masak membaca dengan pembatas masing-masing. Tiket lama tetap menempel dan bisa dibaca ulang kapan pun.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Tiket 41: stok kopi habis
+Juru masak A: baca sampai 41
+Pembatas A: digeser setelah membaca
+Tiket 41: tetap menempel
+Juru masak baru: bisa membaca ulang</pre>
+        </div>
+        <p>Juru masak A boleh selesai bekerja setelah memproses tiket 41. Pembatasnya menyimpan posisi itu. Saat juru masak baru datang, tiket 41 masih tersedia untuk dibaca.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Kafka menyimpan event secara berurutan di papan yang dapat dibaca banyak bagian.</li>
+          <li>Antrean menghapus tiket setelah diambil, sedangkan log Kafka menyimpan tiket lama.</li>
+          <li>Commit log hanya bergerak maju dan memberi nomor pada setiap event.</li>
+          <li>Topic dibagi menjadi partition agar banyak pekerjaan dapat berjalan bersamaan.</li>
+          <li>Consumer group membagi pembacaan, sedangkan offset menandai posisi tiap consumer.</li>
+          <li>Urutan terjamin di dalam satu partition, bukan otomatis di seluruh topic.</li>
+          <li>Retensi, skema, dan stream processing membantu mengatur event yang terus mengalir.</li>
+          <li>Consumer perlu aman saat event terbaca dua kali dan perlu dipantau agar tidak tertinggal.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Apa beda papan tiket bab 10, yang hilang setelah diambil, dengan papan Kafka, yang tetap menempel?</li>
+          <li>Apa gunanya nomor urut (offset) dan pembatas buku tiap juru masak?</li>
+          <li>Kenapa satu jalur menjamin urutan, tetapi antarjalur tidak?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas konfigurasi broker, cara consumer memproses event, dan pilihan desain untuk sistem yang lebih besar.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Event sourcing dan CQRS</a></li>
+          <li><a href="../html_notes/notes.html">Outbox dan change data capture</a></li>
+          <li><a href="../html_notes/notes.html">Operasi dan monitoring</a></li>
+          <li><a href="../html_notes/notes.html">Mendesain dengan Kafka</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <p>Crib-sheet dan daftar perintah lengkap ada di <a href="../html_notes/notes.html">versi teknis</a>.</p>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 23 / Message Brokers dan Event Streaming dengan Kafka. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
