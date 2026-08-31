@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Berpikir seperti pencuri, menjaga seperti penjaga / Bab 17 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 17 tentang keamanan backend untuk pembaca yang baru mengenal security.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 17 / VERSI SEDERHANA</p>
+      <h1>Berpikir seperti pencuri, menjaga seperti penjaga.</h1>
+      <p class="lede">Kuka memeriksa sebuah gedung dari sudut pandang pencuri. Ia mencari pintu yang lemah, lalu menutupnya dengan beberapa lapisan penjagaan.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Sebuah aplikasi bisa terlihat rapi tetapi tetap punya celah. Pencuri tidak perlu merusak seluruh gedung jika satu pintu samping lupa dikunci.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka bertanya sebelum menjaga: jika aku ingin masuk, pintu mana yang akan kucoba, kartu siapa yang akan kupalsukan, dan catatan apa yang bisa kuubah?</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka berdiri di depan gedung dengan tiga pemeriksaan. Gembok memeriksa pintu, pembaca kartu memeriksa tamu, dan penjaga mesin mengawasi ruangan di dalam.</p>
+        <p>Setiap tamu membawa permintaan tertulis. Penjaga tidak langsung percaya pada tulisan itu, karena sebuah catatan bisa berisi permintaan biasa atau perintah untuk mengambil alih gedung.</p>
+        <details class="istilah">
+          <summary>Peta keamanan gedung</summary>
+          <p>Request adalah tamu yang datang, input adalah catatan yang dibawa, dan lapisan keamanan adalah pemeriksaan yang harus dilewati sebelum data boleh disentuh.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/17-security/01-gembok.png" width="1672" height="941" alt="Kuka melewati pintu gedung dengan gembok, pembaca kartu, dan penjaga mesin sebagai tiga lapis pengaman.">
+          <figcaption>Tiga lapis menjaga pintu.</figcaption>
+        </figure>
+        <p>Keamanan bukan satu gembok besar. Ia adalah kebiasaan memeriksa setiap jalan masuk sebelum data dibuka.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p><strong>Pola pikir keamanan</strong> dimulai dari pertanyaan pencuri: pintu mana yang paling mudah dicoba, input mana yang paling mudah dipercaya, dan apa yang terjadi jika satu pemeriksaan dilewati?</p>
+        <p><strong>Penyimpanan kata sandi</strong> harus memperlakukan buku catatan sebagai tempat yang bisa dicuri. Kata sandi tidak pernah ditulis polos. Server menyimpan hasil olahan yang sulit dibalik, sehingga pencuri tidak langsung mendapat kata sandi asli.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/17-security/02-sandi.png" width="1672" height="941" loading="lazy" alt="Kuka menutup halaman kata sandi polos dalam buku besar, di samping halaman berisi pola hasil olahan yang tidak terbaca.">
+          <figcaption>Kata sandi tidak ditulis polos.</figcaption>
+        </figure>
+        <p><strong>SQL injection</strong> terjadi saat catatan tamu dibaca langsung sebagai perintah gudang. Pisahkan data dari perintah, seperti memisahkan formulir tamu dari kunci ruang penyimpanan.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/17-security/03-injection.png" width="1672" height="941" loading="lazy" alt="Kuka menyerahkan catatan ke mesin penerima yang memisahkan rongga catatan dari rongga perintah.">
+          <figcaption>Catatan bukan perintah.</figcaption>
+        </figure>
+        <p><strong>Pertahanan berlapis</strong> membuat satu kesalahan tidak langsung membuka seluruh gedung. Jika gembok gagal, pembaca kartu dan penjaga mesin masih punya kesempatan untuk menolak tamu.</p>
+        <p>Istilah yang cukup dikenali dulu, ketuk untuk membuka:</p>
+        <details class="istilah">
+          <summary>Command injection</summary>
+          <p>Trik yang sama lewat pintu lain, ketika input tamu dipakai langsung sebagai perintah mesin.</p>
+        </details>
+        <details class="istilah">
+          <summary>Sesi, cookie, dan flag kritis</summary>
+          <p>Kartu tamu punya tanda keamanan agar hanya boleh lewat jalur yang terkunci.</p>
+        </details>
+        <details class="istilah">
+          <summary>JWT</summary>
+          <p>Kartu bersegel untuk autentikasi stateless, tetapi segelnya bisa dipalsukan jika kuncinya bocor.</p>
+        </details>
+        <details class="istilah">
+          <summary>Rate limiting</summary>
+          <p>Jumlah tebakan dibatasi, misalnya lima kali gagal lalu pintu berhenti sebentar.</p>
+        </details>
+        <details class="istilah">
+          <summary>BOLA dan BFLA</summary>
+          <p>Kartu tamu biasa tidak boleh membuka pintu gudang meski nomor pintunya berhasil ditebak.</p>
+        </details>
+        <details class="istilah">
+          <summary>XSS</summary>
+          <p>Tamu menempel catatan yang sebenarnya perintah, lalu catatan itu dibaca oleh tamu lain.</p>
+        </details>
+        <details class="istilah">
+          <summary>CSRF</summary>
+          <p>Orang lain memesan atas nama Anda tanpa Anda tahu.</p>
+        </details>
+        <details class="istilah">
+          <summary>Salah konfigurasi</summary>
+          <p>Pintu samping lupa dikunci, sehingga jalan masuk yang seharusnya tertutup menjadi terbuka.</p>
+        </details>
+        <details class="istilah">
+          <summary>OAuth</summary>
+          <p>Pemeriksaan identitas dititipkan kepada penjaga profesional yang memang bertugas memeriksanya.</p>
+        </details>
+        <details class="istilah">
+          <summary>Internal HTTPS dan TLS</summary>
+          <p>Jalur antar ruangan juga disegel, bukan hanya pintu depan gedung.</p>
+        </details>
+        <details class="istilah">
+          <summary>Studi kasus insiden</summary>
+          <p>Cerita gedung yang kebobolan membantu kita melihat bahwa pola kesalahannya sering berulang.</p>
+        </details>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1260 500" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur pertahanan berlapis</title>
+            <desc id="alur-svg-desc">Request masuk melewati gembok, pembaca kartu, dan penjaga sebelum data aman. Setiap lapis dapat menolak request.</desc>
+            <defs>
+              <marker id="alur-arrow-security" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="22" y="190" width="160" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="102" y="228" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">request</text>
+            <text x="102" y="254" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">masuk</text>
+            <rect x="230" y="170" width="174" height="126" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="317" y="218" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">lapis 1</text>
+            <text x="317" y="250" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="18" font-weight="700">gembok</text>
+            <rect x="452" y="170" width="174" height="126" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="539" y="218" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">lapis 2</text>
+            <text x="539" y="250" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="18" font-weight="700">kartu</text>
+            <rect x="674" y="170" width="174" height="126" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="761" y="218" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">lapis 3</text>
+            <text x="761" y="250" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="18" font-weight="700">penjaga</text>
+            <rect x="1070" y="190" width="168" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1154" y="228" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">data aman</text>
+            <text x="1154" y="254" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">lolos semua</text>
+            <path d="M 190 233 L 222 233" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-security)" />
+            <path d="M 412 233 L 444 233" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-security)" />
+            <path d="M 634 233 L 666 233" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-security)" />
+            <path d="M 856 233 L 1062 233" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-security)" />
+            <path d="M 317 300 L 317 390 L 246 390" fill="none" stroke="#1A1A1A" stroke-width="3" stroke-dasharray="8 7" marker-end="url(#alur-arrow-security)" />
+            <path d="M 539 300 L 539 390 L 468 390" fill="none" stroke="#1A1A1A" stroke-width="3" stroke-dasharray="8 7" marker-end="url(#alur-arrow-security)" />
+            <path d="M 761 300 L 761 390 L 690 390" fill="none" stroke="#1A1A1A" stroke-width="3" stroke-dasharray="8 7" marker-end="url(#alur-arrow-security)" />
+            <text x="246" y="430" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="17" font-weight="700">ditolak</text>
+            <text x="468" y="430" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="17" font-weight="700">ditolak</text>
+            <text x="690" y="430" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="17" font-weight="700">ditolak</text>
+          </svg>
+        </div>
+        <p>Request maju satu lapis demi satu lapis. Satu lapis boleh menolak, dan hanya request yang lolos semuanya boleh menyentuh data.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Login: sandi polos -> ditolak
+Request: password tidak disimpan polos
+Input: nama=' OR '1'='1
+SQL injection -> ditolak
+Request: input sudah diperiksa
+Command asing -> ditolak
+Request bersih -> lolos
+Respons: 200 OK</pre>
+        </div>
+        <p>Penjaga memeriksa isi kartu sebelum membuka pintu. Sandi polos dan input yang berubah menjadi perintah ditolak, sedangkan request bersih boleh lewat.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Pikirkan cara pencuri masuk sebelum memilih cara untuk menjaga gedung.</li>
+          <li>Kata sandi tidak boleh disimpan dalam bentuk aslinya.</li>
+          <li>Input harus tetap menjadi data, bukan berubah menjadi perintah.</li>
+          <li>Satu gembok tidak cukup karena setiap lapisan memberi kesempatan penolakan baru.</li>
+          <li>Keamanan yang baik mengurangi dampak saat satu pemeriksaan gagal.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Kenapa kata sandi tidak boleh disimpan dalam bentuk aslinya?</li>
+          <li>Apa bahaya menempel catatan tamu (input) langsung menjadi perintah (SQL injection)?</li>
+          <li>Kenapa satu gembok (satu lapisan keamanan) tidak cukup?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas ringkasan kerentanan dan penetration testing, lalu menunjukkan pola aman yang lebih lengkap.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Ringkasan kerentanan</a></li>
+          <li><a href="../html_notes/notes.html">Pola pikir penetration testing</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Pola aman Go</a></li>
+          <li><a href="../html_notes/notes.html">Pola aman Python</a></li>
+          <li><a href="../html_notes/notes.html">Referensi dan bacaan lanjutan</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 17 / Backend Security. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+</body>
+
+</html>
