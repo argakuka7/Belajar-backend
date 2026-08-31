@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seluruh dapur dalam satu peti / Bab 21 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 21 tentang container, Docker, Kubernetes, dan CI/CD untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 21 / VERSI SEDERHANA</p>
+      <h1>Seluruh dapur dalam satu peti.</h1>
+      <p class="lede">Kuka ingin membuka cabang baru tanpa menebak-nebak apakah resep dan kompornya cocok. Ia mengirim seluruh dapur dalam satu peti, lalu meminta manajer pusat menjaga semua peti tetap berjalan.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p><strong>container</strong> memecahkan keluhan, "Di dapur lamaku resepnya jadi, tetapi di cabang ini tidak." Tanpa container, tim harus memasang alat, memilih versi library, dan mengatur environment yang sama di setiap mesin. Satu perbedaan kecil dapat membuat aplikasi gagal berjalan.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka membawa resep, alat masak, dan bahan kering dalam satu peti. Cabang baru menerima susunan yang sama. Kompor boleh berbeda, tetapi dapur di dalam peti tetap siap bekerja.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka membayangkan sebuah dapur mini yang sudah dirakit di dalam peti. Resep, alat, dan bahan kering ikut dikunci di sana. Saat peti tiba di cabang mana pun, isinya dapat mulai memasak dengan cara yang sama.</p>
+        <p>Satu peti mudah dikirim. Puluhan peti butuh orang yang menghitung, memeriksa, dan mengganti peti yang rusak. Di situlah manajer pusat membantu dapur.</p>
+        <details class="istilah">
+          <summary>Peta istilah peti</summary>
+          <p>Peti yang sedang berjalan adalah container. Container vs mesin virtual berarti membandingkan dapur mini dengan gedung baru yang lengkap. <strong>image</strong> adalah cetak biru peti yang dapat dirakit berulang kali. Layer adalah susunan kotak yang dapat dipakai bersama. Union filesystem membuat susunan itu terlihat sebagai satu isi.</p>
+          <p>Dockerfile adalah resep untuk merakit image. Multi-stage build memakai dapur perakitan yang ramai, lalu membawa hasil bersih saja ke peti akhir. Optimasi image dan layer caching memakai kembali kotak yang tidak berubah agar perakitan lebih cepat.</p>
+          <p>Networking adalah jendela pesanan antarpeti. Volume adalah laci bahan yang berada di luar peti supaya data penting tidak hilang saat peti diganti. Docker Compose adalah satu daftar untuk menjalankan beberapa peti bersama.</p>
+          <p>Arsitektur Kubernetes terdiri dari manajer pusat dan mesin-mesin tempat peti berjalan. <strong>pod</strong> adalah unit kerja terkecil, biasanya berisi satu atau beberapa peti yang selalu bersama. Service memberi satu alamat untuk peti-peti itu, sedangkan ingress menjadi pintu dari tamu.</p>
+          <p>Config dan secret adalah catatan yang diberikan saat peti mulai bekerja. Environment menunjukkan tempat peti berjalan. Health probe memberi tahu manajer apakah peti sehat. Resource membatasi jatah listrik dan ruang kerja.</p>
+          <p>Strategi deployment mengatur cara peti baru menggantikan peti lama. GitOps menyimpan keinginan keadaan dapur dalam repository agar perubahan dapat ditinjau dan diterapkan dengan urutan yang jelas.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/21-container/01-peti.png" width="1672" height="941" alt="Kuka berdiri di samping peti besar tertutup bergambar kompor dan panci, dengan tumpukan peti serupa di belakangnya.">
+          <figcaption>Peti dapur siap dikirim.</figcaption>
+        </figure>
+        <p>Satu peti membawa lingkungan kerja yang sudah disiapkan. Cabang baru tidak perlu merakit dapur dari awal. Ia cukup menerima peti dan menjalankannya.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Container mengisolasi proses dan isi yang dibutuhkan aplikasi. Ia bukan mesin baru yang lengkap. Ia lebih ringan karena berbagi kernel dengan mesin tempatnya berjalan. Yang dikirim adalah paket kerja yang konsisten, bukan daftar langkah pemasangan untuk setiap cabang.</p>
+        <p>Lima puluh peti tidak mungkin diawasi dengan tangan. Manajer pusat menyimpan keadaan yang diinginkan, misalnya jumlah peti yang harus aktif. Ia menempatkan peti pada mesin yang tersedia dan membuat pengganti saat ada peti yang berhenti. Inilah alasan orkestrasi dibutuhkan.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/21-container/02-manajer.png" width="1672" height="941" loading="lazy" alt="Mesin manajer berkepala satu berdiri di atas panggung dan mengawasi lima peti identik yang tersusun rapi.">
+          <figcaption>Manajer menjaga peti.</figcaption>
+        </figure>
+        <p><strong>deployment</strong> menyatakan peti seperti apa yang harus berjalan dan berapa jumlahnya. ReplicaSet membantu menjaga jumlah peti identik tetap sesuai keinginan. Jika satu peti mati, manajer membuat peti pengganti tanpa menunggu orang datang membawa alat.</p>
+        <p>Saat tamu bertambah, scaling menambah jumlah peti yang melayani. Saat resep berubah, rollout mengganti peti lama secara bertahap. Sebagian peti lama tetap melayani tamu ketika peti baru diperiksa. Cabang tidak perlu tutup hanya karena resep diperbarui.</p>
+        <p><strong>CI/CD</strong> menghubungkan perubahan resep dengan pengiriman peti. Pipeline menjalankan pemeriksaan, merakit image, memberi tag, dan mengirimkannya ke registry. Setelah itu, manajer pusat menerima versi yang baru. Pengiriman menjadi langkah yang bisa diulang, bukan pekerjaan angkut manual.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/21-container/03-pipeline.png" width="1672" height="941" loading="lazy" alt="Tiga meja berjajar berisi resep, perakitan peti, dan pengiriman, dengan peti bergerak di atas konveyor.">
+          <figcaption>Peti melaju otomatis.</figcaption>
+        </figure>
+        <p>Alur ini memisahkan pembuatan dari pengoperasian. Tim memperbaiki resep dan pipeline. Manajer pusat menjaga peti yang sudah diterima tetap tersedia untuk tamu.</p>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Dari perubahan resep ke peti yang tetap melayani tamu</title>
+            <desc id="alur-svg-desc">Resep berubah, pipeline merakit peti, peti dikirim ke registry, manajer pusat mengganti peti lama satu per satu, dan tamu tidak merasa putus.</desc>
+            <defs>
+              <marker id="alur-arrow-container" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="20" y="150" width="190" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="115" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">resep</text>
+            <text x="115" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">berubah</text>
+            <rect x="250" y="150" width="210" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="355" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">pipeline</text>
+            <text x="355" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">rakit peti</text>
+            <rect x="500" y="150" width="190" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="595" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">registry</text>
+            <text x="595" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">kirim peti</text>
+            <rect x="730" y="150" width="230" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="845" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">manajer pusat</text>
+            <text x="845" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">ganti satu-satu</text>
+            <rect x="1000" y="150" width="180" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1090" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">tamu</text>
+            <text x="1090" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">tetap terlayani</text>
+            <path d="M 218 193 L 242 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-container)" />
+            <path d="M 468 193 L 492 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-container)" />
+            <path d="M 698 193 L 722 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-container)" />
+            <path d="M 968 193 L 992 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-container)" />
+            <text x="600" y="305" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">peti lama diganti tanpa putus</text>
+            <path d="M 845 248 C 845 350 1090 370 1090 248" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-container)" />
+          </svg>
+        </div>
+        <p>Resep berubah dan pipeline merakit peti baru. Registry menyimpan peti itu. Manajer pusat mengganti peti lama satu per satu. Tamu tetap mendapat layanan selama perubahan berlangsung.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>resep berubah -&gt; peti baru dirakit
+peti baru diuji -&gt; manajer menerima
+manajer ganti satu per satu
+cabang tetap buka</pre>
+        </div>
+        <p>Kartu pos ini merangkum deployment bertahap. Peti lama tidak dibuang serentak. Peti baru masuk setelah siap, sementara cabang tetap melayani tamu.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Container mengemas aplikasi dan kebutuhan kerjanya agar hasilnya konsisten di banyak mesin.</li>
+          <li>Image menjadi cetak biru untuk merakit container yang sama berulang kali.</li>
+          <li>Orkestrasi membantu mengawasi banyak container dan mengganti yang berhenti.</li>
+          <li>Deployment dan ReplicaSet menjaga jumlah peti identik sesuai keadaan yang diinginkan.</li>
+          <li>Scaling menambah peti saat tamu ramai. Rollout mengganti peti bertahap saat resep berubah.</li>
+          <li>Pipeline CI/CD menguji, merakit, dan mengirim peti ke registry secara otomatis.</li>
+          <li>Tamu tetap terlayani karena peti lama tidak diganti semuanya dalam satu waktu.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Apa yang diselesaikan peti (container) soal "di dapur lamaku jadi"?</li>
+          <li>Apa tugas manajer pusat (Kubernetes) terhadap lima puluh peti?</li>
+          <li>Apa yang dikerjakan pipeline CI/CD setelah resep berubah?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas perintah Docker, resource Kubernetes, dan contoh pipeline yang dapat dijalankan.</p>
+        <h3>Belum dibahas di sini</h3>
+        <p>Crib-sheet produksi, konfigurasi lengkap, dan contoh kode tersedia di <a href="../html_notes/notes.html">versi teknis</a>.</p>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 21 / Containerization, Docker, Kubernetes, dan CI/CD. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
