@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cicipi sebelum buka pintu / Bab 22 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 22 tentang automated testing untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 22 / VERSI SEDERHANA</p>
+      <h1>Cicipi sebelum buka pintu.</h1>
+      <p class="lede">Kuka belajar menjaga rasa makanan sebelum restoran menerima tamu. Ia mencicipi bahan, hidangan, dan perjalanan pesanan supaya kesalahan ditemukan di dapur, bukan setelah keluhan datang.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Restoran bisa terlihat baik saat dapur sepi. Kesalahan baru muncul ketika pesanan datang berturut-turut. Garam terlalu banyak, pembayaran tidak tercatat, atau pintu pesanan macet.</p>
+        <p>Tes menjalankan pemeriksaan sebelum kode dipakai tamu. Menangkap rasa asin di dapur lebih murah daripada menunggu keluhan di ruang makan. Tes juga memberi tanda saat resep baru merusak rasa lama.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka mencicipi kuah sebelum pintu dibuka. Ia menemukan rasa terlalu asin, memperbaikinya, lalu menyajikan hidangan yang aman.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka menata beberapa mangkuk uji di meja dapur. Setiap mangkuk punya pertanyaan kecil. Gula terasa manis? Kuah terasa pas? Pesanan bisa berjalan dari pintu sampai pembayaran?</p>
+        <p>Ia tidak menunggu tamu menjadi pemeriksa. Kuka mencicipi bahan sendiri, mencicipi hidangan utuh, lalu sesekali mengikuti seluruh perjalanan seperti tamu biasa.</p>
+        <details class="istilah">
+          <summary>Peta istilah dapur</summary>
+          <p>Cicipan bahan adalah unit test. Cicipan hidangan utuh adalah integration test. Cicipan dari pintu depan sampai bayar adalah <strong>end-to-end</strong> test. Dapur adalah kode aplikasi, sedangkan hasil cicip adalah bukti perilakunya.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/22-testing/01-uji-rasa.png" width="1672" height="941" alt="Kuka mencicipi dari sendok kecil di depan banyak mangkuk uji yang tersusun, dengan wajah berpikir.">
+          <figcaption>Kuka menguji rasa.</figcaption>
+        </figure>
+        <p>Banyak cicipan kecil menjaga dapur tetap tenang. Kuka dapat mengulang satu cicipan tanpa memasak seluruh menu. Tes menjadi kebiasaan sebelum hidangan dibawa keluar.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Tes otomatis adalah pertanyaan yang dijalankan mesin. Kode menyiapkan keadaan, menjalankan perilaku, lalu membandingkan hasil dengan harapan. Jika hasil berbeda, tes gagal dan perubahan perlu diperiksa.</p>
+        <p>Piramida pengujian menaruh banyak cicipan murah di bawah. Unit test cepat dan jumlahnya banyak. Integration test lebih sedikit karena beberapa bagian bekerja bersama. End-to-end test paling mirip pengalaman tamu, tetapi paling lambat dan mahal.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/22-testing/02-piramida.png" width="1672" height="941" loading="lazy" alt="Tumpukan mangkuk membentuk piramida pengujian, banyak mangkuk di bawah dan satu mangkuk di puncak.">
+          <figcaption>Piramida cicipan.</figcaption>
+        </figure>
+        <p>Anatomi sebuah tes sederhana. Siapkan bahan dan keadaan awal. Jalankan tindakan yang diuji. Cicipi hasilnya. Putuskan lulus atau gagal. Pola ini sering disebut arrange, act, assert.</p>
+        <p><strong>unit</strong> test mencicipi satu bagian kecil secara terpisah. Misalnya, fungsi penghitung total harus menjumlahkan dua harga dengan benar. Cicipan ini cepat karena tidak perlu database atau jaringan.</p>
+        <p><strong>integrasi</strong> berarti integration test yang mencicipi beberapa bagian yang sudah tersambung. Handler menerima request, service mengolahnya, lalu database menyimpan hasilnya. Tes ini menemukan masalah yang tidak terlihat saat tiap bagian dicicipi sendiri.</p>
+        <details class="istilah">
+          <summary>Test double</summary>
+          <p>Test double adalah bahan pengganti untuk latihan. Mock dapat mengembalikan rasa yang sudah diatur atau mencatat apakah ia dipanggil. Pengganti membuat tes lebih fokus dan tidak menghabiskan stok sungguhan.</p>
+        </details>
+        <details class="istilah">
+          <summary>Dependency injection</summary>
+          <p>Dependency injection memberi celah untuk memasang bahan atau service yang berbeda. Kode produksi memakai database sungguhan. Tes dapat memasang pengganti tanpa membongkar dapur.</p>
+        </details>
+        <details class="istilah">
+          <summary>Table-driven testing</summary>
+          <p>Table-driven testing menyimpan banyak kasus dalam satu daftar. Setiap baris berisi bahan, tindakan, dan hasil yang diharapkan. Mesin menjalankan baris itu satu per satu.</p>
+        </details>
+        <details class="istilah">
+          <summary>Database nyata</summary>
+          <p>Integration test kadang memakai database nyata dalam ruang kecil dan bersih. Cara ini menguji query serta aturan penyimpanan yang tidak dapat ditiru sempurna oleh pengganti.</p>
+        </details>
+        <details class="istilah">
+          <summary>HTTP handler dan API</summary>
+          <p>HTTP handler adalah pelayan di pintu depan. Tes mengirim request ke API, memeriksa status code, lalu melihat bentuk response. Ia memastikan pesan yang keluar sesuai janji.</p>
+        </details>
+        <details class="istilah">
+          <summary>Tes end-to-end</summary>
+          <p>End-to-end test menyewa tamu tiruan. Tamu masuk dari pintu depan, memesan, makan, dan membayar. Tes ini lambat, tetapi paling dekat dengan kenyataan.</p>
+        </details>
+        <details class="istilah">
+          <summary>Test coverage</summary>
+          <p><strong>coverage</strong> adalah peta bagian kode yang sudah dilewati tes. Peta luas belum menjamin rasa benar. Tes tetap harus memeriksa perilaku penting, bukan sekadar mengejar angka.</p>
+        </details>
+        <details class="istilah">
+          <summary>Tes flaky</summary>
+          <p>Flaky test kadang lulus dan kadang gagal tanpa perubahan kode. Cicipan seperti ini tidak dapat dipercaya. Cari ketergantungan pada waktu, urutan, jaringan, atau state yang belum dibersihkan.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/22-testing/03-flaky.png" width="1672" height="941" loading="lazy" alt="Satu mangkuk berubah-ubah isinya, dengan dua wajah cicip berbeda di sisinya dan Kuka menggeleng.">
+          <figcaption>Cicipan berubah-ubah.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Fixture dan factory</summary>
+          <p>Fixture adalah bahan siap pakai yang selalu disiapkan dengan cara sama. Factory membuat variasi bahan sesuai kebutuhan kasus. Keduanya mengurangi persiapan yang berulang.</p>
+        </details>
+        <details class="istilah">
+          <summary>TDD: red, green, refactor</summary>
+          <p>TDD dimulai dari tes yang gagal. Kuka menulis rasa yang diharapkan, memastikan cicipan gagal, lalu memasak sampai lulus. Setelah itu ia merapikan resep tanpa mengubah rasa.</p>
+        </details>
+        <details class="istilah">
+          <summary>Mocking waktu dan keacakan</summary>
+          <p>Jam dan dadu palsu membuat hasil tes dapat diulang. Tes dapat menetapkan waktu tertentu atau urutan acak tertentu, lalu memeriksa perilaku dengan kondisi yang sama.</p>
+        </details>
+        <details class="istilah">
+          <summary>Performance dan load testing</summary>
+          <p>Load testing meniru jam sibuk. Banyak tamu datang bersamaan dan sistem harus tetap merespons. Tes ini mencari batas dapur sebelum batas itu dicapai tamu nyata.</p>
+        </details>
+        <details class="istilah">
+          <summary>Tes di CI/CD</summary>
+          <p>CI/CD menjalankan tes setiap resep baru dikirim. Perubahan yang gagal berhenti di cabang dan belum boleh disajikan. Dapur mendapat pemeriksaan yang konsisten.</p>
+        </details>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 360" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur cicipan saat resep berubah</title>
+            <desc id="alur-svg-desc">Cicipan yang gagal dimasak sampai lulus, resep dirapikan, lalu semua cicipan diulang saat resep berubah.</desc>
+            <defs>
+              <marker id="alur-arrow-testing" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="24" y="128" width="196" height="88" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="122" y="166" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">cicipan gagal</text>
+            <text x="122" y="192" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">temukan rasa salah</text>
+            <rect x="266" y="128" width="196" height="88" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="364" y="166" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">masak sampai lulus</text>
+            <text x="364" y="192" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">perbaiki resep</text>
+            <rect x="508" y="128" width="166" height="88" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="591" y="166" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">rapikan</text>
+            <text x="591" y="192" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">kode lebih jelas</text>
+            <rect x="720" y="128" width="188" height="88" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="814" y="166" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">resep berubah?</text>
+            <text x="814" y="192" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">jalankan lagi</text>
+            <rect x="954" y="128" width="222" height="88" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1065" y="166" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">cicip ulang semua</text>
+            <text x="1065" y="192" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">aman dibuka</text>
+            <path d="M 228 172 L 258 172" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-testing)" />
+            <path d="M 470 172 L 500 172" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-testing)" />
+            <path d="M 682 172 L 712 172" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-testing)" />
+            <path d="M 916 172 L 946 172" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-testing)" />
+            <path d="M 814 228 C 814 310 350 330 350 228" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-testing)" />
+            <text x="580" y="312" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">ulang sampai rasa tetap benar</text>
+          </svg>
+        </div>
+        <p>Cicipan yang gagal memberi petunjuk. Kuka memperbaiki resep sampai lulus, lalu merapikan kode. Saat resep berubah, ia mencicipi ulang semua bagian yang perlu dijaga.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Cicip gula: manis, lulus
+Cicip kuah: asin, gagal
+Dapur: perbaiki rasa
+Cicip kuah lagi: lulus</pre>
+        </div>
+        <p>Kartu pos ini mencatat satu putaran pendek. Tes menunjukkan masalah sebelum kuah diberikan kepada tamu. Kuka bisa memperbaiki dapur dengan bukti yang jelas.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Tes menemukan kesalahan di dapur sebelum tamu menemukan masalahnya.</li>
+          <li>Piramida punya banyak unit test, lebih sedikit integration test, dan sangat sedikit end-to-end test.</li>
+          <li>Anatomi tes menyiapkan keadaan, menjalankan tindakan, lalu membandingkan hasil.</li>
+          <li>Unit test cepat karena mencicipi satu bagian kecil secara terpisah.</li>
+          <li>Integration test memeriksa beberapa bagian yang bekerja bersama.</li>
+          <li>Test double, fixture, factory, dan dependency injection membantu membuat cicipan terarah.</li>
+          <li>Flaky test harus dicari penyebabnya karena hasilnya tidak konsisten.</li>
+          <li>Tes di CI/CD menjaga resep baru melewati pemeriksaan sebelum disajikan.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Kenapa menangkap rasa asin di dapur lebih baik daripada dari keluhan tamu?</li>
+          <li>Apa beda mencicip bahan (unit) dan mencicip hidangan utuh (integrasi)?</li>
+          <li>Kenapa piramida: banyak cicipan murah, sedikit cicipan mahal?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas pola tes, contoh kode, dan cara menjalankan pemeriksaan di proyek backend.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Contract testing</a></li>
+          <li><a href="../html_notes/notes.html">Strategi pengujian</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <p>Crib-sheet dan daftar perintah lengkap ada di <a href="../html_notes/notes.html">versi teknis</a>.</p>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 22 / Automated Testing. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
