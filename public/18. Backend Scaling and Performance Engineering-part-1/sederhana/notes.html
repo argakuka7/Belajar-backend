@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cepat itu harus ada angkanya / Bab 18 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 18 tentang scaling dan performance untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,0..144,400;1,0..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 18 / VERSI SEDERHANA</p>
+      <h1>Cepat itu harus ada angkanya.</h1>
+      <p class="lede">Restoran yang mulai ramai tidak cukup disebut cepat. Kuka perlu mengukur waktu tunggu, mencari meja yang membuat antrean, lalu memilih cara memperbesar kapasitas.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Orang sering berkata aplikasi harus cepat. Kalimat itu belum memberi angka. Tiga menit bisa terasa singkat bagi satu layanan, tetapi terlalu lama bagi layanan lain.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka melihat restoran penuh. Beberapa tamu mendapat makanan dalam dua menit. Satu tamu menunggu empat puluh menit. Angka itu menunjukkan masalah yang tidak terlihat dari rata-rata saja.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka masuk ke restoran yang ramai. Resepsionis menerima request, lalu memilih meja kosong untuk setiap tamu. Meja yang cepat membuat tamu segera duduk dan makan.</p>
+        <p>Jika semua meja penuh, tamu berdiri dalam antrean. Dapur yang lambat, meja yang kurang, atau satu langkah yang bolak-balik bisa menjadi bagian paling macet.</p>
+        <details class="istilah">
+          <summary>Peta restoran</summary>
+          <p>Waktu tunggu adalah latensi. Banyak piring yang keluar tiap jam adalah throughput. Meja yang menumpuk adalah bottleneck. Meja tambahan atau dapur yang lebih besar adalah scaling.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/18-scaling1/01-papan-angka.png" width="1672" height="941" alt="Kuka berdiri di depan papan pantau restoran berisi tiga meter dan grafik, lalu menunjuk satu meter yang penuh.">
+          <figcaption>Papan angka menunjukkan antrean.</figcaption>
+        </figure>
+        <p>Papan angka membantu Kuka melihat keadaan sebenarnya. Ia tidak hanya bertanya apakah restoran cepat. Ia melihat berapa lama tamu menunggu dan bagian mana yang penuh.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p><strong>Latensi</strong> adalah waktu dari request dimulai sampai hasil diterima. Seperti waktu tunggu tamu sejak memesan sampai piring tiba. Latensi yang kecil terasa cepat, tetapi satu angka saja belum menceritakan semua tamu.</p>
+        <p><strong>Persentil</strong> membagi waktu tunggu menjadi kelompok. P50 menggambarkan tamu di tengah. P90 dan P99 menunjukkan tamu yang menunggu lebih lama. Persentil tinggi membantu Kuka menemukan pengalaman paling buruk.</p>
+        <p><strong>Throughput</strong> adalah jumlah piring yang keluar tiap jam. Restoran dapat melayani lebih banyak tamu tanpa membuat setiap piring lebih cepat. Throughput dan latensi menjawab pertanyaan yang berbeda.</p>
+        <p><strong>Bottleneck</strong> adalah bagian yang paling membatasi aliran kerja. Meja lain boleh kosong, tetapi satu dapur yang selalu penuh tetap membuat antrean panjang. Ukur bagian yang menumpuk sebelum memilih solusi.</p>
+        <p>Query N+1 terjadi saat pelayan kembali ke gudang untuk mengambil satu bahan setiap kali. Tiga pesanan membuat tiga perjalanan kecil, padahal satu keranjang dapat membawa semuanya sekaligus. Request tambahan itu membuat gudang dan pelayan bekerja lebih lama.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/18-scaling1/02-n-plus-1.png" width="1672" height="941" loading="lazy" alt="Pelayan berlari bolak-balik ke gudang tiga kali dengan satu bahan kecil, bukan membawa satu keranjang sekaligus.">
+          <figcaption>Tiga perjalanan untuk tiga bahan.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Utilisasi dan antrean</summary>
+          <p>Utilisasi menunjukkan seberapa penuh dapur atau meja dipakai. Saat utilisasi mendekati penuh, sedikit pesanan tambahan dapat membuat antrean melonjak. Lihat waktu tunggu dan antrean, bukan hanya persentase kesibukan.</p>
+        </details>
+        <details class="istilah">
+          <summary>Profiling</summary>
+          <p>Profiling seperti kamera waktu di dapur. Catatan itu menunjukkan juru masak atau langkah resep mana yang paling lama. Kuka dapat memperbaiki bagian yang benar, bukan menebak-nebak.</p>
+        </details>
+        <details class="istilah">
+          <summary>Distributed tracing</summary>
+          <p>Tracing memberi satu nomor tiket pada perjalanan request. Kuka dapat melihat waktu di meja depan, dapur, dan gudang. Bagian yang lambat menjadi lebih mudah ditemukan.</p>
+        </details>
+        <details class="istilah">
+          <summary>Index dan query plan</summary>
+          <p>Index seperti daftar isi buku besar. Pelayan dapat menemukan bahan tanpa membuka setiap halaman. Query plan menunjukkan cara database mencari catatan dan biaya tiap langkah.</p>
+        </details>
+        <details class="istilah">
+          <summary>Connection pooling</summary>
+          <p>Pooling membuka jalur ke gudang sekali dan memakainya bergantian. Pelayan tidak perlu membuka dan menutup jalur baru untuk setiap piring.</p>
+        </details>
+        <details class="istilah">
+          <summary>Caching dasar</summary>
+          <p>Cache adalah rak dekat dapur yang menyimpan bahan atau hasil yang sering diminta. Pelayan bisa mengambilnya tanpa berjalan ke gudang jauh.</p>
+        </details>
+        <details class="istilah">
+          <summary>Invalidasi cache</summary>
+          <p>Jika resep atau bahan berubah, salinan di rak dekat harus diganti. Cache lama dapat membuat tamu menerima informasi yang sudah tidak benar.</p>
+        </details>
+        <details class="istilah">
+          <summary>Cache hit rate</summary>
+          <p>Hit rate menunjukkan berapa banyak permintaan yang terjawab dari rak dekat. Hit rate tinggi mengurangi perjalanan ke gudang, selama isi rak tetap benar.</p>
+        </details>
+        <p>Vertical scaling berarti membeli kompor yang lebih besar untuk dapur yang sama. Mesin yang lebih kuat dapat menampung pekerjaan lebih banyak, tetapi ukuran dan batasnya tetap punya ujung.</p>
+        <p>Horizontal scaling berarti membuka meja dan juru masak tambahan. Beberapa mesin membagi pekerjaan, sehingga satu mesin yang penuh tidak menghentikan seluruh restoran.</p>
+        <p>Load balancing adalah resepsionis mesin yang membagi tamu ke meja kosong. Ia menjaga satu meja tidak menerima semua tamu sementara meja lain menganggur.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/18-scaling1/03-load-balancer.png" width="1672" height="941" loading="lazy" alt="Resepsionis mesin membagi tiga tamu ke tiga meja kosong yang jaraknya sama di restoran.">
+          <figcaption>Resepsionis membagi meja kosong.</figcaption>
+        </figure>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur request di restoran yang ramai</title>
+            <desc id="alur-svg-desc">Request masuk, resepsionis memilih meja kosong, meja cepat membuat tamu puas. Jika meja penuh, tamu masuk antrean panjang dan pergi.</desc>
+            <defs>
+              <marker id="alur-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="24" y="92" width="180" height="88" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="114" y="129" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">request</text>
+            <text x="114" y="155" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">masuk</text>
+            <rect x="268" y="68" width="210" height="136" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="373" y="116" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">resepsionis</text>
+            <text x="373" y="148" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">pilih meja</text>
+            <text x="373" y="176" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">kosong</text>
+            <rect x="548" y="92" width="180" height="88" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="638" y="129" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">meja cepat</text>
+            <text x="638" y="155" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">dilayani</text>
+            <rect x="798" y="92" width="180" height="88" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="888" y="129" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">tamu puas</text>
+            <text x="888" y="155" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">selesai</text>
+            <path d="M 210 136 L 260 136" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow)" />
+            <path d="M 484 136 L 540 136" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow)" />
+            <path d="M 734 136 L 790 136" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow)" />
+            <rect x="368" y="292" width="190" height="72" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="463" y="322" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">meja penuh</text>
+            <text x="463" y="346" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">tidak muat</text>
+            <rect x="648" y="292" width="190" height="72" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="743" y="322" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">antrean panjang</text>
+            <text x="743" y="346" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">menunggu</text>
+            <rect x="928" y="292" width="170" height="72" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1013" y="322" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">tamu pergi</text>
+            <text x="1013" y="346" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">gagal puas</text>
+            <path d="M 373 212 C 373 250, 408 260, 440 284" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow)" />
+            <path d="M 568 328 L 640 328" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow)" />
+            <path d="M 848 328 L 920 328" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow)" />
+            <text x="400" y="248" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">penuh</text>
+          </svg>
+        </div>
+        <p>Request masuk ke resepsionis. Jika meja kosong, tamu cepat dilayani dan puas. Jika meja penuh, antrean memanjang sampai tamu pergi.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Jam sibuk: 12.00
+Rata-rata tunggu: 2 menit
+Tamu paling sial: 40 menit
+Papan angka: antrean menumpuk
+Keputusan: tambah meja</pre>
+        </div>
+        <p>Catatan seperti kartu pos ini memberi angka yang bisa dipakai untuk mengambil keputusan. Kuka menambah meja karena pengukuran menunjukkan tamu paling sial menunggu terlalu lama.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <p>Ukur latensi, persentil, dan throughput lebih dulu, temukan bottleneck seperti query N+1, lalu pilih vertical scaling, horizontal scaling, atau load balancing sesuai angka yang terlihat.</p>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Kenapa "cepat" harus punya angka dan persentil, bukan kata-kata?</li>
+          <li>Apa itu query N+1 dan kenapa melelahkan gudang?</li>
+          <li>Apa beda membeli kompor lebih besar dan membuka cabang tambahan?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas pola caching dan strategi lain untuk mengukur serta memperbesar kapasitas layanan.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Pola caching</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 18 / Scaling dan Performance. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
