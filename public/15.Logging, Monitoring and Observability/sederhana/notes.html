@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buku harian dapur dan papan pantau / Bab 15 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 15 tentang logging, monitoring, dan observability untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 15 / VERSI SEDERHANA</p>
+      <h1>Buku harian dapur dan papan pantau.</h1>
+      <p class="lede">Kuka belajar mengikuti kejadian di dapur tanpa menebak. Ada catatan untuk peristiwa, angka untuk pola, dan jejak untuk perjalanan satu pesanan.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Dapur restoran bekerja cepat. Pesanan masuk, bahan bergerak, pembayaran diproses, dan kurir menunggu. Sesekali satu langkah macet. Tanpa catatan, tim hanya tahu bahwa tamu kecewa. Mereka tidak tahu langkah mana yang terlambat.</p>
+        <p>Backend juga begitu. Saat service menjadi lambat, kita perlu bukti yang bisa dibaca setelah kejadian lewat. Catatan kejadian membantu mencari apa yang terjadi. Angka ringkas menunjukkan apakah masalahnya kecil atau menyebar. Jejak perjalanan menunjukkan titik yang menahan satu request.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka tidak menunggu komplain berikutnya. Ia menulis kejadian penting, melihat angka utama, lalu mengikuti nomor pesanan ketika ada masalah.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka membayangkan backend sebagai dapur dengan tiga alat. Buku harian mencatat kejadian satu per satu. Papan pantau merangkum keadaan dapur dalam angka. Nomor pada tiket mengikuti satu pesanan dari pintu masuk sampai meja pengambilan.</p>
+        <p>Ketiganya menjawab pertanyaan yang berbeda. Buku harian menjawab apa yang terjadi. Papan pantau menjawab pola yang sedang terbentuk. Nomor tiket menjawab di mana waktu pesanan habis.</p>
+        <details class="istilah">
+          <summary>Peta istilah dapur</summary>
+          <p><strong>log</strong> adalah satu catatan kejadian dengan waktu dan konteks. <strong>metrics</strong> adalah angka yang diringkas dari banyak kejadian. <strong>tracing</strong> adalah jejak satu request dari awal sampai akhir. <span>alert</span> adalah bel peringatan. Dasbor adalah papan pantau yang menyatukan pandangan.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/15-logging/01-buku-harian.png" width="1672" height="941" alt="Kuka menulis satu catatan di buku harian dapur, dengan papan pantau kecil bergambar grafik di dinding.">
+          <figcaption>Buku harian dapur</figcaption>
+        </figure>
+        <p>Satu catatan yang rapi lebih berguna daripada ingatan samar. Papan pantau membuat perubahan terlihat. Jejak tiket membantu tim menghubungkan satu keluhan dengan langkah yang menyebabkannya.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Logging berarti mencatat peristiwa penting selama aplikasi berjalan. Catatan yang baik memuat waktu, nama service, jenis kejadian, hasil, dan identitas request. Catat pesanan dibuat, pembayaran gagal, koneksi database putus, atau pekerjaan latar selesai. Jangan mengisi buku dengan setiap gerakan kecil yang tidak membantu pencarian masalah.</p>
+        <p>Level log mengatur tingkat perhatian. <code>info</code> untuk kegiatan normal yang berhasil. <code>warn</code> untuk hal aneh yang belum menggagalkan pekerjaan. <code>error</code> untuk kegagalan yang perlu ditangani. <code>debug</code> berguna saat mencari masalah di development. Di produksi, pilih level minimum agar volume catatan tetap terkendali.</p>
+        <p>Structured logging menulis setiap catatan dengan pola field yang sama. Waktu, level, request ID, nama service, dan pesan berada di tempat yang konsisten. JSON mudah dibaca oleh tool. Teks bebas mungkin nyaman di terminal, tetapi lebih sulit dihitung ketika semua catatan dikumpulkan.</p>
+        <p>Metrics merangkum banyak kejadian menjadi angka. Hitung jumlah request, tingkat error, waktu tunggu, koneksi database, dan panjang antrean. Counter biasanya bertambah. Gauge bisa naik atau turun. Histogram membantu melihat sebaran waktu, termasuk p95 atau p99 yang menggambarkan request paling lambat.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/15-logging/02-papan.png" width="1672" height="941" loading="lazy" alt="Papan pantau dapur menampilkan tiga jarum meter dan satu grafik yang naik, sementara Kuka melihatnya.">
+          <figcaption>Papan pantau pagi</figcaption>
+        </figure>
+        <p>Tracing mengikuti satu request melewati beberapa bagian. Setiap pekerjaan kecil menjadi span. Satu trace dapat menunjukkan handler, service, query database, dan API luar. Jika total waktu empat detik, span memperlihatkan apakah dapur, kasir, atau kurir yang menahannya.</p>
+        <details>
+          <summary>Nomor tiket dan jejak</summary>
+          <p>Request ID menempel pada satu pesanan. Service meneruskannya ke langkah berikutnya. Dengan begitu, tim dapat mencari semua catatan yang memiliki nomor sama. Distributed tracing menambahkan hubungan antarspan, sehingga perjalanan lintas service tetap terlihat.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/15-logging/03-tiket.png" width="1672" height="941" loading="lazy" alt="Satu tiket pesanan berpindah dari meja ke meja, dengan garis putus-putus yang menghubungkan setiap meja.">
+          <figcaption>Tiket mengikuti pesanan</figcaption>
+        </figure>
+        <p>Centralized logging mengumpulkan buku harian dari banyak service dan server ke satu tempat. Tim tidak perlu masuk ke mesin satu per satu. Alert berbunyi ketika angka penting melewati batas yang masuk akal. Dasbor menampilkan metrics, catatan, dan jejak dalam tampilan yang bisa diperiksa cepat.</p>
+        <p>Observability bukan satu tool. Ia adalah kebiasaan membuat sistem memancarkan bukti yang berguna. OpenTelemetry dapat membantu mengirim catatan, metrics, dan tracing ke tool seperti Grafana, Jaeger, atau layanan terkelola. Mulai dari sinyal yang paling membantu pengguna, lalu tambah perlahan.</p>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur pemantauan pesanan di dapur</title>
+            <desc id="alur-svg-desc">Kejadian di dapur ditulis di buku harian, angka di papan pantau berubah, bel berbunyi saat batas terlewati, lalu nomor tiket ditelusuri setelah tamu komplain.</desc>
+            <defs>
+              <marker id="alur-arrow-logging" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="22" y="150" width="190" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="117" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">kejadian dapur</text>
+            <text x="117" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">pesanan gagal</text>
+            <rect x="260" y="150" width="190" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="355" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">buku harian</text>
+            <text x="355" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">tulis satu baris</text>
+            <rect x="498" y="150" width="204" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="600" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">papan pantau</text>
+            <text x="600" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">angka berubah</text>
+            <rect x="750" y="150" width="166" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="833" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">alert</text>
+            <text x="833" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">batas terlewati</text>
+            <rect x="964" y="150" width="214" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1071" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">tamu komplain</text>
+            <text x="1071" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">telusuri tiket</text>
+            <path d="M 220 193 L 252 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-logging)" />
+            <path d="M 458 193 L 490 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-logging)" />
+            <path d="M 710 193 L 742 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-logging)" />
+            <path d="M 924 193 L 956 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-logging)" />
+            <text x="600" y="305" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">bukti membuat masalah bisa ditelusuri</text>
+            <path d="M 1071 248 C 1071 350 730 380 600 248" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-logging)" />
+          </svg>
+        </div>
+        <p>Kejadian dimulai di dapur. Satu baris masuk ke buku harian. Angka di papan pantau berubah. Jika batas terlewati, alert berbunyi. Saat tamu komplain, tim memakai nomor tiket untuk menemukan langkah yang lambat.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>{"waktu":"12:04","level":"error","pesanan":"#4821","kejadian":"pembayaran gagal","request_id":"r-82"}
+Manager membaca: pesanan #4821 gagal di pembayaran pada 12:04, lalu menelusuri r-82.</pre>
+        </div>
+        <p>Satu baris memberi bentuk yang konsisten. Manajer bisa menyaring semua kegagalan pembayaran, melihat waktunya, dan membuka jejak pesanan itu. Ia tidak perlu menebak dari coretan panjang.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Logging mencatat kejadian penting dengan waktu dan konteks yang cukup.</li>
+          <li>Level log membedakan kegiatan normal, peringatan, dan kegagalan.</li>
+          <li>Structured logging memakai field berpola agar mudah dicari dan dihitung.</li>
+          <li>Metrics merangkum jumlah, tingkat error, waktu tunggu, dan kapasitas.</li>
+          <li>Tracing mengikuti satu request melalui handler, service, database, dan API lain.</li>
+          <li>Centralized logging, alert, dan dasbor membantu tim melihat masalah lebih cepat.</li>
+          <li>Observability tumbuh bertahap dari bukti yang berguna, bukan dari banyak tool sekaligus.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Apa beda buku harian (log) dan papan pantau (metrics)?</li>
+          <li>Kenapa catatan harus berpola rapi (structured)?</li>
+          <li>Apa gunanya nomor tiket (tracing) saat tamu komplain pesanan lambat?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas instrumentasi, OpenTelemetry, Prometheus, Grafana, ELK, desain alert, dan alur debugging produksi dengan contoh Go serta Python.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Tiga pilar observability</a></li>
+          <li><a href="../html_notes/notes.html">Stack logging dan metrics</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <p>Kode middleware, konfigurasi collector, dan aturan alert lengkap ada di <a href="../html_notes/notes.html">versi teknis</a>.</p>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 15 / Logging, Monitoring &amp; Observability. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
