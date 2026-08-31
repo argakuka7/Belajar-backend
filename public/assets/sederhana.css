@@ -409,3 +409,7 @@ summary:focus-visible {
   color: var(--ink-soft);
   text-align: center;
 }
+
+.step-card pre {
+  overflow-x: auto;
+}

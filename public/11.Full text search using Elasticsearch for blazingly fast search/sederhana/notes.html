@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kartu katalog untuk sepuluh ribu resep. / Bab 11 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 11 tentang full-text search dan Elasticsearch untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 11 / VERSI SEDERHANA</p>
+      <h1>Kartu katalog untuk sepuluh ribu resep.</h1>
+      <p class="lede">Kuka masuk ke gudang restoran yang penuh sepuluh ribu resep. Ia ingin menemukan semua resep dengan satu kata tanpa membuka kertas satu per satu.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Gudang restoran menyimpan sepuluh ribu resep. Seorang tamu meminta resep dengan kata "kopi". Kuka membuka kertas pertama, lalu kertas kedua, dan terus berjalan. Ia harus membaca setiap resep untuk memastikan tidak ada yang terlewat.</p>
+        <p>Cara itu masih mungkin untuk dua puluh resep. Untuk sepuluh ribu resep, waktunya terlalu panjang. <strong>full-text search</strong> membantu petugas mencari isi dokumen, bukan hanya mencocokkan satu kolom secara mentah.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka mulai mencari setelah sarapan. Saat malam tiba, ia baru memeriksa setengah tumpukan. Tamu butuh jawaban sekarang, bukan setelah semua kertas selesai dibaca.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka memanggil pustakawan. Pustakawan tidak membaca semua resep setiap kali ada permintaan. Ia menyiapkan kartu katalog sejak awal.</p>
+        <p>Setiap kartu mewakili satu kata. Kartu "kopi" berisi petunjuk menuju resep nomor 18, 204, dan 7.631. Saat kata itu diminta, pustakawan mengambil kartunya dan langsung melihat daftar resep yang cocok.</p>
+        <details class="istilah">
+          <summary>Peta istilah kartu katalog</summary>
+          <p>Pustakawan adalah mesin pencari. Kartu katalog adalah index. Kata pada kartu adalah term. Daftar nomor resep adalah posting list. Resep adalah dokumen. Permintaan tamu adalah query. Kartu membantu petugas menemukan dokumen tanpa membaca semuanya.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/11-search/01-katalog.png" width="1672" height="941" alt="Kuka membuka satu laci kabinet kartu katalog di perpustakaan raksasa, dengan rak buku tinggi di kejauhan.">
+          <figcaption>Laci kartu katalog.</figcaption>
+        </figure>
+        <p>Kartu katalog mengubah pekerjaan pustakawan. Ia bekerja lebih dulu saat resep masuk. Permintaan berikutnya cukup membaca petunjuk yang sudah tersedia.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Pencarian biasa bergerak dari dokumen ke kata. Petugas membuka resep, lalu memeriksa isinya. Cara yang dibalik disebut <code>inverted index</code>. Ia bergerak dari kata ke dokumen yang memuatnya.</p>
+        <p>Saat resep disimpan, mesin memecah kalimat menjadi token. Ia membuat huruf menjadi seragam dan mencatat posisi kata. Untuk setiap kata, mesin menyimpan daftar ID resep yang cocok. Kartu kata itu dapat dibaca cepat ketika ada query baru.</p>
+        <p><code>inverted index</code> adalah inti trik ini. Kartu "kopi" menunjuk banyak resep yang memiliki kata tersebut. Jumlah semua resep boleh besar. Pencarian cukup bekerja pada daftar yang ditunjuk kartu.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/11-search/02-inverted.png" width="1672" height="941" loading="lazy" alt="Satu kartu besar bertuliskan kopi di dinding memiliki tiga garis penghubung menuju tiga buku resep di rak.">
+          <figcaption>Satu kata, tiga resep.</figcaption>
+        </figure>
+        <p><code>Elasticsearch</code> adalah mesin pencari dokumen JSON yang memakai gagasan ini. Ia menyimpan kartu kata dan membagi pekerjaan ke beberapa shard. Banyak meja petugas dapat mencari bagian berbeda, lalu hasilnya digabungkan.</p>
+        <p>Hasil tidak hanya berupa daftar acak. Mesin memberi skor pada tiap resep. Resep yang paling cocok diletakkan lebih atas supaya tamu cepat melihat jawaban yang berguna.</p>
+        <details class="istilah">
+          <summary>BM25: skor relevansi</summary>
+          <p><code>BM25</code> menilai kecocokan sebuah resep. Kata yang muncul beberapa kali memberi sinyal, kata yang jarang muncul memberi sinyal lebih kuat, dan resep yang terlalu panjang tidak otomatis menang. Skor lebih tinggi berarti resep dianggap lebih relevan.</p>
+        </details>
+        <details class="istilah">
+          <summary>Fuzzy search: toleransi typo</summary>
+          <p><code>fuzzy search</code> membolehkan kesalahan kecil. Saat tamu mengetik "kpi", mesin membandingkan jarak perubahan karakter dan masih dapat menemukan "kopi". Batas jarak perlu dijaga agar hasil tidak melebar ke kata yang tidak berhubungan.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/11-search/03-fuzzy.png" width="1672" height="941" loading="lazy" alt="Kuka menyerahkan kartu dengan satu goresan bergelombang, lalu petugas mesin mengangguk menerimanya.">
+          <figcaption>Typo kecil tetap diterima.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Kapan memakai apa</summary>
+          <p>Rak kecil dengan sedikit resep cukup memakai pencarian sederhana di Postgres. Jika dokumen sudah banyak dan perlu skor, typo tolerance, atau pencarian yang sangat cepat, Elasticsearch lebih cocok. Pilih alat sesuai ukuran data dan kebutuhan tamu.</p>
+        </details>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 330" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur pencarian resep dengan kartu katalog</title>
+            <desc id="alur-svg-desc">Tamu datang dengan satu kata, petugas membuka kartu kata, kartu menunjuk daftar resep, daftar tersusun menurut skor, lalu respons dikirim.</desc>
+            <defs>
+              <marker id="alur-arrow-search" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="20" y="112" width="200" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="120" y="150" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">tamu datang</text>
+            <text x="120" y="176" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">satu kata</text>
+            <rect x="250" y="112" width="200" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="350" y="150" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">petugas buka</text>
+            <text x="350" y="176" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">kartu kata</text>
+            <rect x="480" y="112" width="200" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="580" y="150" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">kartu menunjuk</text>
+            <text x="580" y="176" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">daftar resep</text>
+            <rect x="710" y="112" width="200" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="810" y="150" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">daftar tersusun</text>
+            <text x="810" y="176" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">skor</text>
+            <rect x="940" y="112" width="200" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1040" y="150" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">respons</text>
+            <text x="1040" y="176" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">resep cocok</text>
+            <path d="M 228 155 L 242 155" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-search)" />
+            <path d="M 458 155 L 472 155" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-search)" />
+            <path d="M 688 155 L 702 155" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-search)" />
+            <path d="M 918 155 L 932 155" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-search)" />
+            <text x="600" y="270" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">satu kartu, jawaban cepat</text>
+          </svg>
+        </div>
+        <p>Tamu mengirim satu kata. Petugas membuka kartu yang sesuai. Daftar resep lalu diurutkan menurut skor sebelum respons dikirim.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>cari "kopi" -&gt; hasil
+1. Kopi susu gula aren | skor 9.2
+2. Roti bakar kopi     | skor 7.4
+3. Puding kopi         | skor 5.8</pre>
+        </div>
+        <p>Kartu kata "kopi" tidak menyimpan seluruh resep. Kartu itu hanya menunjuk resep yang cocok. Skor membantu resep paling sesuai muncul lebih dulu.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Membuka sepuluh ribu resep satu per satu membuat pencarian lambat.</li>
+          <li>Kartu katalog menyimpan petunjuk dari sebuah kata menuju dokumen.</li>
+          <li><code>inverted index</code> membalik arah pencarian dari kata ke dokumen.</li>
+          <li><code>Elasticsearch</code> memakai kartu kata, shard, dan skor untuk pencarian cepat.</li>
+          <li><code>BM25</code> mengurutkan hasil berdasarkan relevansi.</li>
+          <li><code>fuzzy search</code> membantu saat tamu membuat typo kecil.</li>
+          <li>Postgres cukup untuk rak kecil, sedangkan Elasticsearch cocok untuk kebutuhan pencarian yang lebih besar.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Kenapa mencari di tumpukan besar dengan membuka satu per satu itu lambat?</li>
+          <li>Apa isi kartu katalog terbalik (inverted index)?</li>
+          <li>Kenapa ketikan yang salah sedikit tetap bisa menemukan resep?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas cara membuat index, mengirim query, dan menghubungkan mesin pencari dengan backend.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">ELK stack untuk log</a></li>
+          <li><a href="../html_notes/notes.html">Benchmark ILIKE dan Elasticsearch</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Full-text search Postgres di Go</a></li>
+          <li><a href="../html_notes/notes.html">Elasticsearch di Python</a></li>
+          <li><a href="../html_notes/notes.html">Referensi dan bacaan lanjutan</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 11 / Full-Text Search dan Elasticsearch. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>

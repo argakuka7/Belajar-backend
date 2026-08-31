@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dapur tenang saat piring pecah / Bab 12 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 12 tentang error handling dan sistem tahan gagal untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 12 / VERSI SEDERHANA</p>
+      <h1>Dapur tenang saat piring pecah.</h1>
+      <p class="lede">Kuka masuk ke dapur restoran saat sebuah piring jatuh. Dapur yang hebat bukan dapur yang tidak pernah mengalami masalah. Dapur yang hebat tahu siapa yang harus diberi tahu, cara membersihkan kekacauan, dan cara tetap melayani tamu.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Restoran melayani banyak tamu, bahan, dan pesanan. Sesekali pesanan gagal, pemasok tidak menjawab, atau dapur kehabisan satu bahan. <strong>error</strong> tidak selalu bisa dicegah. Yang bisa disiapkan adalah reaksi yang jelas.</p>
+        <p>Sistem tahan gagal membuat masalah cepat terlihat. Ia mencatat kejadian, memberi pesan yang aman, lalu mencari jalan untuk pulih. Tamu tidak perlu ikut melihat kepanikan di belakang pintu.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka mendengar piring pecah. Ia tidak berteriak. Ia menjauhkan tamu dari pecahan, memberi tahu manajer, mengambil sapu, lalu memeriksa apakah dapur masih bisa bekerja.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Dapur adalah sistem yang sibuk. Tamu mengirim pesanan. Juru masak mengolahnya. Kasir mengirim kabar bahwa pesanan sudah siap. Setiap bagian punya tugas, tetapi kegagalan di satu bagian dapat mengganggu bagian lain.</p>
+        <p>Jaring pengaman dipasang di bawah rak piring. Saat piring jatuh, jaring menangkapnya sebelum pecah di lantai. Pesan untuk tamu tetap singkat. Catatan untuk dapur menyimpan detail yang dibutuhkan untuk memperbaiki masalah.</p>
+        <details class="istilah">
+          <summary>Peta istilah dapur</summary>
+          <p>Pesanan adalah request. Kabar masalah adalah error. Juru masak yang mengatur respons adalah handler. Buku harian dapur adalah log. Pemeriksaan panci berkala adalah health check. Jaring pengaman terakhir adalah global error handler.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/12-error/01-jaring.png" width="1672" height="941" alt="Kuka berdiri di samping rak tinggi dengan jaring pengaman besar yang menangkap satu piring jatuh.">
+          <figcaption>Jaring menangkap piring.</figcaption>
+        </figure>
+        <p>Jaring tidak menghapus kemungkinan piring jatuh. Ia mencegah satu kejadian kecil berubah menjadi lantai berbahaya dan layanan yang berhenti. Sistem backend juga perlu lapisan pengaman seperti itu.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Logic error adalah kesalahan aturan di dalam program. Program tetap berjalan, tetapi hasilnya salah. Rasa masakan bisa terlalu asin tanpa mengeluarkan suara apa pun. Karena itu logic error perlu dicari lewat contoh, pengujian, dan pengamatan hasil.</p>
+        <details class="istilah">
+          <summary>Error database</summary>
+          <p>Database bisa lambat, terkunci, atau tidak tersedia. Backend sebaiknya mencatat error itu, membatasi percobaan ulang, dan memberi tahu tamu bahwa pesanan belum dapat diproses. Jangan menganggap gudang selalu terbuka.</p>
+        </details>
+        <details class="istilah">
+          <summary>Error layanan eksternal</summary>
+          <p>Layanan eksternal seperti pembayaran atau pengiriman dapat timeout. Beri batas waktu yang masuk akal. Coba lagi hanya jika aman. Jika tetap gagal, simpan keadaan pesanan dan berikan pesan yang bisa dipahami tamu.</p>
+        </details>
+        <details class="istilah">
+          <summary>Error validasi input</summary>
+          <p>Input yang kosong, salah bentuk, atau tidak masuk akal harus ditolak di awal. Ini kesalahan request, bukan kerusakan dapur. Balas dengan status code 400 dan alasan yang membantu tamu memperbaiki pesanan.</p>
+        </details>
+        <details class="istilah">
+          <summary>Error konfigurasi</summary>
+          <p>Konfigurasi adalah resep yang dipakai semua bagian aplikasi. Nama host yang salah, secret yang hilang, atau nilai yang tertukar dapat membuat seluruh dapur gagal. Periksa konfigurasi saat aplikasi mulai berjalan.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/12-error/03-sapu.png" width="1672" height="941" loading="lazy" alt="Kuka menyapu pecahan piring dengan tenang sementara dapur dan panci lain tetap bekerja di belakangnya.">
+          <figcaption>Kuka membersihkan pecahan.</figcaption>
+        </figure>
+        <p>Health check adalah pemeriksaan singkat sebelum tamu mengeluh. Manajer memeriksa apakah aplikasi hidup, database bisa dijangkau, dan bagian penting masih siap menerima pesanan.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/12-error/02-health.png" width="1672" height="941" loading="lazy" alt="Mesin manajer bertopi mencicipi panci besar sambil memegang papan kecil bertanda centang.">
+          <figcaption>Health check dapur.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Monitoring dan observabilitas</summary>
+          <p>Monitoring mengawasi tanda penting seperti jumlah error, waktu respons, dan penggunaan sumber daya. Observabilitas membantu kita mencari sebab dari tanda itu lewat log, metrik, dan jejak request. Baca buku harian dapur sebelum tamu datang membawa keluhan.</p>
+        </details>
+        <p>Strategi pemulihan menentukan langkah setelah gagal. Juru masak kedua dapat mengambil alih panci. Sistem dapat mencoba lagi, memakai jalur cadangan, menunda pekerjaan, atau membatalkan perubahan. Pilih langkah yang tidak menggandakan pesanan.</p>
+        <p>Global error handler adalah jaring pengaman terakhir. Ia menangkap error yang lolos dari bagian lain, mencatat detailnya, dan mengirim respons yang rapi. Handler ini mencegah aplikasi membocorkan halaman rusak atau detail internal kepada tamu.</p>
+        <details class="istilah">
+          <summary>Keamanan yang diekspos</summary>
+          <p>Kepada tamu, cukup kirim pesan seperti pesanan gagal dan nomor laporan. Jangan kirim stack trace, nama tabel, alamat server, token, atau secret. Detail lengkap hanya masuk ke catatan internal yang aksesnya dibatasi.</p>
+        </details>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur penanganan error</title>
+            <desc id="alur-svg-desc">Request bermasalah melempar error, error dicatat, jaring pengaman menangkapnya, lalu tamu menerima pesan rapi dan dapur menyimpan detail.</desc>
+            <defs>
+              <marker id="alur-arrow-error" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="22" y="150" width="190" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="117" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">request</text>
+            <text x="117" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">bermasalah</text>
+            <rect x="260" y="150" width="190" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="355" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">error</text>
+            <text x="355" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">dilempar</text>
+            <rect x="498" y="150" width="204" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="600" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">catat</text>
+            <text x="600" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">buku harian</text>
+            <rect x="750" y="150" width="166" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="833" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">jaring</text>
+            <text x="833" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">menangkap</text>
+            <rect x="964" y="150" width="214" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1071" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">pesan rapi</text>
+            <text x="1071" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">400 / 500</text>
+            <path d="M 220 193 L 252 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-error)" />
+            <path d="M 458 193 L 490 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-error)" />
+            <path d="M 710 193 L 742 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-error)" />
+            <path d="M 924 193 L 956 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-error)" />
+            <text x="600" y="305" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">detail ke dapur, pesan ke tamu</text>
+            <path d="M 1071 248 C 1071 350 730 380 600 248" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-error)" />
+          </svg>
+        </div>
+        <p>Request yang bermasalah melempar error. Error dicatat di buku harian. Global error handler menangkapnya. Tamu mendapat status 400 atau 500 dengan pesan rapi, sedangkan dapur mendapat detail untuk memperbaiki masalah.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Kartu pos:
+Validasi gagal -&gt; 400
+Alasan: email tidak sah
+Tamu: perbaiki input
+Dapur gagal -&gt; 500
+Tamu: pesanan gagal
+Detail dalam: tidak dikirim</pre>
+        </div>
+        <p>Kegagalan validasi menjelaskan apa yang perlu diperbaiki. Kegagalan dapur memberi pesan umum agar detail internal tetap aman. Keduanya tetap dicatat supaya tim dapat melihat pola masalah.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Error pasti muncul. Rancang sistem untuk gagal secara terkendali dan pulih dengan jelas.</li>
+          <li>Logic error dapat memberi hasil salah tanpa membuat aplikasi berhenti.</li>
+          <li>Error database dan layanan eksternal perlu batas waktu, pencatatan, dan pemulihan yang aman.</li>
+          <li>Input buruk ditolak dengan status 400 dan alasan yang membantu.</li>
+          <li>Konfigurasi diperiksa sejak awal. Health check mencari masalah sebelum tamu mengeluh.</li>
+          <li>Monitoring dan observabilitas menghubungkan gejala dengan penyebab.</li>
+          <li>Strategi pemulihan dapat mencoba lagi, memakai jalur lain, menunda, atau membatalkan pekerjaan.</li>
+          <li>Global error handler memberi pesan aman kepada tamu dan detail berguna kepada dapur.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Kenapa error harus segera ketahuan, bukan disembunyikan?</li>
+          <li>Apa beda pesan untuk tamu dan pesan untuk dapur saat pesanan gagal?</li>
+          <li>Apa fungsi jaring pengaman (global error handler)?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis menunjukkan cara menerapkan error handling, mencatat kegagalan, dan membangun sistem yang tetap bisa melayani saat sebagian komponennya bermasalah.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Ringkasan kerentanan</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Global error handler di Go</a></li>
+          <li><a href="../html_notes/notes.html">Global error handler di Python</a></li>
+          <li><a href="../html_notes/notes.html">Referensi dan bacaan lanjutan</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 12 / Error Handling dan Sistem Tahan Gagal. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
