@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pelayan yang menetap di samping meja / Bab 24 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 24 tentang WebSockets dan komunikasi real-time untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 24 / VERSI SEDERHANA</p>
+      <h1>Pelayan yang menetap di samping meja.</h1>
+      <p class="lede">Kuka duduk tenang di meja restoran. Ia tidak perlu mengangkat tangan setiap kali ingin bertanya. Seorang pelayan menetap di sampingnya dan siap mengirim kabar dari dua arah.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Restoran perlu memberi tahu tamu saat pesanan siap. Cara lama membuat tamu mengirim pertanyaan berulang, "sudah jadi?" Sebagian besar pertanyaan mendapat jawaban "belum". Request terus berjalan, tetapi kabar penting tetap terlambat.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka mengangkat tangan sepuluh kali. Pelayan datang untuk menjawab sepuluh kali juga. Lebih baik ada satu jalur terbuka, lalu pelayan langsung menyampaikan kabar saat kue siap.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka duduk di meja. Pelayan berdiri di sampingnya dan tidak kembali ke dapur setelah satu pertanyaan. Mereka dapat berbicara kapan saja. Pelayan bisa membawa kabar lebih dulu, dan Kuka bisa berbisik saat membutuhkan sesuatu.</p>
+        <p>Mereka membuat kesepakatan sebelum pelayan menetap. Setelah itu, percakapan berjalan melalui satu koneksi yang tetap terbuka sampai salah satu dari mereka pamit.</p>
+        <details class="istilah">
+          <summary>Peta meja dan pelayan</summary>
+          <p>Meja Kuka adalah klien. Pelayan adalah server. Jalur yang tetap terbuka adalah koneksi WebSocket. Percakapan dua arah adalah komunikasi real-time.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/24-websocket/01-pelayan-menetap.png" width="1672" height="941" alt="Pelayan mesin berdiri di samping meja Kuka yang duduk santai, dengan garis bisikan dua arah di antara mereka.">
+          <figcaption>Pelayan menetap di meja.</figcaption>
+        </figure>
+        <p>Pelayan tidak menunggu Kuka memanggilnya lagi. Ia sudah berada di sana. Kabar bisa bergerak dari dapur ke meja, atau dari meja ke dapur.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p><strong>WebSocket</strong> adalah koneksi persisten dua arah antara klien dan server. Koneksi ini dibuka sekali, lalu kedua sisi dapat mengirim pesan kapan saja. Server tidak perlu menunggu request baru untuk mengirim pembaruan.</p>
+        <p>WebSocket berjalan di atas satu koneksi TCP. Ia biasanya mulai dari request HTTP, lalu berubah menjadi jalur WebSocket. Setelah berubah, data dikirim sebagai frame, bukan sebagai request HTTP baru untuk setiap pesan.</p>
+        <p><strong>handshake</strong> adalah percakapan pembuka untuk meminta perubahan itu. Tamu berkata, "boleh pelayan menetap?" Klien mengirim header upgrade. Jika server menyetujui, ia menjawab 101 Switching Protocols. Koneksi kemudian terbuka untuk percakapan dua arah.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/24-websocket/02-handshake.png" width="1672" height="941" loading="lazy" alt="Kuka mengulurkan kartu kepada pelayan di pintu, pelayan mengangguk menyambut, dan pintu terbuka lebar.">
+          <figcaption>Jabat tangan koneksi.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Spektrum real-time</summary>
+          <p>Ada beberapa cara menunggu kabar. Polling bertanya pada jadwal tetap. Long polling menahan request sampai ada kabar. SSE mengirim kabar dari server ke klien. WebSocket memberi jalur dua arah. Pilih cara paling sederhana yang sesuai pesanan.</p>
+        </details>
+        <details class="istilah">
+          <summary>Frame</summary>
+          <p>Frame adalah potongan pesan dengan penanda kecil. Potongan itu membantu penerima mengenali isi, urutan, dan akhir pesan. Pesan besar dapat dipecah menjadi beberapa frame.</p>
+        </details>
+        <details class="istilah">
+          <summary>Siklus hidup koneksi</summary>
+          <p>Koneksi dimulai saat handshake berhasil. Ia lalu bertukar pesan. Ketika salah satu pihak pamit, close frame memberi tahu pihak lain dan koneksi ditutup dengan rapi.</p>
+        </details>
+        <details class="istilah">
+          <summary>Ping, pong, dan heartbeat</summary>
+          <p>Pelayan sesekali bertanya, "masih di sini?" Itu adalah ping. Jawaban pong menunjukkan bahwa koneksi masih hidup. Heartbeat membantu menemukan koneksi yang putus diam-diam.</p>
+        </details>
+        <details class="istilah">
+          <summary>Server WebSocket</summary>
+          <p>Server menerima handshake, menyimpan koneksi yang terbuka, lalu membaca dan mengirim pesan. Setiap tamu memakai sumber daya, jadi jumlah koneksi perlu dihitung.</p>
+        </details>
+        <details class="istilah">
+          <summary>Klien WebSocket</summary>
+          <p>Klien memulai koneksi ke alamat WebSocket. Ia menerima pesan dari server dan dapat mengirim pesan sendiri. Di browser, klien biasanya memakai API WebSocket.</p>
+        </details>
+        <details class="istilah">
+          <summary>Manajemen koneksi</summary>
+          <p>Server perlu mencatat tamu yang sedang ditemani. Ia juga perlu menghapus koneksi yang sudah tutup dan menangani error. Daftar yang rapi mencegah pesan dikirim ke tamu yang sudah pergi.</p>
+        </details>
+        <details class="istilah">
+          <summary>Broadcast dan room</summary>
+          <p><strong>broadcast</strong> mengirim satu kabar ke semua tamu yang terhubung. Room membatasi kabar pada kelompok meja tertentu. Chat umum memakai ruangan besar. Chat pribadi memakai ruangan kecil.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/24-websocket/03-broadcast.png" width="1672" height="941" loading="lazy" alt="Satu pelayan di tengah ruangan menyampaikan piring ke empat meja sekaligus melalui garis yang bercabang.">
+          <figcaption>Satu pesan, banyak meja.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Backpressure dan consumer lambat</summary>
+          <p>Tamu yang lambat mencatat tidak boleh dibanjiri kabar. Server dapat menahan pesan dalam antrean kecil, mengurangi laju kirim, atau memutus koneksi yang tidak sanggup mengejar.</p>
+        </details>
+        <details class="istilah">
+          <summary>Autentikasi</summary>
+          <p>Kartu identitas perlu dicek sebelum pelayan menetap. Server dapat memeriksa cookie, token, atau pesan pertama setelah koneksi terbuka. Tamu tanpa izin tidak boleh masuk ke room.</p>
+        </details>
+        <details class="istilah">
+          <summary>Keamanan</summary>
+          <p>Gunakan wss untuk jalur yang terenkripsi. Periksa origin, validasi pesan, batasi ukuran frame, dan batasi siapa yang boleh mengirim ke room. Koneksi terbuka bukan alasan untuk menghapus aturan.</p>
+        </details>
+        <details class="istilah">
+          <summary>Reconnection dan ketahanan</summary>
+          <p>Pelayan bisa pergi karena jaringan putus. Klien dapat meminta pelayan baru dengan jeda yang makin panjang. Pesan yang terlewat perlu dicari lewat nomor urut atau sumber data lain.</p>
+        </details>
+        <details class="istilah">
+          <summary>WebSocket, SSE, streaming, dan polling</summary>
+          <p>Polling sederhana, tetapi boros dan lambat. SSE cocok untuk kabar satu arah dari server. Streaming mengalirkan data secara bertahap. WebSocket cocok saat klien dan server sama-sama perlu berbicara cepat.</p>
+        </details>
+        <details class="istilah">
+          <summary>Jebakan umum</summary>
+          <p>Jangan membuka koneksi untuk setiap pesan. Jangan menganggap koneksi akan selalu hidup. Jangan mengirim terlalu banyak data kepada semua tamu. Koneksi yang menetap perlu batas, pemantauan, dan penutupan yang jelas.</p>
+        </details>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur pelayan yang menetap di samping meja</title>
+            <desc id="alur-svg-desc">Tamu meminta pelayan menetap, server menyetujui, kue langsung disodorkan, percakapan berjalan dua arah, lalu salah satu pihak pamit dan koneksi ditutup rapi.</desc>
+            <defs>
+              <marker id="alur-arrow-websocket" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="18" y="132" width="190" height="94" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="113" y="169" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">tamu</text>
+            <text x="113" y="198" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">boleh menetap?</text>
+            <rect x="236" y="132" width="190" height="94" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="331" y="169" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">pelayan</text>
+            <text x="331" y="198" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">boleh</text>
+            <rect x="454" y="132" width="190" height="94" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="549" y="169" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">kue mati</text>
+            <text x="549" y="198" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">langsung disodorkan</text>
+            <rect x="672" y="132" width="210" height="94" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="777" y="169" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">dua arah</text>
+            <text x="777" y="198" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">bisik kapan saja</text>
+            <rect x="910" y="132" width="272" height="94" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1046" y="169" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="19" font-weight="600">pamit</text>
+            <text x="1046" y="198" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="14" font-weight="700">koneksi tutup rapi</text>
+            <path d="M 216 179 L 228 179" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-websocket)" />
+            <path d="M 434 179 L 446 179" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-websocket)" />
+            <path d="M 652 179 L 664 179" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-websocket)" />
+            <path d="M 890 179 L 902 179" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-websocket)" />
+            <text x="600" y="300" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">tanpa bertanya ulang</text>
+            <path d="M 777 238 C 777 350 430 370 331 238" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-websocket)" />
+            <text x="554" y="363" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="17" font-style="italic">pesan bergerak selama koneksi terbuka</text>
+          </svg>
+        </div>
+        <p>Tamu meminta sekali. Server menjawab boleh. Setelah handshake, pelayan dapat menyodorkan kue tanpa ditanya dan tamu bisa berbisik kapan saja. Saat salah satu pamit, koneksi ditutup dengan rapi.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Cara lama
+Tamu: "sudah jadi?"
+Tamu: "sudah jadi?"
+Tamu: "sudah jadi?"
+Cara baru
+Pelayan: "Kue langsung disodorkan."
+</pre>
+        </div>
+        <p>Kartu pos ini memperlihatkan bedanya. Cara lama mengulang request. Cara baru menjaga satu jalur tetap terbuka dan mengirim kabar saat peristiwa terjadi.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>WebSocket membuat koneksi persisten dua arah antara klien dan server.</li>
+          <li>Handshake mengubah request HTTP menjadi koneksi WebSocket.</li>
+          <li>Pesan bergerak dalam frame dan koneksi punya siklus hidup yang jelas.</li>
+          <li>Ping dan pong membantu memeriksa apakah koneksi masih hidup.</li>
+          <li>Server perlu mencatat koneksi, mengatur room, dan menangani tamu yang lambat.</li>
+          <li>Autentikasi dan keamanan harus diperiksa sebelum pesan dipercaya.</li>
+          <li>Reconnection membantu klien kembali setelah jaringan putus.</li>
+          <li>SSE atau polling bisa lebih tepat jika komunikasi tidak membutuhkan dua arah.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Kenapa bertanya "sudah jadi?" berulang itu masalah, dan apa solusinya?</li>
+          <li>Apa yang terjadi saat handshake upgrade?</li>
+          <li>Kenapa pelayan perlu bertanya "masih di sini?" sesekali?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas protokol, kode server dan klien, serta cara mengelola koneksi real-time dalam sistem yang lebih besar.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Backplane</a></li>
+          <li><a href="../html_notes/notes.html">Sticky session</a></li>
+          <li><a href="../html_notes/notes.html">Mendesain real-time</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <p>Crib-sheet dan rangkuman teknis ada di <a href="../html_notes/notes.html">versi teknis</a>.</p>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 24 / WebSockets &amp; Real-Time. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
