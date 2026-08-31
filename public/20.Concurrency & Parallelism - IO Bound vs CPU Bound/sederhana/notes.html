@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Satu juru masak, banyak panci / Bab 20 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 20 tentang concurrency dan parallelism untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 20 / VERSI SEDERHANA</p>
+      <h1>Satu juru masak, banyak panci.</h1>
+      <p class="lede">Kuka mengurus banyak pesanan dengan satu dapur. Ia tidak berdiri diam menunggu satu panci, tetapi juga tidak memaksa satu tangan mengerjakan dua tugas berat sekaligus.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Dapur restoran menerima banyak pesanan. Satu panci perlu waktu untuk mendidih, sedangkan sayur di meja sudah siap dipotong. Jika Kuka hanya menatap panci, tamu lain menunggu tanpa alasan.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka menaruh air di panci pertama. Sambil menunggu air mendidih, ia memotong sayur untuk pesanan berikutnya. Dapur tetap bergerak meski panci pertama belum siap.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka bekerja sendirian di dapur dengan beberapa panci. Ia menyalakan kompor, meninggalkan panci yang sedang menunggu, lalu berpindah ke meja potong.</p>
+        <p>Saat bel panci berbunyi, Kuka kembali menuang bahan. Ia harus mengingat panci mana yang menunggu dan pekerjaan mana yang bisa diselingi.</p>
+        <details class="istilah">
+          <summary>Peta dapurnya</summary>
+          <p>Menunggu rebusan adalah <strong>IO-bound</strong>, sedangkan menumbuk bumbu adalah <strong>CPU-bound</strong>. Menyelingi beberapa pesanan adalah <strong>konkurensi</strong>, sementara banyak juru masak bekerja bersamaan adalah <strong>paralelisme</strong>.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/20-concurrency/01-dua-panci.png" width="1672" height="941" alt="Kuka mengaduk satu panci sambil menunjuk dua panci lain yang sedang merebus, dengan bel kecil di tiap panci.">
+          <figcaption>Satu koki, banyak panci.</figcaption>
+        </figure>
+        <p>Perhatikan tangan dan waktunya. Kuka memanfaatkan waktu tunggu, lalu kembali saat pekerjaan di panci sudah siap.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Konkurensi penting karena pekerjaan backend jarang berjalan lurus tanpa jeda. Request sering menunggu jaringan, disk, database, atau service lain. Saat satu pekerjaan menunggu, server dapat mengerjakan pekerjaan lain.</p>
+        <p>Waktu duduk menganggur adalah biaya. Setiap detik juru masak menunggu panci adalah detik ketika pesanan lain belum disentuh. Menyelingi pekerjaan membuat waktu tunggu lebih berguna.</p>
+        <p><code>IO-bound</code> banyak menghabiskan waktu untuk menunggu input atau output, seperti rebusan yang belum mendidih. <code>CPU-bound</code> banyak memakai waktu untuk menghitung, seperti menumbuk bumbu sampai halus. Menunggu dan menghitung membutuhkan strategi yang berbeda.</p>
+        <p>Konkurensi berarti beberapa pekerjaan maju dengan cara diselingi, meski hanya ada satu juru masak. Paralelisme berarti beberapa pekerjaan benar-benar berjalan pada waktu yang sama dengan beberapa juru masak atau core.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/20-concurrency/02-paralel.png" width="1672" height="941" loading="lazy" alt="Tiga juru masak mesin kembar mengaduk tiga panci di tiga kompor pada waktu yang sama.">
+          <figcaption>Tiga panci diaduk bersamaan.</figcaption>
+        </figure>
+        <p><strong>race condition</strong> terjadi saat dua pekerjaan mengubah state bersama tanpa urutan yang aman. Dua juru masak dapat menuang gula ke panci yang sama bersamaan, sehingga hasil akhirnya tidak sesuai rencana.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/20-concurrency/03-gula.png" width="1672" height="941" loading="lazy" alt="Dua lengan menuang dari dua tempurung gula ke satu panci yang sama, dengan tetesan yang saling bertabrakan.">
+          <figcaption>Dua tangan, gula dobel.</figcaption>
+        </figure>
+        <p>State bersama perlu aturan. Server harus tahu siapa yang boleh membaca atau mengubah data, kapan perubahan dimulai, dan kapan hasilnya boleh terlihat oleh pekerjaan lain.</p>
+        <details class="istilah">
+          <summary>Thread</summary>
+          <p>Thread adalah asisten kecil yang dapat memegang satu pekerjaan. Banyak thread dapat membantu, tetapi masing-masing perlu memori dan waktu untuk dikelola.</p>
+        </details>
+        <details class="istilah">
+          <summary>Overhead dan context switching</summary>
+          <p>Overhead adalah biaya tambahan untuk mengatur pekerjaan. Terlalu banyak thread membuat server sering berpindah pekerjaan, sehingga waktu habis untuk context switching.</p>
+        </details>
+        <details class="istilah">
+          <summary>Event loop</summary>
+          <p>Event loop adalah satu juru masak yang memeriksa bel dari banyak panci. Ia mengambil pekerjaan yang siap tanpa menunggu panci lain selesai.</p>
+        </details>
+        <details class="istilah">
+          <summary>Async/await</summary>
+          <p>Async/await memungkinkan pekerjaan meninggalkan catatan untuk dilanjutkan nanti. Kode tetap mudah diikuti, sementara juru masak dapat mengerjakan meja lain saat menunggu.</p>
+        </details>
+        <details class="istilah">
+          <summary>Goroutine</summary>
+          <p>Goroutine adalah unit pekerjaan ringan yang dapat dibuat dalam jumlah besar. Runtime membantu mengatur pekerjaan itu di atas thread yang tersedia.</p>
+        </details>
+        <details class="istilah">
+          <summary>Lock, mutex, dan channel</summary>
+          <p>Lock atau mutex memberi satu kunci pada panci. Channel menjadi jalur tiket untuk mengirim pekerjaan atau hasil antarjuru masak.</p>
+        </details>
+        <details class="istilah">
+          <summary>Memilih model</summary>
+          <p>Pilih model berdasarkan bentuk kerja. Banyak menunggu cocok diselingi, sedangkan banyak menghitung biasanya membutuhkan core atau juru masak tambahan.</p>
+        </details>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur memasak dengan konkurensi</title>
+            <desc id="alur-svg-desc">Pesanan direbus dan menunggu. Selama menunggu, Kuka memotong sayur. Saat bel berbunyi, Kuka kembali menuang dan selesai. Cabang tanpa aturan membuat gula menjadi dobel.</desc>
+            <defs>
+              <marker id="alur-arrow-concurrency" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="18" y="116" width="168" height="92" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="102" y="154" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">pesanan rebus</text>
+            <text x="102" y="183" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">mulai</text>
+            <rect x="216" y="116" width="150" height="92" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="291" y="154" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">tunggu</text>
+            <text x="291" y="183" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">rebus</text>
+            <rect x="396" y="116" width="172" height="92" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="482" y="154" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">potong sayur</text>
+            <text x="482" y="183" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">sambil tunggu</text>
+            <rect x="598" y="116" width="154" height="92" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="675" y="154" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">bel bunyi</text>
+            <text x="675" y="183" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">siap</text>
+            <rect x="782" y="116" width="166" height="92" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="865" y="154" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">kembali tuang</text>
+            <text x="865" y="183" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">pesanan 1</text>
+            <rect x="978" y="116" width="192" height="92" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1074" y="154" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">selesai</text>
+            <text x="1074" y="183" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">pesanan 1</text>
+            <path d="M 194 162 L 208 162" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-concurrency)" />
+            <path d="M 374 162 L 388 162" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-concurrency)" />
+            <path d="M 576 162 L 590 162" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-concurrency)" />
+            <path d="M 760 162 L 774 162" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-concurrency)" />
+            <path d="M 956 162 L 970 162" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-concurrency)" />
+
+            <text x="864" y="258" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">cabang tanpa aturan</text>
+            <rect x="770" y="278" width="190" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="865" y="313" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="18" font-weight="600">dua tangan</text>
+            <text x="865" y="339" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">menuang bersamaan</text>
+            <rect x="1000" y="278" width="170" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1085" y="313" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">manis dobel</text>
+            <text x="1085" y="339" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">race condition</text>
+            <path d="M 865 214 L 865 270" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-concurrency)" />
+            <path d="M 968 321 L 992 321" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-concurrency)" />
+          </svg>
+        </div>
+        <p>Pesanan pertama menunggu rebusan. Kuka memotong sayur selama jeda, lalu kembali saat bel berbunyi. Tanpa aturan, dua tangan dapat menuang bersamaan dan membuat gula menjadi dobel.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Kartu masuk
+Pesanan 1: rebus 10 menit
+Sambil menunggu: potong pesanan 2
+Bel rebus bunyi
+Kembali tuang pesanan 1
+Selesai: pesanan 1</pre>
+        </div>
+        <p>Seperti kartu pos, catatan pesanan menunjukkan pekerjaan yang sedang menunggu dan pekerjaan yang bisa diselipkan. Kuka kembali ke pesanan pertama setelah bel berbunyi.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Konkurensi membuat server dapat mengerjakan tugas lain saat satu tugas menunggu.</li>
+          <li>Waktu menganggur adalah biaya karena pekerjaan lain belum dilayani.</li>
+          <li>IO-bound menunggu input atau output, sedangkan CPU-bound memakai waktu untuk menghitung.</li>
+          <li>Konkurensi menyelingi pekerjaan, sedangkan paralelisme menjalankan pekerjaan secara bersamaan.</li>
+          <li>Race condition muncul saat pekerjaan mengubah state bersama tanpa aturan yang aman.</li>
+          <li>Thread, event loop, async/await, goroutine, lock, mutex, dan channel memberi pilihan cara mengatur pekerjaan.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Apa beda pekerjaan yang menunggu (IO-bound) dan yang menghitung (CPU-bound)?</li>
+          <li>Apa beda konkurensi dan paralelisme?</li>
+          <li>Apa yang terjadi kalau dua juru masak menuang ke panci yang sama tanpa aturan?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas cara memilih model concurrency, mengatur pekerjaan yang menunggu, dan menjaga state bersama.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Scheduler M:N</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Bacaan lanjutan</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 20 / Concurrency &amp; Parallelism. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
