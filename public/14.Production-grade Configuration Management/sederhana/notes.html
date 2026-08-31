@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buku panduan di dinding, kunci di kotak / Bab 14 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 14 tentang manajemen konfigurasi untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 14 / VERSI SEDERHANA</p>
+      <h1>Buku panduan di dinding, kunci di kotak.</h1>
+      <p class="lede">Kuka masuk ke dapur yang punya satu buku panduan dan beberapa catatan lokasi. Resepnya sama untuk semua cabang. Jam buka, alamat pemasok, dan secret disimpan di tempat yang tepat.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p><strong>config</strong> adalah catatan tentang tempat program berjalan. Resep (code) sebaiknya tetap sama. Catatan lokasi berubah sesuai cabang, mesin, dan environment. Jika keduanya tercampur, satu perubahan kecil dapat memaksa kita mengubah resep untuk semua dapur.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka melihat tiga cabang memakai resep roti yang sama. Catatan jam buka mereka berbeda. Ia memisahkan resep dari catatan supaya setiap cabang dapat berubah tanpa merusak resep.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Di dinding dapur, Kuka menemukan buku panduan besar. Buku itu berisi resep yang dipakai semua shift. Di sampingnya ada catatan kecil untuk tiap gedung. Catatan itu berisi jam buka dan alamat pemasok.</p>
+        <p>Resep tidak perlu tahu dapur mana yang sedang memasak. Catatan lokasi memberi tahu detail tempatnya. Kunci lemari kas punya tempat yang lebih tertutup daripada catatan jam buka.</p>
+        <details class="istilah">
+          <summary>Peta istilah dapur</summary>
+          <p>Buku panduan adalah code. Catatan cabang adalah config. Dapur latihan, dapur uji coba, dan gedung asli adalah environment. Kunci lemari kas adalah secret. Buku panduan yang terpusat adalah sumber config.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/14-config/01-panduan.png" width="1672" height="941" alt="Kuka membaca buku panduan besar yang tergantung di dinding dapur dengan tempelan kecil tersusun rapi di sampingnya.">
+          <figcaption>Panduan di dinding dapur.</figcaption>
+        </figure>
+        <p>Satu panduan membantu semua shift bekerja dengan aturan yang sama. Catatan kecil melengkapi panduan tanpa mengubah resep. Susunan ini membuat perubahan lebih mudah dilacak.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Kekacauan muncul saat setiap orang menempelkan catatan di tempat berbeda. Satu catatan ada di terminal, satu lagi ada di file, dan sisanya tersimpan dalam ingatan seseorang. Ketika satu tempelan lepas, program bisa berjalan dengan config yang salah.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/14-config/02-tempelan.png" width="1672" height="941" loading="lazy" alt="Kuka kebingungan di depan dinding yang penuh tempelan konfigurasi acak dan miring.">
+          <figcaption>Tempelan membuat kacau.</figcaption>
+        </figure>
+        <p>Config punya jenis yang berbeda. Sebagian boleh dibaca banyak orang, seperti jam buka. Sebagian lain harus dibatasi, seperti secret untuk lemari kas. Memisahkan jenis ini membantu kita memilih tempat penyimpanan yang sesuai.</p>
+        <details class="istilah">
+          <summary>Contoh e-commerce</summary>
+          <p>Toko online memakai satu resep code untuk semua cabang. Config menentukan alamat layanan pembayaran, jam buka, dan nama cabang. Resep tetap sama meski catatan tiap lokasi berbeda.</p>
+        </details>
+        <details class="istilah">
+          <summary>Jenis config</summary>
+          <p>Config biasa berisi nama aplikasi, port, atau jam buka. Config rahasia berisi password, token, atau secret. Keduanya sama-sama dibutuhkan program, tetapi aksesnya tidak sama.</p>
+        </details>
+        <details class="istilah">
+          <summary>Sumber config</summary>
+          <p>Sumber config adalah tempat program membaca catatan saat mulai. Satu sumber pusat lebih mudah diperiksa daripada banyak tempelan acak. Perubahan juga dapat dicatat dan ditinjau.</p>
+        </details>
+        <details class="istilah">
+          <summary>Per lingkungan</summary>
+          <p>Environment latihan dapat memakai alamat pemasok palsu. Environment uji coba memakai layanan pengujian. Gedung asli memakai alamat dan layanan produksi. Resep tetap sama, catatan lokasinya yang berubah.</p>
+        </details>
+        <p>Keamanan dimulai dari tempat penyimpanan. Kunci lemari kas tidak pernah ditulis di papan umum. Secret tidak boleh masuk ke code, catatan bersama, atau log yang dapat dibaca semua orang.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/14-config/03-kunci.png" width="1672" height="941" loading="lazy" alt="Kuka menyimpan kunci ke dalam kotak kecil tertutup dengan papan tempelan kosong dari kunci di belakangnya.">
+          <figcaption>Kunci disimpan tertutup.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Menjaga secret</summary>
+          <p>Simpan secret di tempat yang aksesnya terbatas. Berikan hanya kepada proses dan orang yang membutuhkannya. Jika secret bocor, ganti kuncinya dan periksa jejak pemakaiannya.</p>
+        </details>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur pembacaan config</title>
+            <desc id="alur-svg-desc">Kode mulai, membaca config dari sumber pusat, membaca config rahasia dari kotak kunci, menggabungkan keduanya, lalu server berjalan.</desc>
+            <defs>
+              <marker id="alur-arrow-config" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="20" y="150" width="190" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="115" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">kode</text>
+            <text x="115" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">start</text>
+            <rect x="250" y="150" width="220" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="360" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">baca config</text>
+            <text x="360" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">sumber pusat</text>
+            <rect x="510" y="150" width="210" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="615" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="20" font-weight="600">config rahasia</text>
+            <text x="615" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">kotak kunci</text>
+            <rect x="760" y="150" width="170" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="845" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">gabung</text>
+            <text x="845" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">config siap</text>
+            <rect x="970" y="150" width="210" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1075" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">server</text>
+            <text x="1075" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">jalan</text>
+            <path d="M 218 193 L 242 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-config)" />
+            <path d="M 478 193 L 502 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-config)" />
+            <path d="M 728 193 L 752 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-config)" />
+            <path d="M 938 193 L 962 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-config)" />
+            <text x="615" y="305" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">rahasia tetap di kotak kunci</text>
+            <path d="M 615 248 C 615 350 845 370 845 248" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-config)" />
+          </svg>
+        </div>
+        <p>Kode mulai dengan membaca catatan dari sumber pusat. Ia mengambil secret dari kotak kunci, lalu menggabungkan keduanya. Setelah config lengkap, server dapat berjalan.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Resep roti: sama untuk semua cabang
+Cabang A: buka 07.00, pemasok Jalan A
+Cabang B: buka 08.00, pemasok Jalan B
+Cabang C: buka 06.00, pemasok Jalan C</pre>
+        </div>
+        <p>Kartu pos ini membawa satu resep dan tiga catatan cabang. Resep tidak berubah saat alamat pemasok atau jam buka berubah. Itulah batas sederhana antara code dan config.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Pisahkan resep (code) dari catatan lokasi (config).</li>
+          <li>Simpan config pada sumber pusat agar perubahan mudah dilacak.</li>
+          <li>Bedakan config biasa yang boleh terbuka dari secret yang harus tertutup.</li>
+          <li>Gunakan catatan berbeda untuk setiap environment tanpa mengganti resep.</li>
+          <li>Jangan menempelkan secret di papan umum, code, atau log.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Kenapa resep (code) dan catatan lokasi (config) harus dipisah?</li>
+          <li>Apa beda catatan yang boleh terbuka dan kunci lemari kas (secret)?</li>
+          <li>Apa akibatnya kalau kunci lemari kas ditempel di papan umum?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas cara mengelola config dalam aplikasi dan deployment. Contoh lengkap serta referensi tersedia di sana.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Tantangan sistem terdistribusi</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Contoh kode</a></li>
+          <li><a href="../html_notes/notes.html">Bacaan lanjutan dan dokumentasi</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 14 / Production-grade Configuration Management. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
