@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tutup pintu setelah tamu selesai. / Bab 16 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 16 tentang graceful shutdown untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 16 / VERSI SEDERHANA</p>
+      <h1>Tutup pintu setelah tamu selesai.</h1>
+      <p class="lede">Kuka menjaga restoran saat backend harus berhenti. <strong>graceful shutdown</strong> membuat server menutup pintu dengan tertib, bukan mengusir semua tamu di tengah makan.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>Karakter: Kuka</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Server kadang perlu berhenti untuk deployment, pindah mesin, atau perawatan. Saat itu, request mungkin masih berjalan. Jika server dimatikan mendadak, pekerjaan bisa terpotong dan hasilnya tidak jelas.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka melihat satu tamu sedang membayar. Lampu yang langsung dimatikan bisa meninggalkan pembayaran tanpa kepastian. Restoran perlu memberi waktu sebelum benar-benar tutup.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Restoran memasang papan "tutup sebentar lagi" di pintu. Tamu baru tidak masuk. Tamu yang sudah duduk tetap menyelesaikan makanan dan membayar.</p>
+        <p>Setelah meja kosong, pelayan mencuci piring dan merapikan dapur. Baru kemudian lampu dimatikan dan pintu dikunci. Proses ini disebut connection <strong>draining</strong>.</p>
+        <details class="istilah">
+          <summary>Peta istilah restoran</summary>
+          <p>Restoran adalah backend. Tamu lama adalah request yang sedang berjalan. Papan tutup menandai bahwa request baru tidak diterima. Meja yang dikosongkan menggambarkan connection draining. Panci, koneksi, dan file adalah resource yang harus dibereskan.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/16-shutdown/01-papan.png" width="1672" height="941" alt="Kuka memasang papan tutup di pintu restoran sementara tamu di dalam masih dilayani pelayan.">
+          <figcaption>Papan tutup dipasang.</figcaption>
+        </figure>
+        <p>Papan di pintu memberi tanda yang jelas. Restoran tidak menerima pekerjaan baru, tetapi tetap menghormati pekerjaan yang sudah dimulai.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>Graceful shutdown adalah urutan menutup server dengan aman. Server menerima tanda berhenti, menghentikan penerimaan request baru, menyelesaikan pekerjaan yang ada, lalu membersihkan resource.</p>
+        <p>Connection draining menjaga request yang sudah masuk agar punya kesempatan selesai. Server tidak menambah antrean baru. Ia menunggu koneksi yang masih aktif sampai selesai atau sampai batas waktu yang sudah ditentukan.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/16-shutdown/02-draining.png" width="1672" height="941" loading="lazy" alt="Dua meja tamu masih memiliki piring, pelayan membawa piring terakhir, dan pintu restoran tertutup setengah.">
+          <figcaption>Tamu lama dituntaskan.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Siklus hidup proses</summary>
+          <p>Proses punya awal, masa berjalan, dan akhir. Saat akhir dipersiapkan, aplikasi bisa menyelesaikan tugasnya lebih dulu. Urutan ini membuat perpindahan antar proses lebih mudah dikendalikan.</p>
+        </details>
+        <details class="istilah">
+          <summary>Signal</summary>
+          <p>Signal adalah tanda dari sistem operasi atau proses lain. SIGTERM biasanya meminta aplikasi berhenti dengan sopan. SIGINT sering datang saat developer menekan Ctrl+C. SIGKILL memaksa proses berhenti dan tidak memberi waktu untuk cleanup.</p>
+        </details>
+        <p>Resource adalah sesuatu yang dipakai selama server berjalan. Contohnya koneksi database, koneksi jaringan, file handle, cache, dan file sementara. Semuanya perlu ditutup atau dilepaskan sebelum proses keluar.</p>
+        <details class="istilah">
+          <summary>Pembersihan resource</summary>
+          <p>Server menutup koneksi database, menyelesaikan penulisan, menghapus file sementara, dan menghentikan pekerjaan latar belakang. Pembersihan mencegah resource tertinggal dan membantu proses berikutnya mulai dari keadaan yang rapi.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/16-shutdown/03-beres-beres.png" width="1672" height="941" loading="lazy" alt="Kuka mencuci panci terakhir di bak cuci, sementara rak di sebelahnya sudah kosong dan rapi.">
+          <figcaption>Resource siap ditutup.</figcaption>
+        </figure>
+        <p>Shutdown yang baik tetap punya batas waktu. Jika request tidak selesai dalam batas itu, sistem dapat menghentikannya. Batas ini mencegah server menunggu tanpa akhir.</p>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur graceful shutdown di restoran</title>
+            <desc id="alur-svg-desc">Signal tutup diterima, papan dipasang, tamu baru ditolak, tamu lama dilayani tuntas, resource dibersihkan, lalu pintu dikunci.</desc>
+            <defs>
+              <marker id="alur-arrow-shutdown" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="20" y="150" width="170" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="105" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">Signal tutup</text>
+            <text x="105" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">diterima</text>
+            <rect x="220" y="150" width="170" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="305" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">Papan</text>
+            <text x="305" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">dipasang</text>
+            <rect x="420" y="150" width="170" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="505" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">Tamu baru</text>
+            <text x="505" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">ditolak</text>
+            <rect x="620" y="150" width="170" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="705" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">Tamu lama</text>
+            <text x="705" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">dilayani tuntas</text>
+            <rect x="820" y="150" width="170" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="905" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">Bersih-bersih</text>
+            <text x="905" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">resource</text>
+            <rect x="1020" y="150" width="160" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1100" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">Pintu</text>
+            <text x="1100" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">dikunci</text>
+            <path d="M 198 193 L 212 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-shutdown)" />
+            <path d="M 398 193 L 412 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-shutdown)" />
+            <path d="M 598 193 L 612 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-shutdown)" />
+            <path d="M 798 193 L 812 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-shutdown)" />
+            <path d="M 998 193 L 1012 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-shutdown)" />
+            <text x="600" y="305" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">tutup tanpa memotong kerja</text>
+          </svg>
+        </div>
+        <p>Signal memulai urutan penutupan. Server berhenti menerima tamu baru, menunggu tamu lama selesai, lalu membersihkan resource sebelum pintu dikunci.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>1. Pasang papan tutup.
+2. Tolak tamu baru.
+3. Layani tamu lama.
+4. Bersihkan resource.
+5. Kunci pintu.</pre>
+        </div>
+        <p>Kartu pos ini merangkum cara restoran menutup pintu. Backend mengikuti urutan yang sama agar pekerjaan yang sudah dimulai tidak hilang.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>Graceful shutdown menutup server secara bertahap, bukan mendadak.</li>
+          <li>Server berhenti menerima request baru sebelum proses selesai.</li>
+          <li>Connection draining memberi waktu bagi request yang sedang berjalan untuk tuntas.</li>
+          <li>Signal seperti SIGTERM dan SIGINT dapat memulai urutan penutupan.</li>
+          <li>SIGKILL menghentikan proses tanpa memberi kesempatan cleanup.</li>
+          <li>Resource seperti koneksi database, file handle, dan cache perlu dibereskan.</li>
+          <li>Batas waktu mencegah shutdown menunggu tanpa akhir.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Apa beda matikan lampu langsung dengan tutup secara santun?</li>
+          <li>Kenapa tamu baru ditolak lebih dulu sebelum tamu lama selesai dilayani?</li>
+          <li>Apa yang harus dibersihkan sebelum pintu dikunci?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas implementasi graceful shutdown, penanganan signal, dan batas waktu dengan contoh yang dapat dijalankan.</p>
+        <h3>Belum dibahas di sini</h3>
+        <ul>
+          <li>Kode implementasi ada di <a href="../html_notes/notes.html">versi teknis</a>.</li>
+          <li>Referensi lanjutan ada di <a href="../html_notes/notes.html">versi teknis</a>.</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 16 / Graceful Shutdown. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
