@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="referrer" content="no-referrer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Telepon langsung antar dapur cabang / Bab 13 / Belajar Prinsip-Prinsip Backend</title>
+  <meta name="description" content="Versi sederhana Bab 13 tentang gRPC dan komunikasi antar layanan untuk pembaca yang baru mengenal backend.">
+  <meta name="theme-color" content="#f3ede2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,600&family=Spline+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../assets/sederhana.css">
+</head>
+
+<body>
+  <div class="simple-shell">
+    <header class="hero">
+      <p class="kicker">BAB 13 / VERSI SEDERHANA</p>
+      <h1>Telepon langsung antar dapur cabang.</h1>
+      <p class="lede">Kuka bekerja di dapur cabang A. Saat ia perlu bertanya kepada cabang B, ia bisa mengirim surat atau mengangkat telepon. <strong>gRPC</strong> membuat dua layanan berbicara langsung dengan buku kode yang sama.</p>
+      <div class="meta">
+        <span>Untuk pemula</span>
+        <span>9 bagian</span>
+        <a href="../html_notes/notes.html">Versi Teknis</a>
+      </div>
+    </header>
+
+    <main class="section-list">
+      <section id="masalah" class="simple-section" aria-labelledby="masalah-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">01</span>
+          <h2 id="masalah-title">Masalah sehari-hari</h2>
+        </div>
+        <p>Dua cabang restoran sering perlu bertukar informasi. Cabang A bisa bertanya tentang stok, harga, atau status pesanan di cabang B. Jika pertanyaan itu dikirim sebagai surat berkali-kali, waktu habis untuk menulis, mengirim, dan membaca ulang.</p>
+        <div class="step-card">
+          <span class="step-number">01</span>
+          <div>Kuka melihat antrean pesanan antar cabang. Satu pertanyaan kecil harus pergi dan pulang sebelum koki bisa mulai bekerja. Ia membutuhkan percakapan yang cepat dan aturan pesan yang sama.</div>
+        </div>
+      </section>
+
+      <section id="analogi" class="simple-section" aria-labelledby="analogi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">02</span>
+          <h2 id="analogi-title">Analogi Kuka</h2>
+        </div>
+        <p>Kuka mengangkat telepon meja di cabang A. Ia berbicara langsung dengan dapur cabang B, bukan menitipkan surat kepada kurir. Permintaannya mengikuti buku kode yang sudah disepakati kedua cabang.</p>
+        <p>Di buku itu ada nama pesanan, bentuk isinya, dan jawaban yang boleh dikirim. Karena kedua dapur memakai buku yang sama, mereka tidak perlu menebak arti setiap pesan.</p>
+        <details class="istilah">
+          <summary>Peta istilah telepon</summary>
+          <p>Telepon langsung adalah gRPC. Buku kode adalah protobuf. Dapur yang menerima panggilan adalah server. Dapur yang menelepon adalah client. Saluran telepon adalah channel. Cara memanggil pesanan adalah stub. Percakapan yang punya satu tanya dan satu jawab disebut unary.</p>
+        </details>
+      </section>
+
+      <section id="ilustrasi" class="simple-section" aria-labelledby="ilustrasi-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">03</span>
+          <h2 id="ilustrasi-title">Ilustrasi</h2>
+        </div>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/13-grpc/01-telepon.png" width="1672" height="941" alt="Kuka berbicara lewat telepon meja di dapur cabang kiri, terhubung garis lurus ke dapur cabang kanan, dengan buku kode terbuka di meja.">
+          <figcaption>Telepon antar dapur cabang.</figcaption>
+        </figure>
+        <p>gRPC cocok saat banyak layanan internal perlu bertanya dan menjawab dengan cepat. Hubungan ini tetap membutuhkan aturan. Telepon yang cepat tidak membantu jika satu cabang memakai arti kata yang berbeda.</p>
+      </section>
+
+      <section id="konsep" class="simple-section" aria-labelledby="konsep-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">04</span>
+          <h2 id="konsep-title">Penjelasan konsep</h2>
+        </div>
+        <p>gRPC adalah cara bagi satu service untuk memanggil operasi milik service lain melalui jaringan. Bagi pemanggil, rasanya seperti memanggil fungsi biasa. Di balik layar, pesan pergi ke server lain, diproses, lalu hasilnya kembali.</p>
+        <p>gRPC ada karena komunikasi antar layanan bisa sangat sering. Format pesan yang ringkas dan saluran yang dapat dipakai berulang membantu mengurangi pekerjaan bolak-balik. Ini berguna di dalam sistem yang memiliki banyak service dan banyak panggilan kecil.</p>
+        <p>Model mentalnya sederhana. Client punya tujuan dan permintaan. Server menerima panggilan, menjalankan pekerjaan, lalu mengirim jawaban atau status gagal. Kedua sisi tetap terpisah, tetapi cara bicara mereka dibuat jelas.</p>
+        <p><strong>protobuf</strong> adalah format pesan sekaligus kontrak. Kontrak ini mendeskripsikan nama service, nama operasi, data permintaan, dan data jawaban. Kedua cabang membaca definisi yang sama, sehingga bentuk pesan tidak berubah secara diam-diam.</p>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/13-grpc/02-protokol.png" width="1672" height="941" loading="lazy" alt="Dua buku kode bersampul identik terbuka di dua meja dapur yang saling berhadapan.">
+          <figcaption>Dua cabang, satu kontrak.</figcaption>
+        </figure>
+        <p>Dalam panggilan <strong>unary</strong>, client mengirim satu permintaan dan server mengirim satu jawaban. Polanya cocok untuk pertanyaan stok sederhana. Kedua sisi tahu kapan percakapan dimulai dan kapan selesai.</p>
+        <details class="istilah">
+          <summary>Cara protobuf meng-encode</summary>
+          <p>Isi pesan diubah menjadi bentuk biner yang padat sebelum dikirim. Bentuk ini lebih hemat daripada teks panjang untuk banyak jenis data. Client dan server dapat membacanya karena keduanya mengikuti kontrak protobuf yang sama.</p>
+        </details>
+        <details class="istilah">
+          <summary>HTTP/2 di bawahnya</summary>
+          <p>gRPC umumnya memakai HTTP/2 sebagai jalur transport. Satu koneksi dapat membawa beberapa panggilan tanpa membuka jalur baru untuk setiap pesan. Ibaratnya satu kabel telepon bisa membawa banyak percakapan yang diatur rapi.</p>
+        </details>
+        <details class="istilah">
+          <summary>Streaming server dan client</summary>
+          <p><strong>streaming</strong> mengirim pesan secara bertahap. Pada server streaming, client mengirim satu permintaan lalu server mengirim daftar jawaban sedikit demi sedikit. Pada client streaming, client mengirim banyak pesan lalu server memberi satu hasil setelah semuanya diterima.</p>
+        </details>
+        <details class="istilah">
+          <summary>Channel dan stub</summary>
+          <p>Channel adalah sambungan menuju server. Stub adalah pemanggil yang sudah dibentuk dari kontrak service. Client memakai stub melalui channel, jadi kode aplikasi tidak perlu mengatur setiap detail pengiriman sendiri.</p>
+        </details>
+        <details class="istilah">
+          <summary>Metadata, deadline, dan pembatalan</summary>
+          <p>Metadata adalah informasi tambahan yang ikut bersama panggilan, seperti identitas atau token. Deadline menetapkan batas waktu. Jika waktu habis, panggilan dibatalkan agar client tidak menunggu selamanya.</p>
+        </details>
+        <figure class="ilustrasi">
+          <img src="../../assets/illustrations/13-grpc/03-deadline.png" width="1672" height="941" loading="lazy" alt="Kuka menelepon sambil menunjuk jam dinding besar, sementara pasir di jam pasir terus menipis.">
+          <figcaption>Batas waktu tetap terlihat.</figcaption>
+        </figure>
+        <details class="istilah">
+          <summary>Status code dan error</summary>
+          <p>Server tidak hanya mengirim jawaban. Ia juga mengirim status code standar, misalnya tidak ditemukan, tidak diizinkan, atau gagal sementara. Client membaca status itu dan memilih apakah perlu memberi pesan, mencoba lagi, atau berhenti.</p>
+        </details>
+        <details class="istilah">
+          <summary>Interceptor</summary>
+          <p>Interceptor adalah pemeriksa yang dilewati panggilan sebelum atau sesudah handler berjalan. Ia dapat mencatat waktu, menambahkan metadata, atau memeriksa aturan bersama. Fungsinya mirip middleware di jalur telepon.</p>
+        </details>
+        <details class="istilah">
+          <summary>Autentikasi dan keamanan</summary>
+          <p>Tidak semua cabang boleh menelepon. Autentikasi memeriksa identitas client, lalu aturan akses menentukan operasi yang boleh dipakai. Sambungan juga perlu dilindungi agar pesan tidak mudah dibaca atau diubah di tengah jalan.</p>
+        </details>
+        <details class="istilah">
+          <summary>gRPC dibanding REST</summary>
+          <p>REST sering memakai HTTP dan format JSON yang mudah dibaca banyak jenis client, termasuk browser. gRPC menawarkan kontrak ketat, pesan biner yang ringkas, dan pola streaming untuk komunikasi internal. Pilihan bergantung pada siapa pemanggilnya dan kebutuhan sistem.</p>
+        </details>
+      </section>
+
+      <section id="alur" class="simple-section" aria-labelledby="alur-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">05</span>
+          <h2 id="alur-title">Diagram alur</h2>
+        </div>
+        <div class="flow-diagram">
+          <svg style="grid-column: 1 / -1; width: 100%; height: auto;" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="alur-svg-title alur-svg-desc">
+            <title id="alur-svg-title">Alur telepon gRPC antar cabang</title>
+            <desc id="alur-svg-desc">Cabang A mengangkat telepon, buku kode dicek, pesan padat melewati satu jalur, cabang B membaca buku kode yang sama, lalu jawaban dikirim kembali.</desc>
+            <defs>
+              <marker id="alur-arrow-grpc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#E68A3C" stroke="#1A1A1A" />
+              </marker>
+            </defs>
+            <rect x="28" y="150" width="194" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="125" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">Cabang A</text>
+            <text x="125" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">angkat telepon</text>
+            <rect x="270" y="150" width="194" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="367" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">Buku kode</text>
+            <text x="367" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">dicek</text>
+            <rect x="512" y="150" width="194" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="609" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">Satu jalur</text>
+            <text x="609" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">pesan padat</text>
+            <rect x="754" y="150" width="194" height="86" rx="14" fill="#ece3d4" stroke="#1A1A1A" stroke-width="3" />
+            <text x="851" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">Cabang B</text>
+            <text x="851" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">baca kode sama</text>
+            <rect x="996" y="150" width="176" height="86" rx="14" fill="#f3ede2" stroke="#1A1A1A" stroke-width="3" />
+            <text x="1084" y="187" text-anchor="middle" fill="#1A1A1A" font-family="Spline Sans, sans-serif" font-size="21" font-weight="600">Jawaban</text>
+            <text x="1084" y="213" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="15" font-weight="700">balik</text>
+            <path d="M 230 193 L 262 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-grpc)" />
+            <path d="M 472 193 L 504 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-grpc)" />
+            <path d="M 714 193 L 746 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-grpc)" />
+            <path d="M 958 193 L 988 193" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-grpc)" />
+            <text x="600" y="305" text-anchor="middle" fill="#E68A3C" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700">permintaan dan jawaban mengikuti kontrak</text>
+            <path d="M 1084 248 C 1084 350 730 380 125 248" fill="none" stroke="#1A1A1A" stroke-width="3" marker-end="url(#alur-arrow-grpc)" />
+          </svg>
+        </div>
+        <p>Cabang A memulai panggilan dan memeriksa buku kode. Pesan padat melewati satu jalur menuju cabang B. Cabang B memakai kode yang sama, lalu mengirim jawaban kembali melalui jalur itu.</p>
+      </section>
+
+      <section id="contoh" class="simple-section" aria-labelledby="contoh-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">06</span>
+          <h2 id="contoh-title">Contoh mini</h2>
+        </div>
+        <div class="step-card">
+          <span class="step-number">06</span>
+          <pre>Tanya, Kuka: Berapa stok gula di cabang B?
+Jawab, cabang B: 50 kg.
+Kuka: Diterima, terima kasih.</pre>
+        </div>
+        <p>Kartu pos ini pendek karena kedua cabang sudah tahu bentuk pertanyaannya. Dalam gRPC, kontrak protobuf membantu pesan seperti ini dibaca dengan cara yang sama oleh kedua service.</p>
+      </section>
+
+      <section id="ringkasan" class="simple-section" aria-labelledby="ringkasan-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">07</span>
+          <h2 id="ringkasan-title">Ringkasan</h2>
+        </div>
+        <ul>
+          <li>gRPC membuat satu service dapat memanggil operasi di service lain melalui jaringan.</li>
+          <li>Komunikasi langsung membantu layanan internal bertukar banyak pesan dengan cepat.</li>
+          <li>protobuf menjadi kontrak tentang bentuk permintaan, jawaban, dan operasi yang tersedia.</li>
+          <li>Unary berarti satu permintaan dan satu jawaban.</li>
+          <li>Streaming mengirim banyak pesan secara bertahap dari server atau client.</li>
+          <li>Channel dan stub membantu client memakai sambungan serta operasi yang sudah disiapkan.</li>
+          <li>Metadata, deadline, status code, interceptor, dan autentikasi membuat panggilan lebih terkendali.</li>
+          <li>REST tetap berguna untuk banyak client, sedangkan gRPC sering cocok untuk komunikasi internal antar service.</li>
+        </ul>
+      </section>
+
+      <section id="tanya" class="simple-section" aria-labelledby="tanya-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">08</span>
+          <h2 id="tanya-title">Pertanyaan pemahaman</h2>
+        </div>
+        <ol class="tanya">
+          <li>Apa beda mengangkat telepon (gRPC) dan mengirim surat (REST)?</li>
+          <li>Apa isi buku kode (protobuf) dan kenapa kedua cabang harus memegang yang sama?</li>
+          <li>Apa gunanya batas waktu (deadline) yang dibawa nota?</li>
+        </ol>
+      </section>
+
+      <section id="lanjut" class="simple-section" aria-labelledby="lanjut-title">
+        <div class="sec-head">
+          <span class="sec-num" aria-hidden="true">09</span>
+          <h2 id="lanjut-title">Mau lebih dalam</h2>
+        </div>
+        <p>Versi teknis membahas kontrak service, panggilan antar proses, dan cara menjalankan komunikasi gRPC dengan contoh kode.</p>
+        <h3>Disinggung sekilas</h3>
+        <ul>
+          <li><a href="../html_notes/notes.html">Streaming dua arah</a></li>
+          <li><a href="../html_notes/notes.html">Alur .proto ke kode</a></li>
+          <li><a href="../html_notes/notes.html">Ketahanan dan load balancing</a></li>
+          <li><a href="../html_notes/notes.html">gRPC-Web untuk browser</a></li>
+          <li><a href="../html_notes/notes.html">Observabilitas dan debugging</a></li>
+        </ul>
+        <h3>Belum dibahas di sini</h3>
+        <p>Crib-sheet debug dan setup lengkap ada di <a href="../html_notes/notes.html">versi teknis</a>.</p>
+      </section>
+    </main>
+
+    <footer class="bfp-footer">
+      Belajar Prinsip-Prinsip Backend / Bab 13 / gRPC dan Komunikasi Antar Layanan. <a href="https://www.argakuka.com">www.argakuka.com</a>
+    </footer>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Navigasi bab">
+    <a class="nav-back" href="../../index.html">← Semua bab</a>
+    <a class="nav-indicator" href="../html_notes/notes.html">Versi Teknis</a>
+  </nav>
+
+</body>
+
+</html>
